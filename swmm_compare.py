@@ -5,9 +5,9 @@
 
 
 import math
-import SWMM_Utils as su
-import SWMM_Graphics as sg
-import SWMMIO
+import swmm_utils as su
+import swmm_graphics as sg
+#import SWMMIO
 import os
 from PIL import Image, ImageDraw
 import webbrowser #to open images (seems dumb to have to use this)
@@ -190,10 +190,13 @@ def drawModelComparison(imgName, model1, model2, imgDir=None, bg = su.white,
 	xplier *= width/1024 #scale the symbology sizes
 	width = width*2
 	
-	modelSizeDict = su.convertCoordinatesToPixels(joinedConduits, targetImgW=width)
-	su.convertCoordinatesToPixels(joinedNodes, targetImgW=width)
+	modelSizeDict = su.convertCoordinatesToPixels(joinedConduits, bbox=bbox, targetImgW=width)
+	shiftRatio = modelSizeDict['shiftRatio']
+	
+	su.convertCoordinatesToPixels(joinedNodes, targetImgW=width, bbox=bbox, shiftRatio=shiftRatio)
 	imgSize = modelSizeDict['imgSize']
-	bbox = modelSizeDict['boundingBox']
+	if not bbox:
+		bbox = modelSizeDict['boundingBox']
 	shiftRatio = modelSizeDict['shiftRatio']
 	
 	imgSize = [int(x) for x in imgSize]
@@ -209,7 +212,6 @@ def drawModelComparison(imgName, model1, model2, imgDir=None, bg = su.white,
 		for conduit, conduitData in joinedConduits.iteritems():
 				
 			su.drawConduit(conduit, conduitData, draw, type=conduitSymb, xplier=xplier)	
-				
 			drawCount += 1
 	
 	#DRAW THE NODES
@@ -219,7 +221,7 @@ def drawModelComparison(imgName, model1, model2, imgDir=None, bg = su.white,
 			
 			if ('floodDuration' and 'maxDepth' in nodeDict['proposed']) and ('floodDuration' and 'maxDepth' in nodeDict['existing']): 
 				#this prevents draws if no flow is supplied (RDII and such)
-				su.drawNode(node, nodeDict, draw, rpt=None, dTime=None, type='flood', xplier=xplier)
+				su.drawNode(node, nodeDict, draw, rpt=None, dTime=None, type=nodeSymb, xplier=xplier)
 				drawCount += 1
 	
 	su.drawAnnotation (draw, model2.inp, imgWidth=width, title=title, objects=[model1.rpt, model2.rpt], symbologyType=conduitSymb, fill=su.black)	

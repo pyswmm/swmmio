@@ -1,5 +1,6 @@
 #graphical functions for SWMM files
-import SWMMIO
+#import swmmio
+import swmm_utils as su
 from time import gmtime, strftime
 import re
 import os
@@ -12,7 +13,7 @@ import math
 import datetime
 from datetime import timedelta
 import pickle
-import SWMM_Utils as su
+
 
 def saveImage(img, model, imgName, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
@@ -84,10 +85,6 @@ def drawBasemap(draw, hydropolyDict=None, parksDict=None, shedsDict=None, bbox=N
 	
 	#print 'poly draw count = ', polyDrawCount
 	
-
-def drawTrace(imgName, model, startNode, width = 1024, xplier = 1):
-	
-	upstreamElements = su.traceUpstream(model, startNode)
 	
 
 defaultDrawOptions = {
@@ -98,9 +95,9 @@ defaultDrawOptions = {
 				'bg':su.white,
 				'xplier':1,
 				'focusConduits':None,
-				'traceUpNode':None
+				'traceUpNode':None,
+				'fps':7.5
 			}
-	
 #def drawModel (imgName, model, width = 1024, xplier = 1, bbox = None, proposedID=None, 
 #						conduitSymb="flow", nodeSymb='flood', basemap=True, bg = su.white):
 def drawModel (imgName, model, bbox=None, options={}):	
@@ -116,7 +113,6 @@ def drawModel (imgName, model, bbox=None, options={}):
 	xplier = 		ops['xplier']
 	focusConduits =	ops['focusConduits']
 	traceUpNode =	ops['traceUpNode']
-	subset = None
 	
 	if traceUpNode:
 		#return list of elements upstream of node
@@ -133,7 +129,7 @@ def drawModel (imgName, model, bbox=None, options={}):
 	rpt = model.rpt
 	
 	#organize relavant data from SWMM files
-	conduitData = model.organizeConduitData(bbox, subset=subset) #dictionary of overall model data, dimension, and the conduit dicts
+	conduitData = model.organizeConduitData(bbox) #dictionary of overall model data, dimension, and the conduit dicts
 	conduitDicts = conduitData['conduitDictionaries']
 	pixelData = su.convertCoordinatesToPixels(conduitDicts, targetImgW=width, bbox=bbox)
 	shiftRatio = pixelData['shiftRatio']
@@ -184,10 +180,18 @@ def drawModel (imgName, model, bbox=None, options={}):
 	saveImage(img, model, imgName)
 	
 
-def animateModel(imgName, model, startDtime=None, endDtime=None, width = 1024, 
-						xplier = 0.3, bbox = None, conduitSymb="flow", nodeSymb='flood', basemap=True, 
-						bg = su.white, detail=False, symbologyType="flow", fps=7.5):
-		
+def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, options={}):	
+	
+	#unpack the options
+	ops = defaultDrawOptions
+	ops.update(options) #update with any changes from user'
+	width = 		ops['width']
+	nodeSymb = 		ops['nodeSymb']
+	conduitSymb = 	ops['conduitSymb']
+	basemap = 		ops['basemap']
+	bg = 			ops['bg']
+	xplier = 		ops['xplier']
+	fps =			ops['fps']
 	
 	#for antialiasing, double size for now
 	xplier *= width/1024 #scale the symbology sizes
@@ -282,22 +286,12 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, width = 1024,
 			for conduit, coordPairDict in conduitDicts.iteritems():
 				#coordPair = coordPairDict['coordinates']
 				if 'maxflow' in coordPairDict: #this prevents draws if no flow is supplied (RDII and such)
-					#try:
 					
-					if not detail:
-						su.drawConduit(conduit, coordPairDict, draw, rpt=rpt, dTime = currentTstr, 
-										xplier = xplier, type=conduitSymb)
-					
-					else:
-						#more detailed drawing (including node data. not fully functional yet)
-						su.drawConduitDetail(conduit, coordPairDict, draw, rpt=rpt, dTime = currentTstr, type=conduitSymb)
+					su.drawConduit(conduit, coordPairDict, draw, rpt=rpt, dTime = currentTstr, 
+									xplier = xplier, type=conduitSymb)
 					
 					drawCount += 1
-					#except:
-					#log += conduit + " at " + currentTstr + " --draw failed\n \tdict = " + str(coordPairDict) + "\n"
-					#conduitErrorCount += 1
-				
-				#if conduitDrawCount > 10: return []
+					
 				if drawCount > 0 and drawCount % 2000 == 0: print str(drawCount) + " pipes drawn - simulation time = " + currentTstr
 		
 		#DRAW THE NODES

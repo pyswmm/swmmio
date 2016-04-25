@@ -1,6 +1,6 @@
 #Utilities and such for SWMMIO processing
 import math
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont
 import os
 import webbrowser
 
@@ -295,7 +295,7 @@ def convertPolygonToPixels(feature, where="SHEDNAME = 'D68-C1'", shiftRatio=None
 	
 	return polyImgDict
 	
-def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None):
+def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None, shiftRatio=None):
 	
 	#adds a dictionary to each conduit or node dict called
 	#'draw_coordinates' which is a two part tuple, xy1, xy2
@@ -332,7 +332,8 @@ def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None):
 	
 	height = float(bbox[1][1]) - float(bbox[0][1])
 	width = float(bbox[1][0]) - float(bbox[0][0])
-	shiftRatio = float(targetImgW / width) # to scale down from coordinate to pixels
+	if not shiftRatio:
+		shiftRatio = float(targetImgW / width) # to scale down from coordinate to pixels
 	
 	print "reg shift ratio = ", shiftRatio
 	for element, elementData in elementDict.iteritems():

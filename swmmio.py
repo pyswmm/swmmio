@@ -1,10 +1,9 @@
-#sys.path.append(r"P:\Tools\Pipe Capacity Graphics\Scripts")
+#sys.path.append(r"P:\Tools\swmmio")
 
 import random
 from time import gmtime, strftime
 import re
 import os
-import SWMMSectionHeaders
 import numpy
 from PIL import Image, ImageDraw, ImageFont
 from images2gif import writeGif
@@ -13,7 +12,8 @@ import math
 import datetime
 from datetime import timedelta
 import pickle
-import SWMM_Utils as su
+import swmm_utils as su
+import swmm_headers
 import glob
 import csv
 
@@ -109,7 +109,7 @@ class model(object):
 			downstreamXY = [float(i) for i in downstreamXY] #convert to floats
 			geom1 = float(xsectionsDict[conduit][1]) #conduit diameter / height 
 			
-			if bbox and (not su.pointIsInBox(bbox, upstreamXY) and not su.pointIsInBox(bbox, downstreamXY)):
+			if bbox and (not su.pointIsInBox(bbox, upstreamXY) or not su.pointIsInBox(bbox, downstreamXY)):
 				#skip conduits who are not within a given boudning box. This includes conduits who are partially in the box. 
 				continue
 			
@@ -369,31 +369,6 @@ class model(object):
 		
 		if openfile:
 			os.startfile(csvfilepath)
-		
-	def exportDict(self, dict, firstid=None, ):
-		
-		
-		if not firstid:
-			firstid = dict.keys()[0]
-		
-		keys = dict[firstid].keys()
-		keys.reverse()
-		keys.append('id')
-		keys.reverse()
-		print  firstid
-		with open(os.path.join(self.inp.dir, "dict.csv"), 'wb') as f:
-			fieldnames = keys
-			writer = csv.DictWriter(f, fieldnames=fieldnames)
-			writer.writeheader()
-			
-			for id, data in dict.iteritems():
-			
-				therowdict = {'id':id}
-				therowdict.update(data)
-				
-				writer.writerow(therowdict)
-			#except:
-			#	pass	#prob rdii
 	
 class SWMMIOFile(object):
 	
@@ -562,7 +537,7 @@ class rpt(SWMMIOFile):
 		self.dateOfAnalysis = date
 		
 		#assign the header list 
-		self.headerList = SWMMSectionHeaders.rptHeaderList
+		self.headerList = swmm_headers.rptHeaderList
 		self.byteLocDict = None #populated if necessary elsewhere (LEGACY, can prob remove)
 		self.elementByteLocations = {"Link Results":{}, "Node Results":{}} #populated if necessary elsewhere
 	
@@ -651,13 +626,12 @@ class inp(SWMMIOFile):
 	#creates an accessible SWMM .inp object
 	#make sure INP has been saved in the GUI before using this 	
 	
-	defaultImageDir = r"P:\Tools\Pipe Capacity Graphics\Scripts\image"
 	def __init__(self, filePath):
 		
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
 		
 		#assign the header list 
-		self.headerList = SWMMSectionHeaders.inpHeaderList
+		self.headerList = swmm_headers.inpHeaderList
 	
 	
 		
