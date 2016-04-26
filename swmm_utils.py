@@ -122,6 +122,10 @@ def traceFromNode(model, startNode, mode='up'):
 	
 	return {'nodes':tracedNodes, 'conduits':tracedConduits}
 
+def randAlphaNum(n=6):
+	import random
+	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	return ''.join(random.choice(chars) for i in range(n))
 	
 def pointIsInBox (bbox, point):
 		

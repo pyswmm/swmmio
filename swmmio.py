@@ -334,7 +334,7 @@ class model(object):
 		
 		return output
 	
-	def exportData(self, fname, type='node', bbox=None, openfile=True):
+	def exportData(self, fname=None, type='node', bbox=None, openfile=True):
 		#exports the organized SWMM data into a csv table
 		
 		#organize the data
@@ -354,6 +354,7 @@ class model(object):
 		keys.append('id')
 		keys.reverse() #reverse to append the id key to the front of the keys list
 		
+		if not fname: fname = self.inp.name + "_" + type + 's_' + su.randAlphaNum(5)
 		csvfilepath = os.path.join(self.inp.dir, fname) + '.csv'
 		with open(csvfilepath, 'wb') as file:
 			fieldnames = keys
