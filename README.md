@@ -9,7 +9,7 @@ SWMMIO functions by processing .inp and .rpt (input and report) files produced b
 ###Usage:
 
 
-In IDLE, add the diretcory holding the SWMMIO python scripts to your sys.path variable and import the modules:
+In IDLE, add the directory holding the SWMMIO python scripts to your sys.path variable and import the modules:
 ```
 import sys
 sys.path.append('/path/to/swmmio/directory')
@@ -19,7 +19,7 @@ import swmm_utils as su
 import swmm_compare as scomp
 
 ```
-Intantiate some model objects by pointing SWMMIO to a directory containing a model's .inp and .rpt files:
+Instantiate  some model objects by pointing SWMMIO to a directory containing a model's .inp and .rpt files:
 ```
 model_a = swmmio.model('/directory containing .inp and .rpt files')
 model_b = swmmio.model('/other directory containing .inp and .rpt files')
@@ -33,11 +33,13 @@ sg.drawModel("FileName", model_a)
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.
 ```
-sg.animateModel("AnimationFileName", model_a, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
+sg.animateModel("AnimationFileName", model_a, 
+				startDtime='JAN-01-1990 11:59:00', 
+				endDtime='JAN-01-1990 12:01:00')
 ```
 
-Generate a comparison report showing changes in node flooding between two models. Preseumably, the models
-will represent a baseline model compared to a flood miigation alternative.
+Generate a comparison report showing changes in node flooding between two models. Presumably, the models
+will represent a baseline model compared to a flood mitigation alternative.
 ``` 
 scomp.comparisonReport(model_a, model_b)
 ```
