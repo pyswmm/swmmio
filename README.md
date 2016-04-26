@@ -4,7 +4,10 @@ SWMMIO is a set of python tools for interacting with and visualizing results fro
 
 
 ### Prerequisites
-SWMMIO functions by processing .inp and .rpt (input and report) files produced by EPA SWMM5. In order for these tools for work properly, an associated pair of .inp and .rpt files should be located within the same directory. SWMMIO (I think) relies only on pre-installed Python 2.7 libraries. Images2Gif was copied within this project and one line was edited to work herein (I need to dig to remember which). 
+SWMMIO functions by processing .inp and .rpt (input and report) files produced by EPA SWMM5. 
+In order for these tools for work properly, an associated pair of .inp and .rpt files should be located within the same 
+directory. SWMMIO (I think) relies only on pre-installed Python 2.7 libraries. To show optionally show basemap data, arcpy is required.
+Images2Gif was copied within this project and one line was edited to work herein (I need to dig to remember which). 
 
 ###Usage:
 

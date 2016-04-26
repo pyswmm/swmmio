@@ -179,7 +179,7 @@ def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
 	
 	os.startfile(outFile)
 	
-def drawModelComparison(imgName, model1, model2, bbox=None, options={}):
+def drawModelComparison(model1, model2, imgName=None, bbox=None, options={}):
 	
 	ops = sg.defaultDrawOptions.copy()
 	ops.update(options) #update with any changes from user'
@@ -211,7 +211,7 @@ def drawModelComparison(imgName, model1, model2, bbox=None, options={}):
 	draw = ImageDraw.Draw(img) 
 	
 	if basemap:
-		sg.drawBasemap(draw, width=width, bbox=bbox, shiftRatio=shiftRatio)
+		sg.drawBasemap(draw, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio)
 	
 	drawCount = 0
 	#DRAW THE CONDUITS

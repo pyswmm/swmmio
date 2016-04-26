@@ -269,12 +269,12 @@ def subsetConduitsInBoundingBox(conduitsDict, boundingBox):
 	
 	return 	newDict
 
-def convertPolygonToPixels(feature, where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+def convertPolygonToPixels(feature, where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import json
-	
 	import arcpy
-	features = os.path.join(geodb, feature)
+	
+	features = os.path.join(gdb, feature)
 	polygons = {}
 	for row in arcpy.da.SearchCursor(features, ["OBJECTID", "SHAPE@"], where_clause=where):
 		try:
@@ -684,7 +684,7 @@ def drawAnnotation (canvas, inp, rpt=None, imgWidth=1024, title=None, currentTst
 	annos = '\n'.join(filter(None, [description, path]))
 	
 	titleTxt = inp.name #inp name if no title provided
-	if symbologyType:
+	if symbologyType and symbologyType in symbology_defs:
 		titleTxt = symbology_defs[symbologyType]['title'] + ": " + inp.name
 		#if title: 
 		#	titleTxt = title + " - " + titleTxt

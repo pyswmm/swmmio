@@ -15,10 +15,14 @@ from datetime import timedelta
 import pickle
 
 
-def saveImage(img, model, imgName, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
+def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
 	#get the size from the Image object
 	imgSize = (img.getbbox()[2], img.getbbox()[3])
+	
+	#if imgName not specified, define as model name
+	if not imgName:
+		imgName = model.inp.name
 	
 	#create the saving location as necessary
 	if not imgDir:
@@ -48,7 +52,7 @@ def saveImage(img, model, imgName, imgDir=None, antialias=True, open=True, fileE
 	if open:
 		os.startfile(newFile)
 	
-def drawPolygons(imgName, width = 1024, feature="Model_Sheds", where="SHEDNAME = 'D68-C1'"):
+def drawPolygons(imgName=None, width = 1024, feature="Model_Sheds", where="SHEDNAME = 'D68-C1'"):
 	#antialias X2
 	#width = width*2
 	
@@ -60,35 +64,84 @@ def drawPolygons(imgName, width = 1024, feature="Model_Sheds", where="SHEDNAME =
 		draw.polygon(polyData['draw_coordinates'], fill=(100, 4,150))
 		
 	saveImage(img, None, imgName, imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
-	
-def drawBasemap(draw, hydropolyDict=None, parksDict=None, shedsDict=None, bbox=None, shiftRatio=None, width=1024, fill=(130,130,130)):
-	
-	if not hydropolyDict or not parksDict:
-		hydropolyDict = su.convertPolygonToPixels('HydroPolyTrim', bbox=bbox, targetImgW=width, where=None, shiftRatio=shiftRatio)
-		parksDict = su.convertPolygonToPixels('PhiladelphiaParks', bbox=bbox, targetImgW=width, where=None, shiftRatio=shiftRatio)
-		#shedsDict = su.convertPolygonToPixels('Model_Sheds', bbox=bbox, targetImgW=width, where="OBJECTID = 2414", shiftRatio=shiftRatio)
-	polyDrawCount = 0
-	for poly, polyData in hydropolyDict['polygons'].iteritems():
-		draw.polygon(polyData['draw_coordinates'], fill=(130,130,130))
-		polyDrawCount += 1
-	
-	for poly, polyData in parksDict['polygons'].iteritems():
-		draw.polygon(polyData['draw_coordinates'], fill=(115,178,115))
-		polyDrawCount += 1
-	
-	#for poly, polyData in shedsDict['polygons'].iteritems():
-	#	draw.polygon(polyData['draw_coordinates'], fill=(115,178,115))
-	#	polyDrawCount += 1
-	
-	#print 'poly draw count = ', polyDrawCount
-	
-	
 
+	
+def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
+
+	#create dictionary containing draw coordinate data for the given basemap options
+	
+	#unpack the options
+	basemapDicts = basemapOptions.copy() #copy to not mutate the defaults in a session
+	basemapDicts.update(options) #update with any changes from user'
+	gdb = basemapDicts['gdb']
+	features = basemapDicts['features']
+	
+	import arcpy
+	if arcpy.Exists(gdb):
+		#if the gdb exists, then we can move forward
+		for feature, data in features.iteritems():
+			
+			if arcpy.Exists(os.path.join(gdb, feature)):
+				#featureDict = data['featureDict']
+				#if not featureDict:
+				#this check so that we don't repeat this heavy op over an over
+				featureDict = su.convertPolygonToPixels(feature, bbox=bbox, targetImgW=width, where=None, 
+														shiftRatio=shiftRatio, gdb=gdb)
+						
+						
+				data.update({'featureDict':featureDict}) #retain this for later if necessary
+			else:
+				print '{} not found'.format(feature)
+	else:
+		print '{} not found'.format(gdb) 
+		return None		
+	
+	return basemapDicts
+	
+	
+def drawBasemap(draw, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024):
+	
+	#unpack the options
+	#ops = basemapOptions.copy() #copy to not mutate the defaults in a session
+	#ops.update(options) #update with any changes from user'
+	#gdb = ops['gdb']
+	#features = ops['features']
+	
+	if not featureDicts:
+		#generate the dict containing drawable data
+		featureDicts = createFeaturesDict(options,  bbox=bbox, shiftRatio=shiftRatio, width=width) #will return None if probs finding data
+		
+	if featureDicts:
+		features = featureDicts['features']
+			
+		polyDrawCount = 0
+		for feature, data in features.iteritems():
+			featureDict = data['featureDict']
+			for poly, polyData in featureDict['polygons'].iteritems():
+				draw.polygon(polyData['draw_coordinates'], fill=data['fill'])
+				polyDrawCount += 1
+	
+	
+	
+basemapOptions = {
+				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
+				'features':{
+					'HydroPolyTrim':{
+						'fill':(130,130,130),
+						'featureDict':None
+						},
+					'PhiladelphiaParks':{
+						'fill':(115,178,115),
+						'featureDict':None
+						}
+					},
+					
+				}
 defaultDrawOptions = {
 				'width':1024,
 				'nodeSymb':'flood',
 				'conduitSymb':'stress',
-				'basemap':True,
+				'basemap':basemapOptions,
 				'bg':su.white,
 				'xplier':1,
 				'focusConduits':[],
@@ -99,7 +152,7 @@ defaultDrawOptions = {
 			}
 #def drawModel (imgName, model, width = 1024, xplier = 1, bbox = None, proposedID=None, 
 #						conduitSymb="flow", nodeSymb='flood', basemap=True, bg = su.white):
-def drawModel (imgName, model, bbox=None, options={}):	
+def drawModel (model, imgName=None, bbox=None, options={}):	
 	
 	#unpack the options
 	ops = defaultDrawOptions.copy() #copy to not mutate the defaults in a session
@@ -153,7 +206,7 @@ def drawModel (imgName, model, bbox=None, options={}):
 	draw = ImageDraw.Draw(img)
 	
 	if basemap:
-		drawBasemap(draw, width=width, bbox=bbox, shiftRatio=shiftRatio)
+		drawBasemap(draw, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio)
 	drawCount = 0
 	
 	#DRAW THE CONDUITS
@@ -179,13 +232,13 @@ def drawModel (imgName, model, bbox=None, options={}):
 	print "drawCount = " + str(drawCount)
 	
 	su.drawAnnotation (draw, inp, rpt, imgWidth=width, title=None, symbologyType=conduitSymb, fill=su.black, xplier=xplier)
-	del draw
+	del draw, ops
 	
 	#SAVE IMAGE TO DISK
 	saveImage(img, model, imgName)
 	
 
-def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, options={}):	
+def animateModel(model, imgName=None, startDtime=None, endDtime=None, bbox=None, options={}):	
 	
 	#unpack the options
 	ops = defaultDrawOptions.copy()
@@ -216,10 +269,6 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, opti
 	nodeData = model.organizeNodeData(bbox)
 	nodeDicts = nodeData['nodeDictionaries']
 	su.convertCoordinatesToPixels(nodeDicts, targetImgW=width, bbox=bbox)
-	
-	#basemap stuff
-	hydropolyDict = su.convertPolygonToPixels('HydroPolyTrim', bbox=bbox, targetImgW=width, where=None, shiftRatio=shiftRatio)
-	parksDict = su.convertPolygonToPixels('PhiladelphiaParks', bbox=bbox, targetImgW=width, where=None, shiftRatio=shiftRatio)
 	
 	#grab start and end simulation time if no range provided -> this will be huge if you're not careful!
 	if not startDtime: startDtime = rpt.simulationStart
@@ -274,7 +323,7 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, opti
 	conduitErrorCount = 0
 	print "conduitSymb = " + conduitSymb
 	font = ImageFont.truetype(su.fontFile, 30)
-	
+	basemapFeatureDicts = createFeaturesDict(options=basemap,  bbox=bbox, shiftRatio=shiftRatio, width=width) #will be populated after first frame is produced
 	while currentT <= endDtime:
 		
 		img = Image.new('RGB', imgSize, bg) 
@@ -284,8 +333,8 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, opti
 		
 		#DRAW THE BASEMAP
 		if basemap:
-			drawBasemap(draw, hydropolyDict=hydropolyDict, parksDict=parksDict,  bbox=bbox, shiftRatio=shiftRatio, width=width)
-		
+			drawBasemap(draw, featureDicts=basemapFeatureDicts)
+			
 		#DRAW THE CONDUITS
 		if conduitSymb:
 			for conduit, coordPairDict in conduitDicts.iteritems():
@@ -325,6 +374,7 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, opti
 		frames.append(Image.open(imgPath))
 	
 	print "building gif with " + str(len(glob.glob1(tempImgDir, "*.png"))) + " frames..."
+	if not imgName: imgName = inp.name
 	gifFile = os.path.join(imgDir, imgName) + ".gif" 
 	frameDuration = 1.0 / float(fps)
 	writeGif(gifFile, frames, duration=frameDuration)
@@ -340,7 +390,7 @@ def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, opti
 	
 	os.startfile(gifFile)#this doesn't seem to work
 	
-def drawProfile (imgName, model, imgDir=None, width = 1024, height=512, drawSizeMultiplier = .01, 
+def drawProfile (model, imgName=None, imgDir=None, width = 1024, height=512, drawSizeMultiplier = .01, 
 				bgroundColor=(0,3,18), bbox = None, conduitSubset = None, extraData=None):
 		
 	
@@ -456,4 +506,4 @@ def drawProfile (imgName, model, imgDir=None, width = 1024, height=512, drawSize
 	
 	img.save(newFile)
 	os.startfile(newFile)
-	#return conduiteElevationDicts
+	#return conduiteElevationDictss
