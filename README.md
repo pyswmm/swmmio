@@ -15,7 +15,7 @@ Images2Gif was copied within this project and one line was edited to work herein
 In IDLE, add the directory holding the SWMMIO python scripts to your sys.path variable and import the modules:
 ```
 import sys
-sys.path.append('/path/to/swmmio/directory')
+sys.path.append('/path/to/swmmio directory')
 import swmmio
 import swmm_graphics as sg
 import swmm_utils as su
@@ -24,8 +24,8 @@ import swmm_compare as scomp
 ```
 Instantiate  some model objects by pointing SWMMIO to a directory containing a model's .inp and .rpt files:
 ```
-model_a = swmmio.model('/directory containing .inp and .rpt files')
-model_b = swmmio.model('/other directory containing .inp and .rpt files')
+model_a = swmmio.model('/path/to/directory with swmm files')
+model_b = swmmio.model('/path/to/other/directory with swmm files')
 ```
 
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized. 
@@ -52,9 +52,7 @@ Create visualization of the impact of a given alternative with respect to the ba
 scomp.drawModelComparison("imageFileName", model_a, model_b, options={'conduitSymb':'compare_hgl'})
 ```
 
-Exporting organized data collected from the inp and rpt files as follows. By default, node data is return. 
-Optionally, conduit data can be returned. As in all methods, a bounding box (bbox) option can be passed 
-to spatially filter data based. 
+Export organized data collected from the inp and rpt files as follows. By default, node data is returned; optionally, conduit data can be returned. As in all methods, a bounding box (bbox) option can be passed to spatially filter data. 
 ```
 model_a.exportData() 
 model_a.exportData(type='conduit') 
