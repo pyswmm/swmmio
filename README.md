@@ -49,10 +49,16 @@ Create visualization of the impact of a given alternative with respect to the ba
 scomp.drawModelComparison("imageFileName", model_a, model_b, options={'conduitSymb':'compare_hgl'})
 ```
 
-Exporting data for further processing
+Exporting organized data collected from the inp and rpt files as follows. By default, node data is return. 
+Optionally, conduit data can be returned. As in all methods, a bounding box (bbox) option can be passed 
+to spatially filter data based. 
 ```
-model_a.exportData() #csv table of results data for each node (flood duration, hgl, etc)
-model_a.exportData(type='conduit') #csv table of results data for each conduit
+model_a.exportData() 
+model_a.exportData(type='conduit') 
+
+#filter data within a bounding box
+boundingBox = ((2685990, 219185), (2692678, 223831))
+model_a.exportData(bbox=boundingBox) 
 
 ``` 
 
