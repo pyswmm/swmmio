@@ -31,14 +31,12 @@ model_b = swmmio.model('/path/to/other/directory with swmm files')
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized. 
 Many options can be passed to control how and what data is visualized.
 ```
-sg.drawModel("FileName", model_a)
+sg.drawModel(model_a)
 ```
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.
 ```
-sg.animateModel("AnimationFileName", model_a, 
-				startDtime='JAN-01-1990 11:59:00', 
-				endDtime='JAN-01-1990 12:01:00')
+sg.animateModel(model_a, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
 ```
 
 Generate a comparison report showing changes in node flooding between two models. Presumably, the models
@@ -49,7 +47,7 @@ scomp.comparisonReport(model_a, model_b)
 
 Create visualization of the impact of a given alternative with respect to the baseline conditions.
 ```
-scomp.drawModelComparison("imageFileName", model_a, model_b, options={'conduitSymb':'compare_hgl'})
+scomp.drawModelComparison(model_a, model_b, options={'conduitSymb':'compare_hgl'})
 ```
 
 Export organized data collected from the inp and rpt files as follows. By default, node data is returned; optionally, conduit data can be returned. As in all methods, a bounding box (bbox) option can be passed to spatially filter data. 
