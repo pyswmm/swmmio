@@ -12,7 +12,7 @@ SWMMIO functions by processing .inp and .rpt (input and report) files produced b
 In IDLE, add the directory holding the SWMMIO python scripts to your sys.path variable and import the modules:
 ```
 import sys
-sys.path.append('/path/to/swmmio/directory')
+sys.path.append('/path/to/swmmio directory')
 import swmmio
 import swmm_graphics as sg
 import swmm_utils as su
@@ -21,8 +21,8 @@ import swmm_compare as scomp
 ```
 Instantiate  some model objects by pointing SWMMIO to a directory containing a model's .inp and .rpt files:
 ```
-model_a = swmmio.model('/directory containing .inp and .rpt files')
-model_b = swmmio.model('/other directory containing .inp and .rpt files')
+model_a = swmmio.model('/path/to/directory with swmm files')
+model_b = swmmio.model('/path/to/other/directory with swmm files')
 ```
 
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized. 
