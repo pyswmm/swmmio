@@ -109,7 +109,7 @@ class model(object):
 			downstreamXY = [float(i) for i in downstreamXY] #convert to floats
 			geom1 = float(xsectionsDict[conduit][1]) #conduit diameter / height 
 			
-			if bbox and (not su.pointIsInBox(bbox, upstreamXY) or not su.pointIsInBox(bbox, downstreamXY)):
+			if bbox and (not su.pointIsInBox(bbox, upstreamXY) and not su.pointIsInBox(bbox, downstreamXY)):
 				#skip conduits who are not within a given boudning box. This includes conduits who are partially in the box. 
 				continue
 			

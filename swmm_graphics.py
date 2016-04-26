@@ -17,9 +17,6 @@ import pickle
 
 def saveImage(img, model, imgName, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
-	#parse out the main objects of this model
-	
-	
 	#get the size from the Image object
 	imgSize = (img.getbbox()[2], img.getbbox()[3])
 	
@@ -94,16 +91,18 @@ defaultDrawOptions = {
 				'basemap':True,
 				'bg':su.white,
 				'xplier':1,
-				'focusConduits':None,
-				'traceUpNode':None,
-				'fps':7.5
+				'focusConduits':[],
+				'traceUpNodes':[],
+				'traceDnNodes':[],
+				'fps':7.5,
+				'title':None
 			}
 #def drawModel (imgName, model, width = 1024, xplier = 1, bbox = None, proposedID=None, 
 #						conduitSymb="flow", nodeSymb='flood', basemap=True, bg = su.white):
 def drawModel (imgName, model, bbox=None, options={}):	
 	
 	#unpack the options
-	ops = defaultDrawOptions
+	ops = defaultDrawOptions.copy() #copy to not mutate the defaults in a session
 	ops.update(options) #update with any changes from user'
 	width = 		ops['width']
 	nodeSymb = 		ops['nodeSymb']
@@ -111,13 +110,19 @@ def drawModel (imgName, model, bbox=None, options={}):
 	basemap = 		ops['basemap']
 	bg = 			ops['bg']
 	xplier = 		ops['xplier']
-	focusConduits =	ops['focusConduits']
-	traceUpNode =	ops['traceUpNode']
+	focusConduits = [] #=	ops['focusConduits']
+	traceUpNodes =	ops['traceUpNodes']
+	traceDnNodes =	ops['traceDnNodes']
 	
-	if traceUpNode:
+	print traceUpNodes
+	print traceDnNodes
+	for node in traceUpNodes:
 		#return list of elements upstream of node
-		focusConduits = su.traceUpstream(model, traceUpNode)
-		focusConduits = focusConduits['upstreamConduits']
+		focusConduits += su.traceFromNode(model, node, mode='up')['conduits']
+		
+	for node in traceDnNodes:
+		#return list of elements downstream of node
+		focusConduits += su.traceFromNode(model, node, mode='down')['conduits']
 	
 	#antialias X2
 	xplier *= width/1024 #scale the symbology sizes
@@ -183,7 +188,7 @@ def drawModel (imgName, model, bbox=None, options={}):
 def animateModel(imgName, model, startDtime=None, endDtime=None, bbox=None, options={}):	
 	
 	#unpack the options
-	ops = defaultDrawOptions
+	ops = defaultDrawOptions.copy()
 	ops.update(options) #update with any changes from user'
 	width = 		ops['width']
 	nodeSymb = 		ops['nodeSymb']

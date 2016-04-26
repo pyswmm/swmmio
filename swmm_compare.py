@@ -179,10 +179,17 @@ def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
 	
 	os.startfile(outFile)
 	
-def drawModelComparison(imgName, model1, model2, imgDir=None, bg = su.white,  
-					width = 1024, bbox=None, conduitSymb='compare_hgl',
-					title=None, xplier=0.3,  basemap=True, nodeSymb='flood'):
+def drawModelComparison(imgName, model1, model2, bbox=None, options={}):
 	
+	ops = sg.defaultDrawOptions.copy()
+	ops.update(options) #update with any changes from user'
+	width = 		ops['width']
+	nodeSymb = 		ops['nodeSymb']
+	conduitSymb = 	ops['conduitSymb']
+	basemap = 		ops['basemap']
+	bg = 			ops['bg']
+	xplier = 		ops['xplier']
+	title = 		ops['title']
 	
 	joinedConduits = joinModelData(model1, model2, bbox)
 	joinedNodes = joinModelData(model1, model2, bbox, joinType='node')
@@ -228,22 +235,7 @@ def drawModelComparison(imgName, model1, model2, imgDir=None, bg = su.white,
 	del draw
 	#SAVE IMAGE TO DISK
 	sg.saveImage(img, model2, imgName)
-	
-	
-	
-#import the inps and sift the the conduit dictionaries,
-#for each conduit in rpt1, check if the matching conduit 
-#in rpt2 is greater in flow or whatever. 
-#create maybe a dictionary of conduits where certain things happend 
-#(e.g. increase in flow), create a log of this info, create an image highlighting these pipes
 
-"""
-	compare = SWMM_Compare.compareRPTs(inp1, inp2, rpt1, rpt2)
-
-	for conduit, data in compare.iteritems():
-	proposedQ = data['proposed'].get('maxflow', None)
-	existingQ = data['existing'].get('maxflow', None)
-	if proposedQ and existingQ:
-		if proposedQ < existingQ:
-			print conduit
-"""
+	
+	
+#end

@@ -19,30 +19,7 @@ rect = 			((2693377.03901705, 235014.632584977), (2694377.03898555, 235314.63264
 gtownBox = 		((2688500, 263811), (2698000, 273000))
 gtownSmall = 	((2693955.50306502, 263855.872771832), (2696255.85028725, 265418.372771829))
 
-#import arcpy
-#GIS Junk
-def getBasemapData(boundingBox):
-	import arcpy
-	#pull streets and such from geodb
-	streetsMajFile = r'C:\Data\ArcGIS\GDBs\LocalData.gdb\StreetsMajor'
-	
-	streetsDict = {}
-	for row in arcpy.da.SearchCursor(streetsMajFile, ["OID@", "SHAPE@", "ST_NAME"]):
-		#if "Minor" in row[3] or "Local" in row[3]: continue
-		oid = row[0] #id
-		name = row[2]
-		for part in row[1]:
-			xy1,  xy2 =(part[0].X, part[0].Y), (part[1].X, part[1].Y)
-			
-			if pointIsInBox (boundingBox, xy1) or pointIsInBox(boundingBox, xy2):
-		
-				coordinatePair = (xy1, xy2)
-			else:continue
-		
-			streetsDict.update({oid:{'coordinates':coordinatePair, 'name': name} })
-	
-	return streetsDict
-#
+
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import arcpy
@@ -99,6 +76,53 @@ def traceUpstream(model, startNode):
 	
 	return {'upstreamNodes':upstreamNodes, 'upstreamConduits':upstreamConduits}
 
+def traceFromNode(model, startNode, mode='up'):
+	
+	#nodes = model.organizeNodeData(bbox)['nodeDictionaries']
+	#links = model.organizeConduitData(bbox)['conduitDictionaries']
+	inp = model.inp
+	conduitsDict = inp.createDictionary("[CONDUITS]")
+	storagesDict = inp.createDictionary("[STORAGE]")
+	junctionsDict = inp.createDictionary("[JUNCTIONS]")
+	outfallsDict = inp.createDictionary("[OUTFALLS]")
+	allNodesDict = merge_dicts(storagesDict, junctionsDict, outfallsDict)
+	
+	tracedNodes = []
+	tracedConduits = []
+	
+	#recursive function to trace upstream
+	def trace (nodeID):
+		#print "tracing from {}".format(nodeID)
+		for conduit, data in conduitsDict.iteritems():
+			
+			conduitUpNodeID = conduitDnNodeID = None
+			if len(data) >= 1:
+				#not sure why i need to do this check, but it prevents an indexing error on some
+				conduitUpNodeID = data[0]
+				conduitDnNodeID = data[1]
+				
+			if mode=='down' and conduitUpNodeID == nodeID and conduit not in tracedConduits:
+				#conduit not in traced conduits to prevent duplicates for some reason					
+				#grab its dnstream node ID
+				tracedConduits.append(conduit)
+				tracedNodes.append(conduitDnNodeID)
+				trace(conduitDnNodeID)
+			
+			if mode == 'up' and conduitDnNodeID == nodeID and conduit not in tracedConduits:
+				#conduit not in traced conduits to prevent duplicates for some reason
+				#this conduit is upstream of current node
+				#grab its upstream node ID
+				tracedConduits.append(conduit)
+				tracedNodes.append(conduitUpNodeID)
+				trace(conduitUpNodeID)
+			
+	#kickoff the trace
+	print "Starting trace {0} from {1}".format(mode, startNode)
+	trace(startNode)
+	
+	return {'nodes':tracedNodes, 'conduits':tracedConduits}
+
+	
 def pointIsInBox (bbox, point):
 		
 		#pass a lower left (origin) and upper right tuple representing a box,
@@ -397,6 +421,7 @@ def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
 	
 	color = (210, 210, 230) #default color 
 	radius = 0 #aka don't show this node by default
+	outlineColor = None 
 	xy = nodeData['draw_coordinates']
 	
 	if dTime:
@@ -419,13 +444,14 @@ def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
 		
 		if floodDurationChange > 0 :
 			#Flood duration increase
-			radius = floodDurationChange*70
+			radius = floodDurationChange*20
 			color = red 
 			
 		if nodeData['existing'].get('floodDuration', 0) == 0 and nodeData['proposed'].get('floodDuration', 0) > 0:
 			#new flooding found
-			radius = floodDurationChange*70
+			radius = floodDurationChange*20
 			color = (250, 0, 250) #purple	
+			outlineColor = (90, 90, 90)
 		
 	else:
 		floodDuration = nodeData.get('floodDuration', 0)
@@ -434,114 +460,27 @@ def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
 	
 		if type == 'flood':
 			if floodDuration > 0.08333:
-				radius = floodDuration*5
+				radius = floodDuration*3
 				color = red
 	
 	
 	
 	radius *= xplier
-	draw.ellipse(circleBBox(xy, radius), fill =color)
+	draw.ellipse(circleBBox(xy, radius), fill =color, outline=outlineColor)
 	
-def drawConduitDetail(id, conduitData, canvas, rpt, dTime = None, xplier = 0.3, type="flow"):
-	
-	#not fully functional yet. This method draws with up/dwn stream node data as well as the conduits 
-	
-	coordPair = conduitData['draw_coordinates']
-	
-	#default fill and size
-	conduitColor = (210, 210, 230)
-	conduitSize = 1
-	
-	maxQPercent = conduitData['maxQpercent']
-	q =  conduitData['maxflow']	
-	capacity = 1 #default
-	if maxQPercent !=0:capacity = q / maxQPercent	
-	stress = q / capacity
-	
-	upID = conduitData['upstreamNodeID']	
-	dwnID = conduitData['downNodeID']
-	
-	if dTime:
-		#if a datetime is provided, grab the specif flow data at this time
-		data = rpt.returnDataAtDTime(id, dTime) #this is slow
-		q = abs(float(data[2])) #absolute val because backflow	
-		stress = q / capacity    #how taxed is the pipe
-		
-		data_up = rpt.returnDataAtDTime(upID, dTime, sectionTitle="Node Results") 
-		data_dn = rpt.returnDataAtDTime(dwnID, dTime, sectionTitle="Node Results") 
-		#print "upID, dwnID = ", upID, dwnID
-		q_up = abs(float(data_up[2])) #absolute val because backflow
-		q_dn = abs(float(data_dn[2])) 
-		
-		floodingQ_up = float(data_up[3])
-		floodingQ_dn = float(data_dn[3])
-		
-		HGLup = float(data_up[5]) #+ conduitData['upstreamEl']
-		HGLdn = float(data_dn[5]) #+ conduitData['downstreamEl']
-		
-		#draw end points
-		up = coordPair[0]
-		dn = coordPair[1]
-		#r_up = math.pow(q_up*drawSizeMultiplier / 2, 0.6)
-		#r_dn = math.pow(q_dn*drawSizeMultiplier / 2, 0.6)
-		
-		if type=='flow':
-			
-			#node params
-			node_up_color = greenRedGradient(HGLup, 0, 15) #color
-			node_dn_color = greenRedGradient(HGLdn, 0, 15) #color 
-			r_up = q_up/2 *xplier
-			r_dn = q_dn/2 *xplier
-			
-			#conduit params
-			conduitColor = greenRedGradient(q*100, 0, capacity*175)
-			conduitSize = int(q*xplier)
-		
-		if type=='flood':
-			
-			#conduit params
-			conduitColor = (5,5,250) #greenRedGradient(q*100, 0, capacity*175)
-			conduitSize = int(q*xplier)
-			
-			#node params
-			r_up = q_up/2 *xplier
-			r_dn = q_dn/2 *xplier
-			
-			node_up_color = node_dn_color = conduitColor #default to conduit color, if not flooding
-			if floodingQ_up > 1:
-				node_up_color = (250, 5,5) #greenRedGradient(HGLup, 0, 15) #color
-			if floodingQ_dn > 1:
-				node_dn_color = (250, 5,5) #greenRedGradient(HGLup, 0, 15) #color
-			
-		
-		
-		
-	
-	
-	
-	#draw Conduit
-	canvas.line(coordPair, fill = conduitColor, width = conduitSize)
-	canvas.ellipse(circleBBox(up, r_up), fill =node_up_color)
-	canvas.ellipse(circleBBox(dn, r_dn), fill =node_dn_color)
 	
 def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, highlighted=None, type="flow"):
 	
-	
-	#Mothod for drawing (in plan view) a single conduit, given its RPT results 
-	
-	coordPair = conduitData['draw_coordinates']
-	
+	#Method for drawing (in plan view) a single conduit, given its RPT results 
 	
 	#default fill and size
 	fill = (210, 210, 230)
 	drawSize = 1
-		
+	coordPair = conduitData['draw_coordinates']
+	
 	#general method for drawing one conduit
 	if rpt:
-		#flowSummary = conduitData['flowsummary']
 		#if an RPT is supplied, collect the summary data
-		#maxQPercent = float(conduitData['maxQpercent']) #int(round())
-		#q =  float(conduitData['maxflow'])
 		maxQPercent = conduitData['maxQpercent']
 		q =  conduitData['maxflow']
 		
@@ -577,11 +516,9 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 				fill = blueRedGradient(q*100, 0, capacity*175)
 				drawSize = int(round(math.pow(q, 0.67)))		
 		
-		elif type == "trace":
+		#elif type == "trace":
 			
-			if highlighted and id in highlighted:
-				fill = blue
-				drawSize = 3	
+			
 		
 		elif type == "stress":
 		
@@ -606,7 +543,8 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 			if remaining_capacity > 0:
 				fill = (0, 100, 255)
 				drawSize = int( round( math.pow(remaining_capacity, 0.8)))
-			
+		
+		
 			
 			#drawSize = int( round(max(remaining_capacity, 1)*xplier) )
 			
@@ -623,12 +561,11 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 		#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
 		if lifecycle == 'new':
 			fill = blue
-			drawSize = min(10, conduitData['proposed']['geom1'])*5 #int(round(math.pow(q*drawSizeMultiplier, 1)))
+			drawSize = min(10, conduitData['proposed']['geom1'])*3 
 		
 		if lifecycle == 'changed':
 			fill = blue
-			drawSize = min(50, conduitData['proposed']['geom1'])*5 #int(round(math.pow(q*drawSizeMultiplier, 1)))
-		
+			drawSize = min(50, conduitData['proposed']['geom1'])*3 	
 		
 		#IF THE CONDUITS IS 'EXISTING', DISPLAY SYMBOLOGY ACCORDINGLY (how things changed, etc)
 		if lifecycle == 'existing':
@@ -644,7 +581,7 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 					drawSize = int(round(math.pow(qChange, 1)))
 				
 			if type == 'compare_hgl':
-				#drawSizeMultiplier *= 16.6 #5 seems good
+				
 				if avgHGL > 0:
 					fill = greyRedGradient(avgHGL+15, 0, 20)
 					drawSize = int(round(math.pow(avgHGL*5, 1)))
@@ -662,6 +599,11 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 				if maxQperc <= 0:
 					fill = greyGreenGradient(abs(maxQperc)+15, 0, 20)
 					drawSize = int(round(math.pow(maxQperc*10, 1)))
+	
+	#if highlighted list is provided, overide any symbology for the highlighted conduits 	
+	if highlighted and id in highlighted:
+		fill = blue
+		drawSize = 3	
 		
 	drawSize = int(drawSize*xplier)
 			
@@ -676,8 +618,6 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 def angleBetweenPoint(xy1, xy2):
 	dx, dy = (xy2[0] - xy1[0]), (xy2[1] - xy1[1]) 
 	
-	#if dy == 0: angle = 90
-	#else:angle = (math.atan(float(dx)/float(dy)) * 180/math.pi )
 	angle = (math.atan(float(dx)/float(dy)) * 180/math.pi )	
 	if angle < 0:
 		angle = 270 - angle 
