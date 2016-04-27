@@ -211,7 +211,7 @@ def drawModelComparison(model1, model2, imgName=None, bbox=None, options={}):
 	draw = ImageDraw.Draw(img) 
 	
 	if basemap:
-		sg.drawBasemap(draw, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio)
+		sg.drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
 	
 	drawCount = 0
 	#DRAW THE CONDUITS

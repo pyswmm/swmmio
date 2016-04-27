@@ -15,6 +15,8 @@ from datetime import timedelta
 import pickle
 
 
+#defined options
+nodes_only={'conduitSymb':None, 'width':2048}
 def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
 	#get the size from the Image object
@@ -85,7 +87,7 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 				#featureDict = data['featureDict']
 				#if not featureDict:
 				#this check so that we don't repeat this heavy op over an over
-				featureDict = su.convertPolygonToPixels(feature, bbox=bbox, targetImgW=width, where=None, 
+				featureDict = su.shape2Pixels(feature, bbox=bbox, targetImgW=width, where=None, cols=data['cols'],
 														shiftRatio=shiftRatio, gdb=gdb)
 						
 						
@@ -99,7 +101,7 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 	return basemapDicts
 	
 	
-def drawBasemap(draw, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024):
+def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
 	
 	#unpack the options
 	#ops = basemapOptions.copy() #copy to not mutate the defaults in a session
@@ -115,24 +117,51 @@ def drawBasemap(draw, featureDicts=None, options={}, bbox=None, shiftRatio=None,
 		features = featureDicts['features']
 			
 		polyDrawCount = 0
+		anno_streets = []
 		for feature, data in features.iteritems():
 			featureDict = data['featureDict']
-			for poly, polyData in featureDict['polygons'].iteritems():
-				draw.polygon(polyData['draw_coordinates'], fill=data['fill'])
-				polyDrawCount += 1
+			for poly, polyData in featureDict['geometryDicts'].iteritems():
+				if polyData['geomType'] == 'polygon':
+					draw.polygon(polyData['draw_coordinates'], fill=data['fill'], outline=data['outline'])
+					polyDrawCount += 1
+				
+				elif polyData['geomType'] == 'polyline':
+					
+					draw.line(polyData['draw_coordinates'], fill=data['fill'], width=data['width']*xplier)
+					if 'ST_NAME' in polyData:
+						su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
+						polyDrawCount += 1
+				
 	
-	
-	
+
 basemapOptions = {
 				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
 				'features':{
+					'D68_Dissolve':{
+						'fill':None,
+						'outline':su.shed_blue,
+						'featureDict':None,
+						'cols':["OBJECTID", "SHAPE@"]
+						},
 					'HydroPolyTrim':{
 						'fill':(130,130,130),
-						'featureDict':None
+						'outline':None,
+						'featureDict':None,
+						'cols':["OBJECTID", "SHAPE@"]
 						},
 					'PhiladelphiaParks':{
 						'fill':(115,178,115),
-						'featureDict':None
+						'outline':None,
+						'featureDict':None,
+						'cols':["OBJECTID", "SHAPE@"]
+						},
+					'Streets_Dissolved5':{
+						'fill':su.lightgrey,
+						'width':0,
+						'fill_anno':su.grey,
+						'outline':None,
+						'featureDict':None,
+						'cols':["OBJECTID", "SHAPE@", "ST_NAME"]
 						}
 					},
 					
@@ -206,7 +235,7 @@ def drawModel (model, imgName=None, bbox=None, options={}):
 	draw = ImageDraw.Draw(img)
 	
 	if basemap:
-		drawBasemap(draw, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio)
+		drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio, xplier = xplier)
 	drawCount = 0
 	
 	#DRAW THE CONDUITS
@@ -333,7 +362,7 @@ def animateModel(model, imgName=None, startDtime=None, endDtime=None, bbox=None,
 		
 		#DRAW THE BASEMAP
 		if basemap:
-			drawBasemap(draw, featureDicts=basemapFeatureDicts)
+			drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, featureDicts=basemapFeatureDicts, xplier = xplier)
 			
 		#DRAW THE CONDUITS
 		if conduitSymb:

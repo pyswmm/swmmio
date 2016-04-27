@@ -1,7 +1,9 @@
 #Utilities and such for SWMMIO processing
 import math
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import os
+import numpy as np
+import matplotlib.path as mplPath
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -11,8 +13,9 @@ sPhilaSm2 = 	((2685990, 219185), (2692678, 223831))
 sPhilaSm3 = 	((2688842, 220590), (2689957, 221240))
 sPhilaSm4 = 	((2689615, 219776), (2691277, 220738))
 sPhilaSm5 = 	((2690303, 220581), (2690636, 220772))
+sm6 = 			((2692788, 225853), (2693684, 226477))
 chris = 		((2688798, 221573), (2702834, 230620))
-
+nolibbox= 		((2685646, 238860),	(2713597, 258218))
 
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
@@ -32,43 +35,7 @@ def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGI
 
 	
 #FUNCTIONS
-def traceUpstream(model, startNode):
-	
-	#nodes = model.organizeNodeData(bbox)['nodeDictionaries']
-	#links = model.organizeConduitData(bbox)['conduitDictionaries']
-	inp = model.inp
-	conduitsDict = inp.createDictionary("[CONDUITS]")
-	storagesDict = inp.createDictionary("[STORAGE]")
-	junctionsDict = inp.createDictionary("[JUNCTIONS]")
-	outfallsDict = inp.createDictionary("[OUTFALLS]")
-	allNodesDict = merge_dicts(storagesDict, junctionsDict, outfallsDict)
-	
-	upstreamNodes = []
-	upstreamConduits = []
-	
-	#recursive function to trace upstream
-	def traceUp (nodeID):
-		#print "tracing from {}".format(nodeID)
-		for conduit, data in conduitsDict.iteritems():
-			
-			conduitDnNodeID = None
-			if len(data) >= 1:
-				#not sure why i need to do this check, but it prevents an indexing error on some
-				conduitUpNodeID = data[0]
-				conduitDnNodeID = data[1]
-			
-			if conduitDnNodeID == nodeID:
-				#this conduit is upstream of startNode
-				#grab its upstream node ID
-				upstreamConduits.append(conduit)
-				upstreamNodes.append(conduitUpNodeID)
-				traceUp(conduitUpNodeID)
-	
-	#kickoff the trace
-	print "Starting trace from {}".format(startNode)
-	traceUp(startNode)
-	
-	return {'upstreamNodes':upstreamNodes, 'upstreamConduits':upstreamConduits}
+
 
 def traceFromNode(model, startNode, mode='up'):
 	
@@ -120,7 +87,8 @@ def randAlphaNum(n=6):
 	import random
 	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 	return ''.join(random.choice(chars) for i in range(n))
-	
+
+
 def pointIsInBox (bbox, point):
 		
 		#pass a lower left (origin) and upper right tuple representing a box,
@@ -268,29 +236,60 @@ def subsetConduitsInBoundingBox(conduitsDict, boundingBox):
 		newDict.update({conduit:conduitData})
 	
 	return 	newDict
+def shedsWithFlooding():
+	shed = shape2Pixels("subsheds", where="OBJECTID =3473")
+	path = mplPath.Path(shed['geometryDicts']['3473.0']['coordinates'])
+	path.contains_point(p1)
 
-def convertPolygonToPixels(feature, where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"], where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+	
+	#take data from a geodatabase and organize in a dictionary with coordinates and draw_coordinates
 	
 	import json
 	import arcpy
 	
 	features = os.path.join(gdb, feature)
-	polygons = {}
-	for row in arcpy.da.SearchCursor(features, ["OBJECTID", "SHAPE@"], where_clause=where):
+	geometryDicts = {}
+	for row in arcpy.da.SearchCursor(features, cols, where_clause=where):
+		
+		#detect what shape type this is
+		geomType = row[1].type
+		jsonkey = 'rings' #default for polygons, for accessing polygon vert coords
+		if geomType == 'polyline': 
+			jsonkey = 'paths'
+		
 		try:
-			polyArr = json.loads(row[1].JSON)['rings'][0] #(assumes poly has one ring)
-			id = str(row[0])
-			polygons.update({id:{'coordinates':polyArr}})
+			geometrySections = json.loads(row[1].JSON)[jsonkey] # an array of parts
+			#geomArr = json.loads(row[1].JSON)[jsonkey][0] #(assumes poly has one ring)
+			
+			for i, section in enumerate(geometrySections):
+				
+				#check if part of geometry is within the bbox, skip if not
+				if bbox and len ( [x for x in section if pointIsInBox(bbox, x)] ) == 0:
+					continue #skip this section if none of it is within the bounding box
+					
+				
+				id = str(row[0]) + "." + str(i)
+				geometryDict = {'coordinates':section, 'geomType':geomType}	
+				#geometryDicts.update({id:{'coordinates':geomArr}})
+			
+				#add any other optional cols, starting at 3rd col item
+				for j, col in enumerate(cols[2:]): 
+					col_data = str(row[j+2])
+					geometryDict.update({col:col_data})
+			
+				geometryDicts.update({id:geometryDict})
+			
 		except:
-			"prob with ", id
+			"prob with ", row[0]
 	
 	#find mins and maxs
 	maxX = maxY = 0.0 #determine current width prior to ratio transform
 	minX = minY = 99999999.0
 	if not bbox:
 		#review all points of the polygon to find min of all points
-		for poly, polyData in polygons.iteritems():
-			for seg in polyData['coordinates']:
+		for geom, geomData in geometryDicts.iteritems():
+			for seg in geomData['coordinates']:
 				minX = min(minX, seg[0])
 				minY = min(minY, seg[1])
 				maxX = max(maxX, seg[0])
@@ -302,18 +301,18 @@ def convertPolygonToPixels(feature, where="SHEDNAME = 'D68-C1'", shiftRatio=None
 	width = float(bbox[1][0]) - float(bbox[0][0])
 	shiftRatio = float(targetImgW / width) # to scale down from coordinate to pixels
 	
-	for poly, polyData in polygons.iteritems():
+	for geom, geomData in geometryDicts.iteritems():
 		drawCoords = []
-		for coord in polyData['coordinates']:
+		for coord in geomData['coordinates']:
 			
 			drawCoord = coordToDrawCoord(coord, bbox, shiftRatio)
 			drawCoords.append(drawCoord)
-		polyData.update({'draw_coordinates':drawCoords})
+		geomData.update({'draw_coordinates':drawCoords})
 	
 	imgSize = (width*shiftRatio, height*shiftRatio)
 	imgSize = [int(math.ceil(x)) for x in imgSize] #convert to ints
 	
-	polyImgDict = {'polygons':polygons, 'imgSize':imgSize , 'boundingBox': bbox, 'shiftRatio':shiftRatio }
+	polyImgDict = {'geometryDicts':geometryDicts, 'imgSize':imgSize , 'boundingBox': bbox, 'shiftRatio':shiftRatio }
 	
 	return polyImgDict
 	
@@ -632,15 +631,16 @@ def midPoint(xy1, xy2):
 	#angle in radians
 	return midpt	
 	
-def annotateLine (canvas, dataDict, fontScale=1, annoKey='name', labeled = None):
+def annotateLine (img, dataDict, fontScale=1, annoKey='name', labeled = None):
 	
 	txt = dataDict[annoKey]
+	
 	if not txt in labeled:
 		#do not repeat labels
 		font = ImageFont.truetype(fontFile, int(25 * fontScale))
 		imgTxt = Image.new('L', font.getsize(txt))
 		drawTxt = ImageDraw.Draw(imgTxt)
-		drawTxt.text((0,0), txt, font=font, fill=255)
+		drawTxt.text((0,0), txt, font=font, fill=(10,10,12))
 		
 		coords = dataDict['coordinates']
 		drawCoord = dataDict['draw_coordinates']
@@ -649,7 +649,9 @@ def annotateLine (canvas, dataDict, fontScale=1, annoKey='name', labeled = None)
 		#canvas.paste( ImageOps.colorize(texRot, (0,0,0), (255,255,84)), (242,60),  texRot)
 		
 		midpoint = midPoint(drawCoord[0], drawCoord[1])
-		canvas.paste(texRot , midpoint,  texRot)
+		#img.paste(texRot , midpoint,  texRot)
+		img.paste(ImageOps.colorize(texRot, (0,0,0), (10,10,12)), midpoint,  texRot)
+		#img.paste(texRot, midpoint)# , drawCoord,  texRot)
 		
 		labeled.append(txt) #keep tracj of whats been labeled 
 	
@@ -786,8 +788,11 @@ symbology_defs = {
 #COLOR DEFS
 red = 		(250, 5, 5)
 blue = 		(5, 5, 250)
+shed_blue = (0,169,230)
 white =		(250,250,240)
 black = 	(0,3,18)
+lightgrey = (225, 225, 219)
+grey = 		(100,95,97)
 
 #FONTS
 fontFile = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
