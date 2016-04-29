@@ -17,6 +17,12 @@ import pickle
 
 #defined options
 nodes_only={'conduitSymb':None, 'width':2048}
+conduits_only={'nodeSymb':None, 'width':2048}
+bare={'nodeSymb':None, 'conduitSymb':None,'width':2048}
+no_parcels = {'parcels':None,'width':2048}
+parcels_3hr = {'nodeSymb':None, 'conduitSymb':None, 'parcels':{'threshold':3}, 'width':2048}
+parcels_05hr = {'nodeSymb':None, 'conduitSymb':None, 'parcels':{'threshold':0.5}, 'width':2048}
+
 def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
 	#get the size from the Image object
@@ -81,17 +87,19 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 	import arcpy
 	if arcpy.Exists(gdb):
 		#if the gdb exists, then we can move forward
-		for feature, data in features.iteritems():
-			
+		#for feature, data in features.iteritems():
+		for featureOps in features:
+			feature = featureOps['feature']
 			if arcpy.Exists(os.path.join(gdb, feature)):
 				#featureDict = data['featureDict']
 				#if not featureDict:
 				#this check so that we don't repeat this heavy op over an over
-				featureDict = su.shape2Pixels(feature, bbox=bbox, targetImgW=width, where=None, cols=data['cols'],
+				featureDict = su.shape2Pixels(feature, bbox=bbox, targetImgW=width, where=None, cols=featureOps['cols'],
 														shiftRatio=shiftRatio, gdb=gdb)
 						
 						
-				data.update({'featureDict':featureDict}) #retain this for later if necessary
+				featureOps.update({'featureDict':featureDict}) #retain this for later if necessary
+				#featureOps['featureDict'].update{featureDict}) #retain this for later if necessary
 			else:
 				print '{} not found'.format(feature)
 	else:
@@ -100,7 +108,26 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 	
 	return basemapDicts
 	
+def drawParcels(draw, model, options={}, bbox=None, width=1024, shiftRatio=None):
 	
+	#unpack options
+	parcelOps = parcelOptions.copy() #copy to not mutate the defaults in a session
+	parcelOps.update(options) #update with any changes from user'
+	threshold = parcelOps['threshold']
+	
+	#get the flooded parcels
+	parcels = su.parcelsFlooded(model, threshold = threshold, bbox=bbox, width=width, shiftRatio=shiftRatio)
+	
+	#img = Image.new('RGB', parcels['imgSize'], su.white)
+	#draw = ImageDraw.Draw(img)  
+	for parcel, parcelData in parcels['parcels'].iteritems():
+		
+		fill = su.col2RedGradient(parcelData['avgerage_duration']+0.5, 0, 3)
+		#fill = su.greyRedGradient(parcelData['avgerage_duration'], 0, 2)
+		draw.polygon(parcelData['draw_coordinates'], fill=fill)
+	
+	#saveImage(img, None, imgName=model.inp.name + "_parcels", imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
+		
 def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
 	
 	#unpack the options
@@ -118,59 +145,76 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 			
 		polyDrawCount = 0
 		anno_streets = []
-		for feature, data in features.iteritems():
-			featureDict = data['featureDict']
+		#for feature, data in features.iteritems():
+		for feature in features:
+			featureDict = feature['featureDict']
 			for poly, polyData in featureDict['geometryDicts'].iteritems():
 				if polyData['geomType'] == 'polygon':
-					draw.polygon(polyData['draw_coordinates'], fill=data['fill'], outline=data['outline'])
+					draw.polygon(polyData['draw_coordinates'], fill=feature['fill'], outline=feature['outline'])
 					polyDrawCount += 1
 				
 				elif polyData['geomType'] == 'polyline':
 					
-					draw.line(polyData['draw_coordinates'], fill=data['fill'], width=data['width']*xplier)
+					draw.line(polyData['draw_coordinates'], fill=feature['fill'], width=feature['width']*xplier)
 					if 'ST_NAME' in polyData:
 						su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
 						polyDrawCount += 1
 				
 	
-
-basemapOptions = {
-				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
-				'features':{
-					'D68_Dissolve':{
-						'fill':None,
-						'outline':su.shed_blue,
-						'featureDict':None,
-						'cols':["OBJECTID", "SHAPE@"]
-						},
-					'HydroPolyTrim':{
-						'fill':(130,130,130),
-						'outline':None,
-						'featureDict':None,
-						'cols':["OBJECTID", "SHAPE@"]
-						},
-					'PhiladelphiaParks':{
-						'fill':(115,178,115),
-						'outline':None,
-						'featureDict':None,
-						'cols':["OBJECTID", "SHAPE@"]
-						},
-					'Streets_Dissolved5':{
-						'fill':su.lightgrey,
-						'width':0,
-						'fill_anno':su.grey,
-						'outline':None,
-						'featureDict':None,
-						'cols':["OBJECTID", "SHAPE@", "ST_NAME"]
-						}
-					},
-					
+parcelOptions = {
+				'threshold':0.083, #hours
+				'fill':su.red,
+				'outline':su.grey
 				}
+basemapOptions = {
+    'gdb': r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
+    'features': [
+		#this is an array so we can control the order of basemap layers
+        {
+            'feature': 'D68_Dissolve',
+            'fill': None,
+            'outline': su.shed_blue,
+            'featureDict': None,
+            'cols': ["OBJECTID", "SHAPE@"]
+		},
+        {
+            'feature': 'parcels3',
+            'fill': su.lightgrey,
+            'outline': None,
+            'featureDict': None,
+            'cols': ["OBJECTID", "SHAPE@"]
+		},
+		{
+            'feature': 'PhiladelphiaParks',
+            'fill': (115, 178, 115),
+            'outline': None,
+            'featureDict': None,
+            'cols': ["OBJECTID", "SHAPE@"]
+		},
+        {
+            'feature': 'HydroPolyTrim',
+            'fill': (130, 130, 130),
+            'outline': None,
+            'featureDict': None,
+            'cols': ["OBJECTID", "SHAPE@"]
+		},
+        {
+            'feature': 'Streets_Dissolved5',
+            'fill': su.lightgrey,
+            'width': 0,
+            'fill_anno': su.grey,
+            'outline': None,
+            'featureDict': None,
+            'cols': ["OBJECTID", "SHAPE@", "ST_NAME"]
+		}
+      ],
+}
 defaultDrawOptions = {
 				'width':1024,
 				'nodeSymb':'flood',
 				'conduitSymb':'stress',
 				'basemap':basemapOptions,
+				'parcels':parcelOptions,
 				'bg':su.white,
 				'xplier':1,
 				'focusConduits':[],
@@ -190,6 +234,7 @@ def drawModel (model, imgName=None, bbox=None, options={}):
 	nodeSymb = 		ops['nodeSymb']
 	conduitSymb = 	ops['conduitSymb']
 	basemap = 		ops['basemap']
+	parcels = 		ops['parcels']
 	bg = 			ops['bg']
 	xplier = 		ops['xplier']
 	focusConduits = [] #=	ops['focusConduits']
@@ -234,8 +279,13 @@ def drawModel (model, imgName=None, bbox=None, options={}):
 	img = Image.new('RGB', imgSize, bg)
 	draw = ImageDraw.Draw(img)
 	
+	
 	if basemap:
 		drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio, xplier = xplier)
+	if parcels:
+		drawParcels(draw, model, options=parcels, width=width, bbox=bbox, shiftRatio=shiftRatio)
+	
+		
 	drawCount = 0
 	
 	#DRAW THE CONDUITS

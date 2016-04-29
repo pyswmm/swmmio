@@ -16,6 +16,9 @@ sPhilaSm5 = 	((2690303, 220581), (2690636, 220772))
 sm6 = 			((2692788, 225853), (2693684, 226477))
 chris = 		((2688798, 221573), (2702834, 230620))
 nolibbox= 		((2685646, 238860),	(2713597, 258218))
+mckean = 		((2691080, 226162),	(2692236, 226938))
+d70 = 			((2694096, 222741),	(2697575, 225059))
+ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
@@ -35,8 +38,6 @@ def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGI
 
 	
 #FUNCTIONS
-
-
 def traceFromNode(model, startNode, mode='up'):
 	
 	#nodes = model.organizeNodeData(bbox)['nodeDictionaries']
@@ -192,6 +193,31 @@ def greyGreenGradient(x, xmin, xmax):
 	b = int(round(rbMax - x*rbScale))
 	
 	return (r, g, b)
+
+def col2RedGradient(x, xmin, xmax, startCol=lightgrey):
+	
+	range = xmax - xmin
+	
+	rMin = startCol[0]
+	gMax = startCol[1]
+	bMax = startCol[2]
+	
+	rScale = (255 - rMin) / range
+	gScale = (gMax) / range
+	bScale = (bMax) / range
+	x = min(x, xmax) #limit any vals to the prescribed max
+	
+	
+	#print "range = " + str(range)
+	#print "scale = " + str(scale)
+	r = int(round(x*rScale + rMin ))
+	g = int(round(gMax - x*gScale))
+	b = int(round(bMax - x*bScale))
+	
+	return (r, g, b)
+
+	#lightgrey = (235, 235, 225)
+
 def blueRedGradient(x, xmin, xmax):
 	
 	range = xmax - xmin
@@ -236,10 +262,76 @@ def subsetConduitsInBoundingBox(conduitsDict, boundingBox):
 		newDict.update({conduit:conduitData})
 	
 	return 	newDict
-def shedsWithFlooding():
-	shed = shape2Pixels("subsheds", where="OBJECTID =3473")
-	path = mplPath.Path(shed['geometryDicts']['3473.0']['coordinates'])
-	path.contains_point(p1)
+
+def subsetElements(model, type='node', key='floodDuration', min=0.083, max=99999, bbox=None, pair_only=False):
+	#return a subset of a dictionary of swmm elements based on a value 
+	
+	if type=='node':
+		elems = model.organizeNodeData(bbox)['nodeDictionaries']
+		
+	elif type=='conduit':
+		elems = model.organizeConduitData(bbox)['conduitDictionaries']
+	else: return []
+	
+	if pair_only:
+		#only return the element and the value being filtered on 
+		subset = {k:v[key] for (k,v) in elems.items() if v[key] >= min and v[key] < max}
+	else:
+		subset = {k:v for (k,v) in elems.items() if v[key] >= min and v[key] < max}
+	
+	return subset
+
+
+def parcelsFlooded(model, threshold = 0.083, bbox=None, shiftRatio=None, width=1024):
+
+	#return list of nodes with flood duration above threshold 
+	flooded_nodes = subsetElements(model, min=threshold, bbox=bbox)
+	print '{} flooded nodes found'.format(len(flooded_nodes))
+	
+	#return sheds that contain these floode nodes (room for optimization here, don't need to rescan the arcpy search cursor every time...)
+	sheds = shape2Pixels("detailedsheds", where=None, targetImgW=width, shiftRatio=shiftRatio, bbox=bbox)['geometryDicts']
+	parcels = shape2Pixels("parcels3", where=None, targetImgW=width, shiftRatio=shiftRatio, bbox=bbox)
+	
+	imgSize = parcels['imgSize']
+	parcels = parcels['geometryDicts']
+	print 'Processing {0} sheds and {1} parcels'.format(len(sheds), len(parcels))
+	
+	sheds_with_flooded_nodes = {}
+	parcels_flooded = {}
+	for shed, data in sheds.iteritems():
+		#create a path object and test if contains any flooded nodes
+		coords = data['coordinates']
+		shed_path = mplPath.Path(coords) #matplotlib Path object 
+		
+		floodDurationSum = 0.0 #to calc the average duration in the shed
+		flood_nodes_in_shed = {}
+		for node, data in flooded_nodes.iteritems():
+			if shed_path.contains_point(data['coordinates']): #maybe used contains_points for efficiency
+				
+				#we found a shed with flooding
+				flood_nodes_in_shed.update({node:data['floodDuration']})
+				
+				floodDurationSum += data['floodDuration']
+				
+		#build a dictionary containing each shed with flooded nodes, 
+		#containing a dictionary of each node with hours flooded
+		if flood_nodes_in_shed:
+			avgDuration = floodDurationSum / float(len(flood_nodes_in_shed))
+			#flood_nodes_in_shed.update({'avgerage_duration':avgDuration})
+			
+			sheds_with_flooded_nodes.update({shed:flood_nodes_in_shed})
+			
+			#find the parcels that intersection
+			for parcel, data in parcels.iteritems():
+				coords = data['coordinates']
+				parcel_path = mplPath.Path(coords) #matplotlib Path object 
+				if shed_path.intersects_path(parcel_path):
+					
+					parcels_flooded.update({parcel:{'shed':shed,'avgerage_duration':avgDuration, 'flooded_nodes':flood_nodes_in_shed, 'draw_coordinates':data['draw_coordinates']}})
+					#return parcels_flooded
+	
+	print 'Found {0} sheds and {1} parcels with flooding above {2} hours.'.format(len(sheds_with_flooded_nodes), len(parcels_flooded), threshold)
+	return {'sheds':sheds_with_flooded_nodes, 'parcels':parcels_flooded, 'imgSize':imgSize}
 
 def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"], where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
@@ -252,13 +344,14 @@ def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"], where="SHEDNAME = 'D68-
 	geometryDicts = {}
 	for row in arcpy.da.SearchCursor(features, cols, where_clause=where):
 		
-		#detect what shape type this is
-		geomType = row[1].type
-		jsonkey = 'rings' #default for polygons, for accessing polygon vert coords
-		if geomType == 'polyline': 
-			jsonkey = 'paths'
-		
 		try:
+			#detect what shape type this is
+			geomType = row[1].type
+			jsonkey = 'rings' #default for polygons, for accessing polygon vert coords
+			if geomType == 'polyline': 
+				jsonkey = 'paths'
+		
+		
 			geometrySections = json.loads(row[1].JSON)[jsonkey] # an array of parts
 			#geomArr = json.loads(row[1].JSON)[jsonkey][0] #(assumes poly has one ring)
 			
@@ -267,9 +360,11 @@ def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"], where="SHEDNAME = 'D68-
 				#check if part of geometry is within the bbox, skip if not
 				if bbox and len ( [x for x in section if pointIsInBox(bbox, x)] ) == 0:
 					continue #skip this section if none of it is within the bounding box
-					
 				
-				id = str(row[0]) + "." + str(i)
+				id = str(row[0])				
+				if len(geometrySections) > 1:
+					id = str(row[0]) + "." + str(i)
+					
 				geometryDict = {'coordinates':section, 'geomType':geomType}	
 				#geometryDicts.update({id:{'coordinates':geomArr}})
 			
@@ -791,7 +886,7 @@ blue = 		(5, 5, 250)
 shed_blue = (0,169,230)
 white =		(250,250,240)
 black = 	(0,3,18)
-lightgrey = (225, 225, 219)
+lightgrey = (235, 235, 225)
 grey = 		(100,95,97)
 
 #FONTS
