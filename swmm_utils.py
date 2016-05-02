@@ -30,8 +30,6 @@ black = 	(0,3,18)
 lightgrey = (235, 235, 225)
 grey = 		(100,95,97)
 
-
-
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import arcpy
@@ -751,8 +749,6 @@ def annotateLine (img, dataDict, fontScale=1, annoKey='name', labeled = None):
 		midpoint = midPoint(drawCoord[0], drawCoord[1])
 		#img.paste(texRot , midpoint,  texRot)
 		img.paste(ImageOps.colorize(texRot, (0,0,0), (10,10,12)), midpoint,  texRot)
-		#img.paste(texRot, midpoint)# , drawCoord,  texRot)
-		
 		labeled.append(txt) #keep tracj of whats been labeled 
 	
 	
@@ -809,86 +805,6 @@ def annotateMap (canvas, model, model2=None, currentTstr = None, options=None, r
 		annoHeight = canvas.textsize(currentTstr, font)[1] 
 		annoWidth = canvas.textsize(currentTstr, font)[0] 
 		canvas.text((modelSize[0] - annoWidth - 10, modelSize[1] - annoHeight - 10), currentTstr, fill=black, font=font)
-
-#                                                                                                                                      
-# wrapper around PIL 1.1.6 Image.save to preserve PNG metadata
-#
-# public domain, Nick Galbreath                                                                                                        
-# http://blog.modp.com/2007/08/python-pil-and-png-metadata-take-2.html                                                                 
-#                                                                                                                                       
-def pngsave(im, file):
-    # these can be automatically added to Image.info dict                                                                              
-    # they are not user-added metadata
-    reserved = ('interlace', 'gamma', 'dpi', 'transparency', 'aspect')
-
-    # undocumented class
-    from PIL import PngImagePlugin
-    meta = PngImagePlugin.PngInfo()
-
-    # copy metadata into new object
-    for k,v in im.info.iteritems():
-        if k in reserved: continue
-        meta.add_text(k, v, 0)
-
-    # and save
-    im.save(file, "PNG", pnginfo=meta)
-	
-#dictionaries to hang on to
-
-
-
-#drawType definitions
-symbology_defs = {
-	'compare_flow':{
-		'title':'Flow Comparison',
-		'description':'Shows the change in peak flows in conduits between a baseline and proposed model'
-	},
-	'compare_hgl':{
-		'title':'HGL Comparison',
-		'description':'Shows the change in HGL in conduits between a baseline and proposed model'
-	},
-	'capacity_remaining':{
-		'title':'Remaining Capacity',
-		'description':'Shows the amount of full flow capacity remaining in conduits'
-	},
-	'stress_simple':{
-		'title':'Condiut Stress',
-		'description':'Shows how taxed conduits are based on their flow (peak flow) with respect to their full-flow capacity'
-	},
-	'stress':{
-		'title':'Condiut Stress',
-		'description':'Shows how taxed conduits are based on their flow (peak flow) with respect to their full-flow capacity'
-	},
-	'compare_stress':{
-		'title':'Conduit Stress Comparison',
-		'description':'Shows the change in max q / full flow capacity (stress)'
-	},
-	'flow':{
-		'title':'Condiut Flow',
-		'description':'Shows the flow in conduits with line weight'
-	},
-	'flow_proposed':{
-		'title':'Flow Proposed edj',
-		'description':'Shows the flow in conduits with line weight'
-	},
-	'flow_stress':{
-		'title':'Condiut Flow & Stress',
-		'description':'Shows the flow in conduits with line weight and color based on "stress" (flow/full-flow capacity)'
-	},
-	'remaining_capacity':{
-		'title':'Remaining Capacity',
-		'description':'Shows the flow in conduits with line weight'
-	},
-	'trace':{
-		'title':'Trace Upstream',
-		'description':'Shows the flow in conduits with line weight'
-	},
-	'flood':{
-		'title':'Node Flood Duration',
-		'description':''
-	}
-}
-
 
 
 #FONTS
