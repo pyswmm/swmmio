@@ -179,17 +179,17 @@ def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
 	
 	os.startfile(outFile)
 	
-def drawModelComparison(model1, model2, imgName=None, bbox=None, options={}):
+def drawModelComparison(model1, model2, **kwargs):
 	
-	ops = sg.defaultDrawOptions.copy()
-	ops.update(options) #update with any changes from user'
-	width = 		ops['width']
-	nodeSymb = 		ops['nodeSymb']
-	conduitSymb = 	ops['conduitSymb']
-	basemap = 		ops['basemap']
-	bg = 			ops['bg']
-	xplier = 		ops['xplier']
-	title = 		ops['title']
+	#unpack and update the options
+	ops = sg.default_draw_options()
+	for key, value in kwargs.iteritems():
+		ops.update({key:value})
+	#return ops	
+	width = ops['width']
+	xplier = ops['xplier']
+	bbox = ops['bbox']
+	imgName = ops['imgName'] # for some reason saveImage() won't take the dict reference
 	
 	joinedConduits = joinModelData(model1, model2, bbox)
 	joinedNodes = joinModelData(model1, model2, bbox, joinType='node')
@@ -207,31 +207,33 @@ def drawModelComparison(model1, model2, imgName=None, bbox=None, options={}):
 	shiftRatio = modelSizeDict['shiftRatio']
 	
 	imgSize = [int(x) for x in imgSize]
-	img = Image.new('RGB', imgSize, bg) 
+	img = Image.new('RGB', imgSize, ops['bg']) 
 	draw = ImageDraw.Draw(img) 
 	
-	if basemap:
-		sg.drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
+	if ops['basemap']:
+		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
 	
 	drawCount = 0
 	#DRAW THE CONDUITS
-	if conduitSymb:
+	if ops['conduitSymb']:
 		for conduit, conduitData in joinedConduits.iteritems():
-				
-			su.drawConduit(conduit, conduitData, draw, type=conduitSymb, xplier=xplier)	
+			su.drawConduit(conduit, conduitData, draw, ops['conduitSymb'], xplier = xplier)	
+			#su.drawConduit(conduit, conduitData, draw, type=conduitSymb, xplier=xplier)	
 			drawCount += 1
 	
 	#DRAW THE NODES
-	if nodeSymb:
+	if ops['nodeSymb']:
 		for node, nodeDict in joinedNodes.iteritems():
 			#return nodeDict
 			
 			if ('floodDuration' and 'maxDepth' in nodeDict['proposed']) and ('floodDuration' and 'maxDepth' in nodeDict['existing']): 
 				#this prevents draws if no flow is supplied (RDII and such)
-				su.drawNode(node, nodeDict, draw, rpt=None, dTime=None, type=nodeSymb, xplier=xplier)
+				#su.drawNode(node, nodeDict, draw, rpt=None, dTime=None, type=nodeSymb, xplier=xplier)
+				su.drawNode(node, nodeDict, draw, rpt=None, options=ops['nodeSymb'], dTime=None, xplier=xplier)
 				drawCount += 1
 	
-	su.drawAnnotation (draw, model2.inp, imgWidth=width, title=title, objects=[model1.rpt, model2.rpt], symbologyType=conduitSymb, fill=su.black)	
+	#su.drawAnnotation (draw, model2.inp, imgWidth=width, title=title, objects=[model1.rpt, model2.rpt], symbologyType=conduitSymb, fill=su.black)	
+	su.annotateMap (draw, model1, model2, options=ops)
 	del draw
 	#SAVE IMAGE TO DISK
 	sg.saveImage(img, model2, imgName)

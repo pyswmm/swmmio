@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import os
 import numpy as np
 import matplotlib.path as mplPath
+from matplotlib.transforms import BboxBase
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -19,6 +20,17 @@ nolibbox= 		((2685646, 238860),	(2713597, 258218))
 mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
+
+#COLOR DEFS
+red = 		(250, 5, 5)
+blue = 		(5, 5, 250)
+shed_blue = (0,169,230)
+white =		(250,250,240)
+black = 	(0,3,18)
+lightgrey = (235, 235, 225)
+grey = 		(100,95,97)
+
+
 
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
@@ -302,33 +314,43 @@ def parcelsFlooded(model, threshold = 0.083, bbox=None, shiftRatio=None, width=1
 		#create a path object and test if contains any flooded nodes
 		coords = data['coordinates']
 		shed_path = mplPath.Path(coords) #matplotlib Path object 
-		
+		shed_bbox = shed_path.get_extents()
+
 		floodDurationSum = 0.0 #to calc the average duration in the shed
 		flood_nodes_in_shed = {}
 		for node, data in flooded_nodes.iteritems():
-			if shed_path.contains_point(data['coordinates']): #maybe used contains_points for efficiency
-				
-				#we found a shed with flooding
-				flood_nodes_in_shed.update({node:data['floodDuration']})
-				
-				floodDurationSum += data['floodDuration']
+			
+			
+			x,y = data['coordinates']
+			if shed_bbox.contains(x,y):
+				#check first if shed bounding box contains point, if not, move on. 
+				#If yes, allow this more detailed search
+				if shed_path.contains_point(data['coordinates']): #maybe used contains_points for efficiency
+					
+					#we found a shed with flooding
+					flood_nodes_in_shed.update({node:data['floodDuration']})
+					
+					floodDurationSum += data['floodDuration']
 				
 		#build a dictionary containing each shed with flooded nodes, 
 		#containing a dictionary of each node with hours flooded
 		if flood_nodes_in_shed:
 			avgDuration = floodDurationSum / float(len(flood_nodes_in_shed))
-			#flood_nodes_in_shed.update({'avgerage_duration':avgDuration})
 			
 			sheds_with_flooded_nodes.update({shed:flood_nodes_in_shed})
 			
-			#find the parcels that intersection
+			#find the parcels that intersect
 			for parcel, data in parcels.iteritems():
 				coords = data['coordinates']
 				parcel_path = mplPath.Path(coords) #matplotlib Path object 
-				if shed_path.intersects_path(parcel_path):
-					
-					parcels_flooded.update({parcel:{'shed':shed,'avgerage_duration':avgDuration, 'flooded_nodes':flood_nodes_in_shed, 'draw_coordinates':data['draw_coordinates']}})
-					#return parcels_flooded
+				parcel_bbox = parcel_path.get_extents()
+			
+				if BboxBase.intersection(shed_bbox, parcel_bbox):
+					#check first if shed bounding box intersects parcel boudning box, if not, move on
+					if shed_path.intersects_path(parcel_path):
+						
+						parcels_flooded.update({parcel:{'shed':shed,'avgerage_duration':avgDuration, 'flooded_nodes':flood_nodes_in_shed, 'draw_coordinates':data['draw_coordinates']}})
+						#return parcels_flooded
 	
 	print 'Found {0} sheds and {1} parcels with flooding above {2} hours.'.format(len(sheds_with_flooded_nodes), len(parcels_flooded), threshold)
 	return {'sheds':sheds_with_flooded_nodes, 'parcels':parcels_flooded, 'imgSize':imgSize}
@@ -509,13 +531,14 @@ def circleBBox(coordinates, radius):
 	
 	return (x-r, y-r, x+r, y+r)
 
-def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
+def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 	
 	color = (210, 210, 230) #default color 
 	radius = 0 #aka don't show this node by default
 	outlineColor = None 
 	xy = nodeData['draw_coordinates']
-	
+	threshold = options['threshold']
+	type = options['type']
 	if dTime:
 		
 		data = rpt.returnDataAtDTime(id, dTime, sectionTitle="Node Results") 
@@ -551,7 +574,8 @@ def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
 		maxHGL = nodeData['maxHGL']
 	
 		if type == 'flood':
-			if floodDuration > 0.08333:
+			#if floodDuration > 0.08333:
+			if floodDuration >= threshold:
 				radius = floodDuration*3
 				color = red
 	
@@ -560,16 +584,18 @@ def drawNode(id, nodeData, draw, rpt=None, dTime=None, type='flood', xplier=1):
 	radius *= xplier
 	draw.ellipse(circleBBox(xy, radius), fill =color, outline=outlineColor)
 	
-	
-def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, highlighted=None, type="flow"):
+def line_size(q, exp=1):
+	return int(round(math.pow(q, exp)))
+
+def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier = 1, highlighted=None):
 	
 	#Method for drawing (in plan view) a single conduit, given its RPT results 
 	
 	#default fill and size
-	fill = (210, 210, 230)
+	fill = (120, 120, 130)
 	drawSize = 1
 	coordPair = conduitData['draw_coordinates']
-	
+	type = options['type']
 	#general method for drawing one conduit
 	if rpt:
 		#if an RPT is supplied, collect the summary data
@@ -589,49 +615,28 @@ def drawConduit(id, conduitData, canvas, rpt=None, dTime = None, xplier = 1, hig
 			q = abs(float(data[2])) #absolute val because backflow	
 			stress = q / capacity    #how taxed is the pipe
 		
+		remaining_capacity = capacity-q 
 		#=================================
 		#draw the conduit type as specifed
 		#=================================		
 		if type == "flow":
 	
-			fill = blue
-			drawSize = int(round(math.pow(q, 0.67)))
+			fill = options['fill']
+			drawSize = options['draw_size'](q, options['exp']) 
 		
 		if type == "flow_stress":
 	
-			fill = greenRedGradient(q*100, 0, capacity*175)
-			drawSize = int(round(math.pow(q, 0.67)))
-		
-		elif type == "flow_proposed":
-			
-			if highlighted and id in highlighted:
-				fill = blueRedGradient(q*100, 0, capacity*175)
-				drawSize = int(round(math.pow(q, 0.67)))		
-		
-		#elif type == "trace":
-			
-			
-		
-		elif type == "stress":
-		
-			if stress > 1:
-				fill = greyRedGradient(stress+5, 0, 20)
-				drawSize = int(round(math.pow(stress*4, 1)))
-			
-			if stress <= 1:
-				fill = greyGreenGradient(stress+5, 0, 20)
-				#drawSize = int(round(math.pow(stress*4, 1)))
+			fill = options['fill'](q*100, 0, capacity*175)
+			drawSize = options['draw_size'](q, options['exp']) #int(round(math.pow(q, 0.67)))
 				
-		elif type == "stress_simple":
+		elif type == "stress":
 			
-			if maxQPercent >= 1.75:
-				fill = greenRedGradient(q*100, 0, capacity*300)
-				drawSize = int(round(math.pow(stress*4, 1)))
+			if maxQPercent >= 1:
+				fill = options['fill'](q*100, 0, capacity*300) #greenRedGradient(q*100, 0, capacity*300)
+				drawSize = options['draw_size'](stress*options['xplier'], options['exp']) #int(round(math.pow(stress*4, 1)))
 			
-		elif type == "remaining_capacity":
-			#drawSizeMultiplier = 0.01
-						
-			remaining_capacity = capacity-q 
+		elif type == "capacity_remaining":						
+			
 			if remaining_capacity > 0:
 				fill = (0, 100, 255)
 				drawSize = int( round( math.pow(remaining_capacity, 0.8)))
@@ -752,57 +757,58 @@ def annotateLine (img, dataDict, fontScale=1, annoKey='name', labeled = None):
 	
 	
 		
-def drawAnnotation (canvas, inp, rpt=None, imgWidth=1024, title=None, currentTstr = None, description = None, 
-					objects = None, symbologyType=None, fill=(50,50,50), xplier=None):
+#def drawAnnotation (canvas, inp, rpt=None, imgWidth=1024, title=None, currentTstr = None, description = None, 
+#					objects = None, symbologyType=None, fill=(50,50,50), xplier=None):
+def annotateMap (canvas, model, model2=None, currentTstr = None, options=None, results={}):
+	
+	#unpack the options
+	nodeSymb = 		options['nodeSymb']
+	conduitSymb = 	options['conduitSymb']
+	basemap = 		options['basemap']
+	parcelSymb = 	options['parcelSymb']
+	traceUpNodes =	options['traceUpNodes']
+	traceDnNodes =	options['traceDnNodes']
 	
 	modelSize = (canvas.im.getbbox()[2], canvas.im.getbbox()[3]) 
 	
 	#define main fonts
-	
-		
-	fScale = 1 #modelSize[0] / imgWidth
-	#if xplier:
-	#	fScale = xplier
+	fScale = 1 * modelSize[0] / 2048
 	titleFont = ImageFont.truetype(fontFile, int(40 * fScale))
 	font = ImageFont.truetype(fontFile, int(20 * fScale))
 	
-	path = None
-	if rpt:
-		path = rpt.filePath
+	#Buid the title and files list (handle 1 or two input models)
+	#this is hideous, or elegant?
+	files = title = results_string = symbology_string = annotationTxt = ""
+	files = '\n'.join([m.rpt.filePath for m in filter(None, [model, model2])])
+	title = ', '.join([m.inp.name for m in filter(None, [model, model2])])
+	symbology_string = ', '.join([s['title'] for s in filter(None, [nodeSymb, conduitSymb, parcelSymb])])
+	title += ": " + symbology_string 
 	
-	files = None
-	if objects:
-		#grab the file paths (assumes they are SWMMIO objects)
-		files = []
-		for o in objects:
-			files.append(o.filePath)
-		path = '\n'.join(files)
+	params_string = ''.join([" > " + str(s['threshold']*60) + "min " for s in filter(None, [parcelSymb])])
+	#build the title
 	
-	annos = '\n'.join(filter(None, [description, path]))
 	
-	titleTxt = inp.name #inp name if no title provided
-	if symbologyType and symbologyType in symbology_defs:
-		titleTxt = symbology_defs[symbologyType]['title'] + ": " + inp.name
-		#if title: 
-		#	titleTxt = title + " - " + titleTxt
-	if title and not symbologyType: 
-		titleTxt = title + ": " + inp.name
-		
+	#collect results
+	for result, value in results.iteritems():
+		results_string += result + ": " + str(value) + " "
 	
-	annotationTxt = "Files:\n" + annos
+	#compile the annotation text
+	if results:
+		annotationTxt = results_string + params_string + "\n"
+	annotationTxt += "Files:\n" + files
+	
+	
 	annoHeight = canvas.textsize(annotationTxt, font)[1] 
 	
-
-	#print "anno size = " + str(annoHeight)
-	#print "anno text = " + annotationTxt
-	canvas.text((10, modelSize[1] - annoHeight - 10), annotationTxt, fill, font=font)
-	canvas.text((10, 15), titleTxt, fill, font=titleFont)
+	canvas.text((10, 15), title, fill=black, font=titleFont)
+	canvas.text((10, modelSize[1] - annoHeight - 10), annotationTxt, fill=black, font=font)
+	
 	
 	if currentTstr:
-		#timestamp i nlower rt corner
+		#timestamp in lower right corner
 		annoHeight = canvas.textsize(currentTstr, font)[1] 
 		annoWidth = canvas.textsize(currentTstr, font)[0] 
-		canvas.text((modelSize[0] - annoWidth - 10, modelSize[1] - annoHeight - 10), currentTstr, fill, font=font)
+		canvas.text((modelSize[0] - annoWidth - 10, modelSize[1] - annoHeight - 10), currentTstr, fill=black, font=font)
 
 #                                                                                                                                      
 # wrapper around PIL 1.1.6 Image.save to preserve PNG metadata
@@ -876,18 +882,14 @@ symbology_defs = {
 	'trace':{
 		'title':'Trace Upstream',
 		'description':'Shows the flow in conduits with line weight'
+	},
+	'flood':{
+		'title':'Node Flood Duration',
+		'description':''
 	}
 }
 
 
-#COLOR DEFS
-red = 		(250, 5, 5)
-blue = 		(5, 5, 250)
-shed_blue = (0,169,230)
-white =		(250,250,240)
-black = 	(0,3,18)
-lightgrey = (235, 235, 225)
-grey = 		(100,95,97)
 
 #FONTS
 fontFile = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"

@@ -16,12 +16,11 @@ import pickle
 
 
 #defined options
-nodes_only={'conduitSymb':None, 'width':2048}
-conduits_only={'nodeSymb':None, 'width':2048}
-bare={'nodeSymb':None, 'conduitSymb':None,'width':2048}
-no_parcels = {'parcels':None,'width':2048}
-parcels_3hr = {'nodeSymb':None, 'conduitSymb':None, 'parcels':{'threshold':3}, 'width':2048}
-parcels_05hr = {'nodeSymb':None, 'conduitSymb':None, 'parcels':{'threshold':0.5}, 'width':2048}
+nodes_only={'conduitSymb':None, 'parcelSymb':None,'width':2048}
+conduits_only={'nodeSymb':None,'parcelSymb':None, 'width':2048}
+bare={'nodeSymb':None, 'conduitSymb':None,'width':2048, 'parcelSymb':None}
+no_parcels = {'parcelSymb':None,'width':2048}
+parcels_05hr = {'nodeSymb':None, 'conduitSymb':None, 'width':2048}
 
 def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
@@ -91,13 +90,11 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 		for featureOps in features:
 			feature = featureOps['feature']
 			if arcpy.Exists(os.path.join(gdb, feature)):
-				#featureDict = data['featureDict']
-				#if not featureDict:
+			
 				#this check so that we don't repeat this heavy op over an over
 				featureDict = su.shape2Pixels(feature, bbox=bbox, targetImgW=width, where=None, cols=featureOps['cols'],
 														shiftRatio=shiftRatio, gdb=gdb)
-						
-						
+							
 				featureOps.update({'featureDict':featureDict}) #retain this for later if necessary
 				#featureOps['featureDict'].update{featureDict}) #retain this for later if necessary
 			else:
@@ -108,15 +105,13 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 	
 	return basemapDicts
 	
-def drawParcels(draw, model, options={}, bbox=None, width=1024, shiftRatio=None):
+def drawParcels(draw, model=None, parcels=None, options={}, bbox=None, width=1024, shiftRatio=None):
 	
 	#unpack options
-	parcelOps = parcelOptions.copy() #copy to not mutate the defaults in a session
-	parcelOps.update(options) #update with any changes from user'
-	threshold = parcelOps['threshold']
-	
+	threshold = options['threshold']
 	#get the flooded parcels
-	parcels = su.parcelsFlooded(model, threshold = threshold, bbox=bbox, width=width, shiftRatio=shiftRatio)
+	if not parcels:
+		parcels = su.parcelsFlooded(model, threshold = threshold, bbox=bbox, width=width, shiftRatio=shiftRatio)
 	
 	#img = Image.new('RGB', parcels['imgSize'], su.white)
 	#draw = ImageDraw.Draw(img)  
@@ -130,11 +125,6 @@ def drawParcels(draw, model, options={}, bbox=None, width=1024, shiftRatio=None)
 		
 def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
 	
-	#unpack the options
-	#ops = basemapOptions.copy() #copy to not mutate the defaults in a session
-	#ops.update(options) #update with any changes from user'
-	#gdb = ops['gdb']
-	#features = ops['features']
 	
 	if not featureDicts:
 		#generate the dict containing drawable data
@@ -160,13 +150,9 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 						su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
 						polyDrawCount += 1
 				
-	
-parcelOptions = {
-				'threshold':0.083, #hours
-				'fill':su.red,
-				'outline':su.grey
-				}
-basemapOptions = {
+
+def basemap_options(**kwargs):
+	basemap_options = {
     'gdb': r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
     'features': [
 		#this is an array so we can control the order of basemap layers
@@ -208,46 +194,146 @@ basemapOptions = {
             'cols': ["OBJECTID", "SHAPE@", "ST_NAME"]
 		}
       ],
-}
-defaultDrawOptions = {
-				'width':1024,
-				'nodeSymb':'flood',
-				'conduitSymb':'stress',
-				'basemap':basemapOptions,
-				'parcels':parcelOptions,
-				'bg':su.white,
-				'xplier':1,
-				'focusConduits':[],
-				'traceUpNodes':[],
-				'traceDnNodes':[],
-				'fps':7.5,
-				'title':None
+	}
+	feats = []
+	for key, value in kwargs.iteritems():
+		basemap_options.update({key:value}) 
+	
+	return basemap_options
+	
+def conduit_options(type, **kwargs):
+	#drawing options for conduits
+	conduit_def_symbologies = {
+		'stress': {
+			'title': 'Condiut Stress',
+			'description': 'Shows how taxed conduits are based on their flow (peak flow) with respect to their full-flow capacity',
+			'threshold': 1,#fraction used 
+			'type': 'stress_simple',
+			'fill':su.greyRedGradient,
+			'draw_size':su.line_size,
+			'exp':0.8,
+			'xplier':10	
+		},
+		'compare_flow': {
+			'title': 'Flow Comparison',
+			'description': 'Shows the change in peak flows in conduits between a baseline and proposed model',
+			'type': 'compare_flow'
+		},
+		'compare_hgl': {
+			'title': 'HGL Comparison',
+			'description': 'Shows the change in HGL in conduits between a baseline and proposed model',
+			'type': 'compare_hgl'
+		},
+		'capacity_remaining': {
+			'title': 'Remaining Capacity',
+			'description': 'Shows the amount of full flow capacity remaining in conduits',
+			'type': 'capacity_remaining',
+			'fill':su.blue,
+			'draw_size':su.line_size,
+			'exp':0.75
+		},
+		'flow': {
+			'title': 'Condiut Flow',
+			'description': 'Shows the flow in conduits with line weight',
+			'type': 'flow',
+			'fill':su.blue,
+			'draw_size':su.line_size,
+			'exp':0.67
+		},
+		'flow_stress': {
+			'title': 'Condiut Flow & Stress',
+			'description': 'Shows the flow in conduits with line weight and color based on "stress" (flow/full-flow capacity)',
+			'type': 'flow_stress',
+			'fill':su.greenRedGradient,
+			'draw_size':su.line_size,
+			'exp':0.67
+		},
+		'trace': {
+			'title': 'Trace Upstream',
+			'description': '',
+			'type': 'trace'
+		}
+	}
+	
+	selected_ops = conduit_def_symbologies[type]
+	for key, value in kwargs.iteritems():
+		selected_ops.update({key:value}) 
+	
+	return selected_ops
+def node_options(type, **kwargs):
+
+	#drawing options for conduits
+	node_symbologies = {
+		'flood': {
+			'title': 'Node Flood Duration',
+			'description': 'Shows the node duration proporationally in size',
+			'threshold': 0.083,#minutes,
+			'fill': su.red,
+			'type': 'flood'
+		}
+	}
+	
+	selected_ops = node_symbologies[type]
+	for key, value in kwargs.iteritems():
+		selected_ops.update({key:value}) 
+	
+	return selected_ops
+def parcel_options(type, **kwargs):
+
+	#drawing options for conduits
+	parcel_symbologies = {
+		'flood': {
+				'title': 'Parcel Flood Duration',
+				'description': 'Shows the parcels flood duration severity based on color',
+				'threshold': 0.083,
+				'fill': su.red,
+				'outline': su.grey,
+				'type': 'flood'
+				}
 			}
-#def drawModel (imgName, model, width = 1024, xplier = 1, bbox = None, proposedID=None, 
-#						conduitSymb="flow", nodeSymb='flood', basemap=True, bg = su.white):
-def drawModel (model, imgName=None, bbox=None, options={}):	
+	selected_ops = parcel_symbologies[type]
+	for key, value in kwargs.iteritems():
+		selected_ops.update({key:value}) 
 	
-	#unpack the options
-	ops = defaultDrawOptions.copy() #copy to not mutate the defaults in a session
-	ops.update(options) #update with any changes from user'
-	width = 		ops['width']
-	nodeSymb = 		ops['nodeSymb']
-	conduitSymb = 	ops['conduitSymb']
-	basemap = 		ops['basemap']
-	parcels = 		ops['parcels']
-	bg = 			ops['bg']
-	xplier = 		ops['xplier']
-	focusConduits = [] #=	ops['focusConduits']
-	traceUpNodes =	ops['traceUpNodes']
-	traceDnNodes =	ops['traceDnNodes']
+	return selected_ops
 	
-	print traceUpNodes
-	print traceDnNodes
-	for node in traceUpNodes:
+def default_draw_options():
+	
+	default_options = {
+		'width': 1024,
+		'bbox':None,
+		'imgName':None,
+		'nodeSymb': node_options('flood'),
+		'conduitSymb': conduit_options('stress'),
+		'basemap': basemap_options(),
+		'parcelSymb': parcel_options('flood'),
+		'bg': su.white,
+		'xplier': 1,
+		'traceUpNodes': [],
+		'traceDnNodes': [],
+		'fps': 7.5,
+		'title': None
+	}
+	return default_options
+
+def drawModel (model, **kwargs):	
+	
+	#unpack and update the options
+	ops = default_draw_options()
+	for key, value in kwargs.iteritems():
+		ops.update({key:value})
+	#return ops	
+	width = ops['width']
+	xplier = ops['xplier']
+	bbox = ops['bbox']
+	imgName = ops['imgName'] # for some reason saveImage() won't take the dict reference
+	
+	focusConduits = []
+	for node in ops['traceUpNodes']:
 		#return list of elements upstream of node
 		focusConduits += su.traceFromNode(model, node, mode='up')['conduits']
 		
-	for node in traceDnNodes:
+	for node in ops['traceDnNodes']:
 		#return list of elements downstream of node
 		focusConduits += su.traceFromNode(model, node, mode='down')['conduits']
 	
@@ -261,7 +347,7 @@ def drawModel (model, imgName=None, bbox=None, options={}):
 	rpt = model.rpt
 	
 	#organize relavant data from SWMM files
-	conduitData = model.organizeConduitData(bbox) #dictionary of overall model data, dimension, and the conduit dicts
+	conduitData = model.organizeConduitData(bbox) #diction	ary of overall model data, dimension, and the conduit dicts
 	conduitDicts = conduitData['conduitDictionaries']
 	pixelData = su.convertCoordinatesToPixels(conduitDicts, targetImgW=width, bbox=bbox)
 	shiftRatio = pixelData['shiftRatio']
@@ -276,59 +362,60 @@ def drawModel (model, imgName=None, bbox=None, options={}):
 	
 	
 	
-	img = Image.new('RGB', imgSize, bg)
+	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
 	
-	
-	if basemap:
-		drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, shiftRatio=shiftRatio, xplier = xplier)
-	if parcels:
-		drawParcels(draw, model, options=parcels, width=width, bbox=bbox, shiftRatio=shiftRatio)
-	
+	results = {}
+	if ops['basemap']:
+		drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier = xplier)
+	if ops['parcelSymb']:
+		parcels = su.parcelsFlooded(model, threshold = ops['parcelSymb']['threshold'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+		results.update({'Parcels Flooded':len(parcels['parcels'])})
+		drawParcels(draw, parcels=parcels, options=ops['parcelSymb'], width=width, bbox=bbox, shiftRatio=shiftRatio)
+		
 		
 	drawCount = 0
-	
 	#DRAW THE CONDUITS
-	if conduitSymb:
+	if ops['conduitSymb']:
 		for conduit, coordPairDict in conduitDicts.iteritems():
 			
 			if 'maxflow' in coordPairDict: 
 			#try:
-				su.drawConduit(conduit, coordPairDict, draw, rpt=rpt, xplier = xplier, type=conduitSymb, highlighted=focusConduits)	
+				#drawConduit(       id, conduitData, canvas, options, rpt=None, dTime = None, xplier = 1, highlighted=None, type="flow"):
+				su.drawConduit(conduit, coordPairDict, draw, ops['conduitSymb'], rpt=rpt, xplier = xplier, highlighted=focusConduits)	
 				drawCount += 1
 			#except:
 			#	pass #rdii and others that don't have flow data fail 
 		
 	
 	#DRAW THE NODES
-	if nodeSymb:
+	if ops['nodeSymb']:
 		for node, nodeDict in nodeDicts.iteritems():
 			if 'floodDuration' in nodeDict: #this prevents draws if no flow is supplied (RDII and such)
-				su.drawNode(node, nodeDict, draw, rpt, dTime=None, xplier=xplier, type=nodeSymb)
+				su.drawNode(node, nodeDict, draw, rpt=rpt, options=ops['nodeSymb'], dTime=None, xplier=xplier)
 				drawCount += 1
 	
 	#if conduitDrawCount > 0 and conduitDrawCount % 2000 == 0: print str(conduitDrawCount) + " pipes processed "
 	print "drawCount = " + str(drawCount)
-	
-	su.drawAnnotation (draw, inp, rpt, imgWidth=width, title=None, symbologyType=conduitSymb, fill=su.black, xplier=xplier)
+	su.annotateMap (draw, model, options=ops, results=results)
 	del draw, ops
 	
 	#SAVE IMAGE TO DISK
 	saveImage(img, model, imgName)
 	
 
-def animateModel(model, imgName=None, startDtime=None, endDtime=None, bbox=None, options={}):	
+def animateModel(model, startDtime=None, endDtime=None, **kwargs):	
 	
-	#unpack the options
-	ops = defaultDrawOptions.copy()
-	ops.update(options) #update with any changes from user'
-	width = 		ops['width']
-	nodeSymb = 		ops['nodeSymb']
-	conduitSymb = 	ops['conduitSymb']
-	basemap = 		ops['basemap']
-	bg = 			ops['bg']
-	xplier = 		ops['xplier']
-	fps =			ops['fps']
+	
+	#unpack and update the options
+	ops = default_draw_options()
+	for key, value in kwargs.iteritems():
+		ops.update({key:value})
+	#return ops	
+	width = ops['width']
+	xplier = ops['xplier']
+	bbox = ops['bbox']
+	imgName = ops['imgName'] # for some reason saveImage() won't take the dict reference
 	
 	#for antialiasing, double size for now
 	xplier *= width/1024 #scale the symbology sizes
@@ -400,44 +487,45 @@ def animateModel(model, imgName=None, startDtime=None, endDtime=None, bbox=None,
 	log = "Started Drawing at " + strftime("%b-%d-%Y %H:%M:%S") + "\n\nErrors:\n\n"
 	drawCount = 0
 	conduitErrorCount = 0
-	print "conduitSymb = " + conduitSymb
+	
 	font = ImageFont.truetype(su.fontFile, 30)
-	basemapFeatureDicts = createFeaturesDict(options=basemap,  bbox=bbox, shiftRatio=shiftRatio, width=width) #will be populated after first frame is produced
+	basemapFeatureDicts = createFeaturesDict(options=ops['basemap'],  bbox=bbox, shiftRatio=shiftRatio, width=width) #will be populated after first frame is produced
 	while currentT <= endDtime:
 		
-		img = Image.new('RGB', imgSize, bg) 
+		img = Image.new('RGB', imgSize, ops['bg']) 
 		draw = ImageDraw.Draw(img) 
 		currentTstr = currentT.strftime("%b-%d-%Y %H:%M:%S").upper()
 		#print 'time =', currentTstr
 		
 		#DRAW THE BASEMAP
-		if basemap:
-			drawBasemap(draw, img=img, options=basemap, width=width, bbox=bbox, featureDicts=basemapFeatureDicts, xplier = xplier)
+		if ops['basemap']:
+			drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, featureDicts=basemapFeatureDicts, xplier = xplier)
 			
 		#DRAW THE CONDUITS
-		if conduitSymb:
+		if ops['conduitSymb']:
 			for conduit, coordPairDict in conduitDicts.iteritems():
 				#coordPair = coordPairDict['coordinates']
 				if 'maxflow' in coordPairDict: #this prevents draws if no flow is supplied (RDII and such)
 					
-					su.drawConduit(conduit, coordPairDict, draw, rpt=rpt, dTime = currentTstr, 
-									xplier = xplier, type=conduitSymb)
+					su.drawConduit(conduit, coordPairDict, draw, options=ops['conduitSymb'],  rpt=rpt, dTime = currentTstr, 
+									xplier = xplier)
 					
 					drawCount += 1
 					
 				if drawCount > 0 and drawCount % 2000 == 0: print str(drawCount) + " pipes drawn - simulation time = " + currentTstr
 		
 		#DRAW THE NODES
-		if nodeSymb:
+		if ops['nodeSymb']:
 			for node, nodeDict in nodeDicts.iteritems():
 				if 'floodDuration' in nodeDict: #this prevents draws if no flow is supplied (RDII and such)
-					su.drawNode(node, nodeDict, draw, rpt, dTime=currentTstr, type=nodeSymb, xplier=xplier)
+					su.drawNode(node, nodeDict, draw, rpt=rpt, dTime=currentTstr, options=ops['nodeSymb'], xplier=xplier)
 					drawCount += 1
 					
 		
 		#DRAW THE ANNOTATION
 		dtime = currentT.strftime("%b%d%Y_%H%M").upper()
-		su.drawAnnotation (draw, inp, rpt, imgWidth=width, title=None, currentTstr = currentTstr, fill=su.black)
+		#su.drawAnnotation (draw, inp, rpt, imgWidth=width, title=None, currentTstr = currentTstr, fill=su.black)
+		su.annotateMap (draw, model, options=ops, currentTstr = currentTstr)
 		currentT += delta
 		del draw
 		
@@ -455,7 +543,7 @@ def animateModel(model, imgName=None, startDtime=None, endDtime=None, bbox=None,
 	print "building gif with " + str(len(glob.glob1(tempImgDir, "*.png"))) + " frames..."
 	if not imgName: imgName = inp.name
 	gifFile = os.path.join(imgDir, imgName) + ".gif" 
-	frameDuration = 1.0 / float(fps)
+	frameDuration = 1.0 / float(ops['fps'])
 	writeGif(gifFile, frames, duration=frameDuration)
 	
 	shutil.rmtree(tempImgDir) #delete temporary frames directory after succesful GIF
