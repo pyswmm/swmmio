@@ -20,6 +20,7 @@ nolibbox= 		((2685646, 238860),	(2713597, 258218))
 mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
+morris_10th = 	((2693740, 227260),	(2694412, 227693))
 
 #COLOR DEFS
 red = 		(250, 5, 5)
@@ -98,7 +99,6 @@ def randAlphaNum(n=6):
 	import random
 	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 	return ''.join(random.choice(chars) for i in range(n))
-
 
 def pointIsInBox (bbox, point):
 		

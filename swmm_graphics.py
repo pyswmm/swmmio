@@ -15,13 +15,6 @@ from datetime import timedelta
 import pickle
 
 
-#defined options
-nodes_only={'conduitSymb':None, 'parcelSymb':None,'width':2048}
-conduits_only={'nodeSymb':None,'parcelSymb':None, 'width':2048}
-bare={'nodeSymb':None, 'conduitSymb':None,'width':2048, 'parcelSymb':None}
-no_parcels = {'parcelSymb':None,'width':2048}
-parcels_05hr = {'nodeSymb':None, 'conduitSymb':None, 'width':2048}
-
 def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
 	
 	#get the size from the Image object
