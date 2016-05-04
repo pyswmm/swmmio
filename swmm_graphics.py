@@ -203,8 +203,7 @@ def basemap_options(**kwargs):
 	for key, value in kwargs.iteritems():
 		basemap_options.update({key:value}) 
 	
-	return basemap_options
-	
+	return basemap_options	
 def conduit_options(type, **kwargs):
 	#drawing options for conduits
 	conduit_def_symbologies = {
@@ -212,7 +211,7 @@ def conduit_options(type, **kwargs):
 			'title': 'Condiut Stress',
 			'description': 'Shows how taxed conduits are based on their flow (peak flow) with respect to their full-flow capacity',
 			'threshold': 1,#fraction used 
-			'type': 'stress_simple',
+			'type': 'stress',
 			'fill':su.greyRedGradient,
 			'draw_size':su.line_size,
 			'exp':0.8,
@@ -274,6 +273,13 @@ def node_options(type, **kwargs):
 			'threshold': 0.083,#minutes,
 			'fill': su.red,
 			'type': 'flood'
+		},
+		'flood_color': {
+			'title': 'Node Flood Duration',
+			'description': 'Shows the node duration via color gradient in size',
+			'threshold': 0.083,#minutes,
+			'fill':su.greenRedGradient,
+			'type': 'flood_color'
 		}
 	}
 	

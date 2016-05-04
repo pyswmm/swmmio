@@ -26,6 +26,7 @@ ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 morris_10th = 	((2693740, 227260),	(2694412, 227693))
 study_area = 	((2680283, 215575), (2701708, 235936))
 dickenson_7th = ((2695378, 227948), (2695723, 228179))
+packer_18th = 	((2688448, 219932), (2691332, 221857))
 
 #COLOR DEFS
 red = 		(250, 5, 5)
@@ -36,6 +37,7 @@ black = 	(0,3,18)
 lightgrey = (235, 235, 225)
 grey = 		(100,95,97)
 park_green = (115, 178, 115)
+green = 	(115, 220, 115)
 water_grey = (130, 130, 130)
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
@@ -652,8 +654,15 @@ def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 			if floodDuration >= threshold:
 				radius = floodDuration*3
 				color = red
-	
-	
+		
+		if type == 'flood_color':
+			radius = 3
+			if floodDuration >= threshold:
+				yellow = (221, 220, 0)
+				color = col2RedGradient(floodDuration, 0, 1, startCol=yellow) #options['fill'](floodDuration, 0, 1+threshold)
+			else:
+				
+				radius = 1
 	
 	radius *= xplier
 	draw.ellipse(circleBBox(xy, radius), fill =color, outline=outlineColor)
