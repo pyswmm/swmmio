@@ -7,9 +7,10 @@
 # Copyright (C) 2016  Adam Erispaha
 
 
-from swmmio import Model
+
 from swmm_compare import comparisonReport, drawModelComparison
 from swmm_graphics import drawModel, animateModel, drawProfile
+from swmmio import Model
 
 
 #CONSTANTS
@@ -26,6 +27,9 @@ nolibbox= 		((2685646, 238860),	(2713597, 258218))
 mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
+morris_10th = 	((2693740, 227260),	(2694412, 227693))
+study_area = 	((2680283, 215575), (2701708, 235936))
+dickenson_7th = ((2695378, 227948), (2695723, 228179))
 
 #COLOR DEFS (these baseic var names are going to mess with the name space, right?)
 red = 		(250, 5, 5)

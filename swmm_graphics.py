@@ -53,8 +53,6 @@ def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, 
 		os.startfile(newFile)
 	
 def drawPolygons(imgName=None, width = 1024, feature="Model_Sheds", where="SHEDNAME = 'D68-C1'"):
-	#antialias X2
-	#width = width*2
 	
 	polyDict = su.convertPolygonToPixels(feature, targetImgW=width, where=where)
 	img = Image.new('RGB', polyDict['imgSize'], (0,3,18))
@@ -70,11 +68,8 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 
 	#create dictionary containing draw coordinate data for the given basemap options
 	
-	#unpack the options
-	basemapDicts = basemapOptions.copy() #copy to not mutate the defaults in a session
-	basemapDicts.update(options) #update with any changes from user'
-	gdb = basemapDicts['gdb']
-	features = basemapDicts['features']
+	gdb = options['gdb']
+	features = options['features']
 	
 	import arcpy
 	if arcpy.Exists(gdb):
@@ -96,24 +91,25 @@ def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 		print '{} not found'.format(gdb) 
 		return None		
 	
-	return basemapDicts
+	return features
 	
-def drawParcels(draw, model=None, parcels=None, options={}, bbox=None, width=1024, shiftRatio=None):
+
+def drawParcels(draw, parcel_flooding_results,  options={}, bbox=None, width=1024, shiftRatio=None):
 	
-	#unpack options
-	threshold = options['threshold']
-	#get the flooded parcels
-	if not parcels:
-		parcels = su.parcelsFlooded(model, threshold = threshold, bbox=bbox, width=width, shiftRatio=shiftRatio)
+	parcels_pixels = su.shape2Pixels("PWD_PARCELS_SPhila", where=None, cols = ["PARCELID", "SHAPE@"], targetImgW=width, shiftRatio=shiftRatio, bbox=bbox)
 	
-	#img = Image.new('RGB', parcels['imgSize'], su.white)
-	#draw = ImageDraw.Draw(img)  
-	for parcel, parcelData in parcels['parcels'].iteritems():
+	for parcel, parcelData in parcel_flooding_results['parcels'].iteritems():
 		
-		fill = su.col2RedGradient(parcelData['avgerage_duration']+0.5, 0, 3)
-		#fill = su.greyRedGradient(parcelData['avgerage_duration'], 0, 2)
-		draw.polygon(parcelData['draw_coordinates'], fill=fill)
-	
+		try:
+			if parcelData['avg_flood_duration'] > options['threshold']:
+				fill = su.col2RedGradient(parcelData['avg_flood_duration']+0.5, 0, 3)
+			else:
+				fill = su.lightgrey
+			#fill = su.greyRedGradient(parcelData['avgerage_duration'], 0, 2)
+			parcel_pix = parcels_pixels['geometryDicts'][parcel]
+			draw.polygon(parcel_pix['draw_coordinates'], fill=fill, outline=options['outline'])	
+		except:
+			pass
 	#saveImage(img, None, imgName=model.inp.name + "_parcels", imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
 		
 def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
@@ -123,25 +119,25 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 		#generate the dict containing drawable data
 		featureDicts = createFeaturesDict(options,  bbox=bbox, shiftRatio=shiftRatio, width=width) #will return None if probs finding data
 		
-	if featureDicts:
-		features = featureDicts['features']
+	#if featureDicts:
+	#	features = featureDicts['features']
 			
-		polyDrawCount = 0
-		anno_streets = []
-		#for feature, data in features.iteritems():
-		for feature in features:
-			featureDict = feature['featureDict']
-			for poly, polyData in featureDict['geometryDicts'].iteritems():
-				if polyData['geomType'] == 'polygon':
-					draw.polygon(polyData['draw_coordinates'], fill=feature['fill'], outline=feature['outline'])
-					polyDrawCount += 1
+	polyDrawCount = 0
+	anno_streets = []
+	#for feature, data in features.iteritems():
+	for feature in featureDicts:
+		featureDict = feature['featureDict']
+		for poly, polyData in featureDict['geometryDicts'].iteritems():
+			if polyData['geomType'] == 'polygon':
+				draw.polygon(polyData['draw_coordinates'], fill=feature['fill'], outline=feature['outline'])
+				polyDrawCount += 1
+			
+			elif polyData['geomType'] == 'polyline':
 				
-				elif polyData['geomType'] == 'polyline':
-					
-					draw.line(polyData['draw_coordinates'], fill=feature['fill'], width=feature['width']*xplier)
-					if 'ST_NAME' in polyData:
-						su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
-						polyDrawCount += 1
+				draw.line(polyData['draw_coordinates'], fill=feature['fill'], width=feature['width']*xplier)
+				if 'ST_NAME' in polyData:
+					su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
+					polyDrawCount += 1
 				
 
 def basemap_options(**kwargs):
@@ -156,23 +152,38 @@ def basemap_options(**kwargs):
             'featureDict': None,
             'cols': ["OBJECTID", "SHAPE@"]
 		},
-        {
-            'feature': 'parcels3',
-            'fill': su.lightgrey,
-            'outline': None,
-            'featureDict': None,
-            'cols': ["OBJECTID", "SHAPE@"]
-		},
+        # {
+            # 'feature': 'parcels3',
+            # 'fill': su.lightgrey,
+            # 'outline': None,
+            # 'featureDict': None,
+            # 'cols': ["OBJECTID", "SHAPE@"]
+		# },
+		# {
+            # 'feature': 'SouthPhilaModelExtents',
+            # 'fill': su.shed_blue,
+            # 'outline': None,
+            # 'featureDict': None,
+            # 'cols': ["OBJECTID", "SHAPE@"]
+		# },
+		# {
+            # 'feature': 'detailedsheds',
+            # 'fill': None,
+            # 'outline': su.red,
+            # 'featureDict': None,
+            # 'cols': ["OBJECTID", "SHAPE@"]
+		# },
+		
 		{
             'feature': 'PhiladelphiaParks',
-            'fill': (115, 178, 115),
+            'fill': su.park_green,
             'outline': None,
             'featureDict': None,
             'cols': ["OBJECTID", "SHAPE@"]
 		},
         {
             'feature': 'HydroPolyTrim',
-            'fill': (130, 130, 130),
+            'fill':su.water_grey,
             'outline': None,
             'featureDict': None,
             'cols': ["OBJECTID", "SHAPE@"]
@@ -278,10 +289,12 @@ def parcel_options(type, **kwargs):
 		'flood': {
 				'title': 'Parcel Flood Duration',
 				'description': 'Shows the parcels flood duration severity based on color',
-				'threshold': 0.083,
+				'threshold': 0.08333,
 				'fill': su.red,
-				'outline': su.grey,
-				'type': 'flood'
+				'outline': None,
+				'type': 'flood',
+				'feature':'PWD_PARCELS_SHEDS',
+				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
 				}
 			}
 	selected_ops = parcel_symbologies[type]
@@ -339,7 +352,7 @@ def drawModel (model, **kwargs):
 	inp = model.inp
 	rpt = model.rpt
 	
-	#organize relavant data from SWMM files
+	#organize relavant data from SWMM files, #FIX TO NOT RUN ALL THIS IF NOT NECESSARY
 	conduitData = model.organizeConduitData(bbox) #diction	ary of overall model data, dimension, and the conduit dicts
 	conduitDicts = conduitData['conduitDictionaries']
 	pixelData = su.convertCoordinatesToPixels(conduitDicts, targetImgW=width, bbox=bbox)
@@ -359,13 +372,25 @@ def drawModel (model, **kwargs):
 	draw = ImageDraw.Draw(img)
 	
 	results = {}
+	
+	#DRAW THE PARCELS
+	if ops['parcelSymb']:
+		#parcels = su.parcelsFlooded(model, threshold = ops['parcelSymb']['threshold'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+		
+		#grab the parcel&node dict that associates node IDs to each parcel
+		parcel_flooding_results = su.parcel_flood_duration(model, threshold=ops['parcelSymb']['threshold'], 
+															parcel_features=ops['parcelSymb']['feature'], 
+															gdb= ops['parcelSymb']['gdb'], 
+															bbox=bbox)
+		#track results
+		r = parcel_flooding_results
+		results_string = "{} ({}%) of {} total".format(r['parcels_flooded_count'], round(r['parcels_flooded_fraction']*100),r['parcels_count'])
+		results.update({'Parcels Flooded':results_string})
+		
+		drawParcels(draw, parcel_flooding_results, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+	
 	if ops['basemap']:
 		drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier = xplier)
-	if ops['parcelSymb']:
-		parcels = su.parcelsFlooded(model, threshold = ops['parcelSymb']['threshold'], bbox=bbox, width=width, shiftRatio=shiftRatio)
-		results.update({'Parcels Flooded':len(parcels['parcels'])})
-		drawParcels(draw, parcels=parcels, options=ops['parcelSymb'], width=width, bbox=bbox, shiftRatio=shiftRatio)
-		
 		
 	drawCount = 0
 	#DRAW THE CONDUITS
@@ -387,6 +412,7 @@ def drawModel (model, **kwargs):
 			if 'floodDuration' in nodeDict: #this prevents draws if no flow is supplied (RDII and such)
 				su.drawNode(node, nodeDict, draw, rpt=rpt, options=ops['nodeSymb'], dTime=None, xplier=xplier)
 				drawCount += 1
+				
 	
 	#if conduitDrawCount > 0 and conduitDrawCount % 2000 == 0: print str(conduitDrawCount) + " pipes processed "
 	print "drawCount = " + str(drawCount)

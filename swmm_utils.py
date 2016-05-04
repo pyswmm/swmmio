@@ -1,10 +1,13 @@
 #Utilities and such for SWMMIO processing
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from time import strftime
 import os
 import numpy as np
 import matplotlib.path as mplPath
 from matplotlib.transforms import BboxBase
+import pickle
+import json
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -21,6 +24,8 @@ mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 morris_10th = 	((2693740, 227260),	(2694412, 227693))
+study_area = 	((2680283, 215575), (2701708, 235936))
+dickenson_7th = ((2695378, 227948), (2695723, 228179))
 
 #COLOR DEFS
 red = 		(250, 5, 5)
@@ -30,7 +35,8 @@ white =		(250,250,240)
 black = 	(0,3,18)
 lightgrey = (235, 235, 225)
 grey = 		(100,95,97)
-
+park_green = (115, 178, 115)
+water_grey = (130, 130, 130)
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import arcpy
@@ -40,14 +46,13 @@ def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGI
 		#extent = row[0].extent
 		#xy1,  xy2 =(extent.XMin, extent.YMin), (extent.XMax, extent.YMax)
 		#return xy1, xy2
-		return row
+		#return row
 		for part in row[0]:
 			xy1,  xy2 =(part[0].X, part[0].Y), (part[1].X, part[1].Y)
 			
 			print xy1, xy2
 			#print part
-
-	
+			
 #FUNCTIONS
 def traceFromNode(model, startNode, mode='up'):
 	
@@ -251,9 +256,6 @@ def elementChange(elementData, parameter='maxflow'):
 	existingVal = elementData['existing'].get(parameter, 0.0)
 	
 	return proposedVal - existingVal
-
-	#drawing UTILS
-
 	
 def subsetConduitsInBoundingBox(conduitsDict, boundingBox):
 	
@@ -291,7 +293,48 @@ def subsetElements(model, type='node', key='floodDuration', min=0.083, max=99999
 	
 	return subset
 
-
+	 
+def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb', export_table=False):
+	
+	#return a dictionary of each parcel ID with averagre flood duration
+	
+	#grab the list of flooded nodes, and create the dictionary of parcels linked to node IDs
+	flooded_nodes = subsetElements(model, min=threshold, bbox=bbox, pair_only=True)
+	parcels_dict = parcel_dict_from_joined_feature(parcel_features, where = None, gdb=gdb, bbox=bbox)
+	
+	#return parcels_dict
+	#calculate average flood duration for each parcel
+	parcels_flooded_count = 0.0
+	for parcel, parcel_data in parcels_dict.iteritems():
+	
+		associated_nodes = parcel_data['nodes'] #associated nodes
+		
+		if len(associated_nodes) > 0:
+			
+			total_parcel_flood_dur = 0.0
+			for node in associated_nodes:
+				#look up the flood duration
+				node_duration = flooded_nodes.get(node, 0)
+				total_parcel_flood_dur += node_duration
+			
+			avg_flood_duration = total_parcel_flood_dur/len(associated_nodes)
+			parcel_data.update({'avg_flood_duration':avg_flood_duration})
+			
+			if avg_flood_duration > 0:
+				parcels_flooded_count += 1.0
+	
+	parcels_count = len(parcels_dict)
+	parcels_flooded_fraction = parcels_flooded_count/parcels_count
+	
+	results = {
+				'parcels_flooded_count':parcels_flooded_count, 
+				'parcels_count':parcels_count,
+				'parcels_flooded_fraction':parcels_flooded_fraction,
+				'parcels':parcels_dict
+				}
+	print 'Found {0} ({1}%) parcels, of {2} total, with flooding above {3} hours.'.format(parcels_flooded_count, round(parcels_flooded_fraction*100), parcels_count, threshold)
+	return results
+	 
 def parcelsFlooded(model, threshold = 0.083, bbox=None, shiftRatio=None, width=1024):
 
 	#return list of nodes with flood duration above threshold 
@@ -353,11 +396,44 @@ def parcelsFlooded(model, threshold = 0.083, bbox=None, shiftRatio=None, width=1
 	print 'Found {0} sheds and {1} parcels with flooding above {2} hours.'.format(len(sheds_with_flooded_nodes), len(parcels_flooded), threshold)
 	return {'sheds':sheds_with_flooded_nodes, 'parcels':parcels_flooded, 'imgSize':imgSize}
 
-def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"], where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+
+def parcel_dict_from_joined_feature(feature, cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, where="shedFID = 1238", gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+	
+	#create diction with keys for each parcel, and sub array containing associated nodes
+	features = os.path.join(gdb, feature)
+	import arcpy
+	parcels = {}
+	for row in arcpy.da.SearchCursor(features, cols, where_clause=where):
+		
+		#first check if parcel is in bbox
+		jsonkey = 'rings' #for arc polygons
+		geometrySections = json.loads(row[3].JSON)[jsonkey]
+		parcel_in_bbox=True #assume yes first
+		for i, section in enumerate(geometrySections):
+			#check if part of geometry is within the bbox, skip if not
+			if bbox and len ( [x for x in section if pointIsInBox(bbox, x)] ) == 0:
+				parcel_in_bbox=False #continue #skip this section if none of it is within the bounding box
+			
+		if not parcel_in_bbox:
+			continue #skip if not in bbox
+		
+		PARCELID = str(row[0])
+		if PARCELID in parcels:
+			#append to existing array
+			parcels[PARCELID]['nodes'].append(row[1])
+			parcels[PARCELID]['sheds'].append(row[2])
+		else:
+			#new parcel id found
+			
+			parcels.update({ PARCELID:{'nodes':[row[1]], 'sheds':[row[2]] }} )
+			
+	return parcels
+	
+def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	#take data from a geodatabase and organize in a dictionary with coordinates and draw_coordinates
 	
-	import json
+	
 	import arcpy
 	
 	features = os.path.join(gdb, feature)

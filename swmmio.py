@@ -1,4 +1,5 @@
 #sys.path.append(r"P:\Tools\swmmio")
+#sys.path.append(r"P:\Tools")
 
 import random
 from time import gmtime, strftime
@@ -13,7 +14,7 @@ import swmm_headers
 import glob
 import csv
 
-class model(object):
+class Model(object):
 
 	#Class representing a complete SWMM model incorporating its INP and RPT
 	#files and data
@@ -336,6 +337,9 @@ class model(object):
 		elif type == 'conduit':
 			data = self.organizeConduitData(bbox)
 			dicts = data['conduitDictionaries']
+		elif type =='parcels':
+			data = su.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
+			dicts =data['parcels']
 		else:
 			return "incorrect data type specified"
 
