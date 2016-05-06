@@ -83,7 +83,21 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit'):
 
 			compareDict = {'proposed':proposed, 'existing':existing, 'lifecycle':lifecycle}
 			joinedData.update({node:compareDict})
-
+	
+	elif joinType == 'parcel':
+		
+		parcels_existing = su.parcel_flood_duration(model1, parcel_features='PWD_PARCELS_SHEDS', 
+															threshold=0, bbox=bbox)['parcels']
+		parcels_proposed = su.parcel_flood_duration(model2, parcel_features='PWD_PARCELS_SHEDS', 
+															threshold=0, bbox=bbox)['parcels']
+		
+		joinedData = {}
+		for parcel, parcel_data in parcels_proposed.iteritems():
+		
+			proposed = parcel_data
+			existing = parcels_existing.get(parcel, {})
+			compareDict = {'proposed':proposed, 'existing':existing, 'lifecycle':None}
+			joinedData.update({parcel:compareDict})
 
 	return joinedData
 
@@ -209,7 +223,15 @@ def drawModelComparison(model1, model2, **kwargs):
 	imgSize = [int(x) for x in imgSize]
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
-
+	
+	#DRAW THE PARCELS
+	if ops['parcelSymb']:
+		
+		joined_parcels = joinModelData(model1, model2, bbox, joinType='parcel')
+		#track results
+		
+		sg.drawParcels(draw, joined_parcels, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+	
 	if ops['basemap']:
 		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
 

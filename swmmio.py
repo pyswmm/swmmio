@@ -24,13 +24,14 @@ class Model(object):
 		#can init with a directory containing files, or the specific inp file
 
 		fileParts = os.path.splitext(file)
+		print fileParts
 		#check if input file is dir or inp
 		if ".inp" in fileParts[1]:
 			#input is a full path to an inp
 			name = os.path.splitext(os.path.basename(file))[0]
 			inpFile = file
-			rptFile = os.path.join(fileParts[0], name) + ".rpt"
-
+			rptFile = fileParts[0] + ".rpt"
+			print 'inpFile: {} \n rptFile: {}'.format(inpFile, rptFile)
 		elif ".rpt" in fileParts[1]:
 			#input is a full path to an inp
 			name = os.path.splitext(os.path.basename(file))[0]
@@ -54,7 +55,6 @@ class Model(object):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#for conduits within a SWMM model. Upstream and downstream node data is attributed to the
-		#conduit
 
 		#parse out the main objects of this model
 		inp = self.inp
@@ -88,18 +88,24 @@ class Model(object):
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
 		#errCount = 0
-		for conduit in conduitsDict:
+	
+		for conduit, conduit_data in conduitsDict.iteritems():
+			
 			#try:
-			if conduitsDict[conduit]:
-				upstreamNodeID = conduitsDict[conduit][0]
-				downstreamNodeID = conduitsDict[conduit][1]
-			else:continue
-
+			#if conduitsDict[conduit]:
+				#upstreamNodeID = conduitsDict[conduit][0]
+				#downstreamNodeID = conduitsDict[conduit][1]
+			#else:continue
+			upstreamNodeID = conduit_data[0]
+			downstreamNodeID = conduit_data[1]
+			#if upstreamNodeID or downstreamNodeID not in coordsDict:
+			#	continue #if there aren't coords up/dn then this can't be drawn, probably rdii or something
 			#if the conduit's upstream & downstream nodes are found in the allNodesDict
 			#look up it's data
 			upstreamEl = 	float(allNodesDict[upstreamNodeID][0])
 			downstreamEl = 	float(allNodesDict[downstreamNodeID][0])
-			length = su.pipeLengthPlanView(coordsDict[upstreamNodeID], coordsDict[downstreamNodeID]) #can probably just pull the length from the INP rather than calculate it
+			#length = su.pipeLengthPlanView(coordsDict[upstreamNodeID], coordsDict[downstreamNodeID]) #can probably just pull the length from the INP rather than calculate it
+			length = float(conduit_data[2])
 			upstreamXY = coordsDict[upstreamNodeID]
 			upstreamXY = [float(i) for i in upstreamXY] #convert to floats
 			downstreamXY = coordsDict[downstreamNodeID]
@@ -210,7 +216,7 @@ class Model(object):
 			reachLength += length
 
 			#except Exception (e):
-				#print str(e)
+			#	print str(e)
 
 
 
@@ -474,9 +480,13 @@ class SWMMIOFile(object):
 				if not passedHeaders:
 					passedHeaders = True
 					continue
-
+				
+				#check if line is commented out (having a semicolon before anything else) and skip accordingly
+				if ";" == line.replace(" ", "")[0]:
+					continue #omit this entire line
+				
 				line = line.split(";")[0] #don't look at anything to right of a semicolon (aka a comment)
-
+				
 				line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
 				rowdata = line.replace("\n", "").split(" ")
 				the_dict[str(rowdata[0])] = rowdata[1:] #create dictionary row with key and array of remaing stuff on line as the value
@@ -501,7 +511,31 @@ class SWMMIOFile(object):
 
 			return f.read(printLength)
 
+def dictionary_from_prep(file):
+	passedHeaders = False
 
+	with open(file) as f:
+		the_dict = {}
+		for line in f:
+
+			if len(line) <=3 and not ";" in line: break
+			if not passedHeaders:
+				passedHeaders = True
+				continue
+			
+			#check if line is commented out (having a semicolon before anything else) and skip accordingly
+			if ";" == line.replace(" ", "")[0]:
+				continue #omit this entire line
+			
+			line = line.split(";")[0] #don't look at anything to right of a semicolon (aka a comment)
+			
+			line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
+			rowdata = line.replace("\n", "").split(" ")
+			the_dict[str(rowdata[0])] = rowdata[1:]
+	
+	return the_dict
+	
+	
 class rpt(SWMMIOFile):
 
 	#creates an accessible SWMM .rpt object, inherits from SWMMIO object

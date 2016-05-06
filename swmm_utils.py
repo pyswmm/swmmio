@@ -8,6 +8,7 @@ import matplotlib.path as mplPath
 from matplotlib.transforms import BboxBase
 import pickle
 import json
+import arcpy
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -24,9 +25,11 @@ mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 morris_10th = 	((2693740, 227260),	(2694412, 227693))
-study_area = 	((2680283, 215575), (2701708, 235936))
+#study_area = 	((2680283, 215575), (2701708, 235936))
+study_area = 	((2682005, 219180), (2701713, 235555))
 dickenson_7th = ((2695378, 227948), (2695723, 228179))
 packer_18th = 	((2688448, 219932), (2691332, 221857))
+moore_broad = 	((2689315, 225537), (2695020, 228592))
 
 #COLOR DEFS
 red = 		(250, 5, 5)
@@ -39,6 +42,7 @@ grey = 		(100,95,97)
 park_green = (115, 178, 115)
 green = 	(115, 220, 115)
 water_grey = (130, 130, 130)
+purple = (250, 0, 250) 
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import arcpy
@@ -296,116 +300,107 @@ def subsetElements(model, type='node', key='floodDuration', min=0.083, max=99999
 	return subset
 
 	 
-def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb', export_table=False):
+def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None, 
+							gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb', 
+							export_table=False,anno_results={}):
 	
 	#return a dictionary of each parcel ID with averagre flood duration
 	
+	#check if a parcel to node association dicitonary exists, load if possible
+	parcel_to_nodes_filename = os.path.join(model.inp.dir, 'parcel_nodes_dict.txt')
+	if not os.path.isfile(parcel_to_nodes_filename):
+		
+		#this is a heavy operation, allow a few minutes
+		print "generating parcel/node association dictionary..."
+		parcel_to_nodes_dict = parcel_to_nodes_dictionary(parcel_features, gdb=gdb, bbox=bbox) 
+		
+		#save for later use
+		with open(parcel_to_nodes_filename, 'w') as dictSaveFile:
+			pickle.dump(parcel_to_nodes_dict, dictSaveFile)
+	else:
+		print "loading parcel/node association dictionary..."
+		parcel_to_nodes_dict = pickle.load( open(parcel_to_nodes_filename, 'r') ) 
+		print "WARNING: make sure this loaded parcel dict contains all parcels!"
+	
 	#grab the list of flooded nodes, and create the dictionary of parcels linked to node IDs
 	flooded_nodes = subsetElements(model, min=threshold, bbox=bbox, pair_only=True)
-	parcels_dict = parcel_dict_from_joined_feature(parcel_features, where = None, gdb=gdb, bbox=bbox)
 	
-	#return parcels_dict
+	#parcels_dict = parcel_to_nodes_dictionary(parcel_features, where = None, gdb=gdb, bbox=bbox) #this is heavy
+	
+	#tally how many were flooded above set durations
+	#{minutes : number of parcels with flooding greater than}
+	duration_partition = {
+				5:0, 10:0, 15:0,
+				30:0, 45:0, 60:0,
+				75:0, 90:0, 105:0,
+				120:0
+				}
 	#calculate average flood duration for each parcel
-	parcels_flooded_count = 0.0
-	for parcel, parcel_data in parcels_dict.iteritems():
+	parcels_flooded_count = 0
+	for parcel, parcel_data in parcel_to_nodes_dict.iteritems():
 	
 		associated_nodes = parcel_data['nodes'] #associated nodes
 		
 		if len(associated_nodes) > 0:
 			
 			total_parcel_flood_dur = 0.0
+			flood_duration = 0.0
 			for node in associated_nodes:
+				
 				#look up the flood duration
 				node_duration = flooded_nodes.get(node, 0)
-				total_parcel_flood_dur += node_duration
+				total_parcel_flood_dur += node_duration #for avereage calculation
+				
+				#parcel flooding duration assumed to be the max of all adjacent node durations
+				flood_duration = max(flood_duration, node_duration)  
 			
 			avg_flood_duration = total_parcel_flood_dur/len(associated_nodes)
-			parcel_data.update({'avg_flood_duration':avg_flood_duration})
+			parcel_data.update({'avg_flood_duration':avg_flood_duration, 'flood_duration':flood_duration})
 			
-			if avg_flood_duration > 0:
-				parcels_flooded_count += 1.0
+			if flood_duration >= threshold: 
+				#we've found a parcel that is considered flooded 
+				parcels_flooded_count += 1
+				
+			for duration, count in duration_partition.iteritems():
+				if flood_duration >= float(duration)/60.0:
+					count += 1
+					duration_partition.update({duration:count})
 	
-	parcels_count = len(parcels_dict)
-	parcels_flooded_fraction = parcels_flooded_count/parcels_count
+	parcels_count = len(parcel_to_nodes_dict)
+	parcels_flooded_fraction = float(parcels_flooded_count)/float(parcels_count)
 	
 	results = {
 				'parcels_flooded_count':parcels_flooded_count, 
 				'parcels_count':parcels_count,
 				'parcels_flooded_fraction':parcels_flooded_fraction,
-				'parcels':parcels_dict
+				'duration_partition':duration_partition
 				}
-	print 'Found {0} ({1}%) parcels, of {2} total, with flooding above {3} hours.'.format(parcels_flooded_count, round(parcels_flooded_fraction*100), parcels_count, threshold)
+	
+	results_string = "{} ({}%) of {} total".format(results['parcels_flooded_count'], round(results['parcels_flooded_fraction']*100),results['parcels_count'])
+	
+	print results_string
+	
+	#partition (detailed) results string
+	partitioned_results = "\n"
+	for d in sorted(duration_partition):
+		perc_of_tot = int(round( float(duration_partition[d]) / float(results['parcels_count']) * 100 ))
+		partitioned_results += '>{}mins : {} ({}%)\n'.format(d, duration_partition[d], perc_of_tot)
+		
+	#track results for annotation
+	anno_results.update({'Total Parcels':results['parcels_count'], '\nParcels Flooded':partitioned_results})
+	
+	#add in the actual list of parcels for drawing
+	results.update({'parcels':parcel_to_nodes_dict})
+	
 	return results
 	 
-def parcelsFlooded(model, threshold = 0.083, bbox=None, shiftRatio=None, width=1024):
-
-	#return list of nodes with flood duration above threshold 
-	flooded_nodes = subsetElements(model, min=threshold, bbox=bbox)
-	print '{} flooded nodes found'.format(len(flooded_nodes))
-	
-	#return sheds that contain these floode nodes (room for optimization here, don't need to rescan the arcpy search cursor every time...)
-	sheds = shape2Pixels("detailedsheds", where=None, targetImgW=width, shiftRatio=shiftRatio, bbox=bbox)['geometryDicts']
-	parcels = shape2Pixels("parcels3", where=None, targetImgW=width, shiftRatio=shiftRatio, bbox=bbox)
-	
-	imgSize = parcels['imgSize']
-	parcels = parcels['geometryDicts']
-	print 'Processing {0} sheds and {1} parcels'.format(len(sheds), len(parcels))
-	
-	sheds_with_flooded_nodes = {}
-	parcels_flooded = {}
-	for shed, data in sheds.iteritems():
-		#create a path object and test if contains any flooded nodes
-		coords = data['coordinates']
-		shed_path = mplPath.Path(coords) #matplotlib Path object 
-		shed_bbox = shed_path.get_extents()
-
-		floodDurationSum = 0.0 #to calc the average duration in the shed
-		flood_nodes_in_shed = {}
-		for node, data in flooded_nodes.iteritems():
-			
-			
-			x,y = data['coordinates']
-			if shed_bbox.contains(x,y):
-				#check first if shed bounding box contains point, if not, move on. 
-				#If yes, allow this more detailed search
-				if shed_path.contains_point(data['coordinates']): #maybe used contains_points for efficiency
-					
-					#we found a shed with flooding
-					flood_nodes_in_shed.update({node:data['floodDuration']})
-					
-					floodDurationSum += data['floodDuration']
-				
-		#build a dictionary containing each shed with flooded nodes, 
-		#containing a dictionary of each node with hours flooded
-		if flood_nodes_in_shed:
-			avgDuration = floodDurationSum / float(len(flood_nodes_in_shed))
-			
-			sheds_with_flooded_nodes.update({shed:flood_nodes_in_shed})
-			
-			#find the parcels that intersect
-			for parcel, data in parcels.iteritems():
-				coords = data['coordinates']
-				parcel_path = mplPath.Path(coords) #matplotlib Path object 
-				parcel_bbox = parcel_path.get_extents()
-			
-				if BboxBase.intersection(shed_bbox, parcel_bbox):
-					#check first if shed bounding box intersects parcel boudning box, if not, move on
-					if shed_path.intersects_path(parcel_path):
-						
-						parcels_flooded.update({parcel:{'shed':shed,'avgerage_duration':avgDuration, 'flooded_nodes':flood_nodes_in_shed, 'draw_coordinates':data['draw_coordinates']}})
-						#return parcels_flooded
-	
-	print 'Found {0} sheds and {1} parcels with flooding above {2} hours.'.format(len(sheds_with_flooded_nodes), len(parcels_flooded), threshold)
-	return {'sheds':sheds_with_flooded_nodes, 'parcels':parcels_flooded, 'imgSize':imgSize}
-
-
-def parcel_dict_from_joined_feature(feature, cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, where="shedFID = 1238", gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+def parcel_to_nodes_dictionary(feature, cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	#create diction with keys for each parcel, and sub array containing associated nodes
 	features = os.path.join(gdb, feature)
 	import arcpy
 	parcels = {}
-	for row in arcpy.da.SearchCursor(features, cols, where_clause=where):
+	for row in arcpy.da.SearchCursor(features, cols):
 		
 		#first check if parcel is in bbox
 		jsonkey = 'rings' #for arc polygons
@@ -427,6 +422,7 @@ def parcel_dict_from_joined_feature(feature, cols = ["PARCELID", "OUTLET", "SUBC
 		else:
 			#new parcel id found
 			
+			#parcels.update({ PARCELID:{'nodes':[row[1]], 'sheds':[row[2]] }} )
 			parcels.update({ PARCELID:{'nodes':[row[1]], 'sheds':[row[2]] }} )
 			
 	return parcels
@@ -436,7 +432,6 @@ def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68
 	#take data from a geodatabase and organize in a dictionary with coordinates and draw_coordinates
 	
 	
-	import arcpy
 	
 	features = os.path.join(gdb, feature)
 	geometryDicts = {}
@@ -641,7 +636,7 @@ def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 		if nodeData['existing'].get('floodDuration', 0) == 0 and nodeData['proposed'].get('floodDuration', 0) > 0:
 			#new flooding found
 			radius = floodDurationChange*20
-			color = (250, 0, 250) #purple	
+			color = purple #purple	
 			outlineColor = (90, 90, 90)
 		
 	else:
@@ -865,18 +860,18 @@ def annotateMap (canvas, model, model2=None, currentTstr = None, options=None, r
 	symbology_string = ', '.join([s['title'] for s in filter(None, [nodeSymb, conduitSymb, parcelSymb])])
 	title += ": " + symbology_string 
 	
-	params_string = ''.join([" > " + str(s['threshold']*60) + "min " for s in filter(None, [parcelSymb])])
+	#params_string = ''.join([" > " + str(round(s['threshold']*600)/10) + "min " for s in filter(None, [parcelSymb])])
 	#build the title
 	
 	
 	#collect results
 	for result, value in results.iteritems():
-		results_string += result + ": " + str(value) + " "
+		results_string += '\n' + result + ": " + str(value)
 	
 	#compile the annotation text
 	if results:
-		annotationTxt = results_string + params_string + "\n"
-	annotationTxt += "Files:\n" + files
+		annotationTxt = results_string + "\n"
+	annotationTxt += files
 	
 	
 	annoHeight = canvas.textsize(annotationTxt, font)[1] 
