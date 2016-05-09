@@ -9,6 +9,7 @@ from matplotlib.transforms import BboxBase
 import pickle
 import json
 import arcpy
+import draw_options as du
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -25,7 +26,7 @@ mckean = 		((2691080, 226162),	(2692236, 226938))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 morris_10th = 	((2693740, 227260),	(2694412, 227693))
-#study_area = 	((2680283, 215575), (2701708, 235936))
+
 study_area = 	((2682005, 219180), (2701713, 235555))
 dickenson_7th = ((2695378, 227948), (2695723, 228179))
 packer_18th = 	((2688448, 219932), (2691332, 221857))
@@ -43,6 +44,10 @@ park_green = (115, 178, 115)
 green = 	(115, 220, 115)
 water_grey = (130, 130, 130)
 purple = (250, 0, 250) 
+
+#FONTS
+fontFile = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
+
 def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	import arcpy
@@ -147,13 +152,6 @@ def pipeProfileLengthTransform(planLength, upstreamEl, downstreamEl, xTrans, yTr
 	newYComponent = ycomponent * yTrans
 	
 	return math.hypot(newXComponent, newYComponent)
-def getX2(y1, y2, length, x1=0):
-	
-	#return the x2 coordinate given y1, y2, the line segment length, and x0
-	
-	a = y2 - y1
-	c = length
-	return math.sqrt(c*c - a*a) + x1
 def merge_dicts(*dict_args):
     '''
     Given any number of dicts, shallow copy and merge into a new dict,
@@ -164,95 +162,7 @@ def merge_dicts(*dict_args):
 		if dictionary:
 			result.update(dictionary)
     return result
-def greenRedGradient(x, xmin, xmax):
-	
-	range = xmax - xmin
-	scale = 255 / range
-	
-	x = min(x, xmax) #limit any vals to the prescribed max
-	
-	#print "range = " + str(range)
-	#print "scale = " + str(scale)
-	r = int(round(x*scale))
-	g = int(round(255 - x*scale))
-	b = 0
-	
-	return (r, g, b)
-def greyRedGradient(x, xmin, xmax):
-	
-	range = xmax - xmin
-	
-	rMin = 100
-	bgMax = 100
-	rScale = (255 - rMin) / range
-	bgScale = (bgMax) / range
-	x = min(x, xmax) #limit any vals to the prescribed max
-	
-	
-	#print "range = " + str(range)
-	#print "scale = " + str(scale)
-	r = int(round(x*rScale + rMin ))
-	g = int(round(bgMax - x*bgScale))
-	b = int(round(bgMax - x*bgScale))
-	
-	return (r, g, b)
-def greyGreenGradient(x, xmin, xmax):
-	
-	range = xmax - xmin
-	
-	gMin = 100
-	rbMax = 100
-	gScale = (255 - gMin) / range
-	rbScale = (rbMax) / range
-	x = min(x, xmax) #limit any vals to the prescribed max
-	
-	
-	#print "range = " + str(range)
-	#print "scale = " + str(scale)
-	r = int(round(rbMax - x*rbScale))
-	g = int(round(x*rbScale + gMin ))
-	b = int(round(rbMax - x*rbScale))
-	
-	return (r, g, b)
 
-def col2RedGradient(x, xmin, xmax, startCol=lightgrey):
-	
-	range = xmax - xmin
-	
-	rMin = startCol[0]
-	gMax = startCol[1]
-	bMax = startCol[2]
-	
-	rScale = (255 - rMin) / range
-	gScale = (gMax) / range
-	bScale = (bMax) / range
-	x = min(x, xmax) #limit any vals to the prescribed max
-	
-	
-	#print "range = " + str(range)
-	#print "scale = " + str(scale)
-	r = int(round(x*rScale + rMin ))
-	g = int(round(gMax - x*gScale))
-	b = int(round(bMax - x*bScale))
-	
-	return (r, g, b)
-
-	#lightgrey = (235, 235, 225)
-
-def blueRedGradient(x, xmin, xmax):
-	
-	range = xmax - xmin
-	scale = 255 / range
-	
-	x = min(x, xmax) #limit any vals to the prescribed max
-	
-	#print "range = " + str(range)
-	#print "scale = " + str(scale)
-	r = int(round(x*scale))
-	g = 0
-	b = int(round(255 - x*scale))
-	
-	return (r, g, b)
 
 def elementChange(elementData, parameter='maxflow'):
 	
@@ -396,7 +306,7 @@ def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
 	 
 def parcel_to_nodes_dictionary(feature, cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
-	#create diction with keys for each parcel, and sub array containing associated nodes
+	#create dictionary with keys for each parcel, and sub array containing associated nodes
 	features = os.path.join(gdb, feature)
 	import arcpy
 	parcels = {}
@@ -594,13 +504,7 @@ def coordToDrawCoord(coordinates, bbox, shiftRatio):
 	return (x,y)
 
 	
-def circleBBox(coordinates, radius):
-	#returns the bounding box of a circle given as centriod coordinate and radius
-	x = coordinates[0] #this indexing is because other elements haev more than on coordinate (ulgy pls fix)
-	y = coordinates[1]
-	r = radius
-	
-	return (x-r, y-r, x+r, y+r)
+
 
 def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 	
@@ -654,16 +558,13 @@ def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 			radius = 3
 			if floodDuration >= threshold:
 				yellow = (221, 220, 0)
-				color = col2RedGradient(floodDuration, 0, 1, startCol=yellow) #options['fill'](floodDuration, 0, 1+threshold)
+				color = du.col2RedGradient(floodDuration, 0, 1, startCol=yellow) #options['fill'](floodDuration, 0, 1+threshold)
 			else:
 				
 				radius = 1
 	
 	radius *= xplier
-	draw.ellipse(circleBBox(xy, radius), fill =color, outline=outlineColor)
-	
-def line_size(q, exp=1):
-	return int(round(math.pow(q, exp)))
+	draw.ellipse(du.circleBBox(xy, radius), fill =color, outline=outlineColor)
 
 def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier = 1, highlighted=None):
 	
@@ -672,6 +573,7 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 	#default fill and size
 	fill = (120, 120, 130)
 	drawSize = 1
+	should_draw = True #boolean that can prevent a draw based on params
 	coordPair = conduitData['draw_coordinates']
 	type = options['type']
 	#general method for drawing one conduit
@@ -736,44 +638,39 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 		#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
 		if lifecycle == 'new':
 			fill = blue
-			drawSize = min(10, conduitData['proposed']['geom1'])*3 
+			drawSize = min(10, conduitData['proposed']['geom1']) 
 		
 		if lifecycle == 'changed':
 			fill = blue
-			drawSize = min(50, conduitData['proposed']['geom1'])*3 	
+			drawSize = min(50, conduitData['proposed']['geom1'])
 		
 		#IF THE CONDUITS IS 'EXISTING', DISPLAY SYMBOLOGY ACCORDINGLY (how things changed, etc)
 		if lifecycle == 'existing':
 			
+			if type == 'proposed_simple':
+				#drawSize = 0 #don't draw, only print the proposed infrastructure
+				#fill = red
+				should_draw = False
 			if type == 'compare_flow':
 					
 				if qChange > 0:
-					fill = greyRedGradient(qChange, 0, 20)
+					fill = du.greyRedGradient(qChange, 0, 20)
 					drawSize = int(round(math.pow(qChange, 1)))
 				
 				if qChange <= 0:
-					fill = greyGreenGradient(abs(qChange), 0, 20)
+					fill = du.greyGreenGradient(abs(qChange), 0, 20)
 					drawSize = int(round(math.pow(qChange, 1)))
 				
 			if type == 'compare_hgl':
 				
 				if avgHGL > 0:
-					fill = greyRedGradient(avgHGL+15, 0, 20)
+					fill = du.greyRedGradient(avgHGL+15, 0, 20)
 					drawSize = int(round(math.pow(avgHGL*5, 1)))
 				
 				if avgHGL <= 0:
-					fill = greyGreenGradient(abs(avgHGL)+15, 0, 20)
+					fill = du.greyGreenGradient(abs(avgHGL)+15, 0, 20)
 					drawSize = int(round(math.pow(avgHGL*5, 1)))
 			
-			if type == 'compare_stress':
-				
-				if maxQperc > 0:
-					fill = greyRedGradient(maxQperc+15, 0, 20)
-					drawSize = int(round(math.pow(maxQperc*10, 1)))
-				
-				if maxQperc <= 0:
-					fill = greyGreenGradient(abs(maxQperc)+15, 0, 20)
-					drawSize = int(round(math.pow(maxQperc*10, 1)))
 	
 	#if highlighted list is provided, overide any symbology for the highlighted conduits 	
 	if highlighted and id in highlighted:
@@ -782,13 +679,15 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 		
 	drawSize = int(drawSize*xplier)
 			
-	#draw that thing, 
-	canvas.line(coordPair, fill = fill, width = drawSize)
-	if pipeLengthPlanView(coordPair[0], coordPair[1]) > drawSize*0.75:
-		#if length is long enough, add circles on the ends to smooth em out
-		#this check avoids circles being drawn for tiny pipe segs
-		canvas.ellipse(circleBBox(coordPair[0], drawSize*0.5), fill =fill)
-		canvas.ellipse(circleBBox(coordPair[1], drawSize*0.5), fill =fill)
+	
+	if should_draw:
+		#draw that thing
+		canvas.line(coordPair, fill = fill, width = drawSize)
+		if pipeLengthPlanView(coordPair[0], coordPair[1]) > drawSize*0.75:
+			#if length is long enough, add circles on the ends to smooth em out
+			#this check avoids circles being drawn for tiny pipe segs
+			canvas.ellipse(du.circleBBox(coordPair[0], drawSize*0.5), fill =fill)
+			canvas.ellipse(du.circleBBox(coordPair[1], drawSize*0.5), fill =fill)
 
 def angleBetweenPoint(xy1, xy2):
 	dx, dy = (xy2[0] - xy1[0]), (xy2[1] - xy1[1]) 
@@ -887,7 +786,6 @@ def annotateMap (canvas, model, model2=None, currentTstr = None, options=None, r
 		canvas.text((modelSize[0] - annoWidth - 10, modelSize[1] - annoHeight - 10), currentTstr, fill=black, font=font)
 
 
-#FONTS
-fontFile = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
+
 
 #end

@@ -7,6 +7,7 @@
 import math
 import swmm_utils as su
 import swmm_graphics as sg
+import draw_utils as du
 #import SWMMIO
 import os
 from PIL import Image, ImageDraw
@@ -34,11 +35,9 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit'):
 
 
 	if joinType == 'conduit':
-		conduitDict1 = model1.organizeConduitData(bbox)
-		conduitDict2 = model2.organizeConduitData(bbox)
-
-		existingConduits = conduitDict1['conduitDictionaries']
-		proposedConduits = conduitDict2['conduitDictionaries'] #proposed as in, the whole system in the proposed conditions
+		
+		existingConduits = model1.organizeConduitData(bbox)['conduitDictionaries']
+		proposedConduits = model2.organizeConduitData(bbox)['conduitDictionaries'] #proposed as in, the whole system in the proposed conditions
 
 		joinedData = {}
 		for conduit, conduitData in proposedConduits.iteritems():
@@ -62,11 +61,9 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit'):
 			joinedData.update({conduit:compareDict})
 
 	elif joinType == 'node':
-		nodeDict1 = model1.organizeNodeData(bbox)
-		nodeDict2 = model2.organizeNodeData(bbox)
-
-		existingNodes = nodeDict1['nodeDictionaries']
-		proposedNodes = nodeDict2['nodeDictionaries'] #proposed as in, the whole system in the proposed conditions
+	
+		existingNodes = model1.organizeNodeData(bbox)['nodeDictionaries']
+		proposedNodes = model2.organizeNodeData(bbox)['nodeDictionaries'] #proposed as in, the whole system in the proposed conditions
 
 		joinedData = {}
 		for node, nodeData in proposedNodes.iteritems():
@@ -79,7 +76,6 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit'):
 				lifecycle = 'new'
 
 			existing = existingNodes.get(node, {})
-
 
 			compareDict = {'proposed':proposed, 'existing':existing, 'lifecycle':lifecycle}
 			joinedData.update({node:compareDict})
@@ -101,25 +97,6 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit'):
 
 	return joinedData
 
-def differenceBetweenConduits(conduitDict1, conduitDict2):
-
-	#return a dictionary with the difference in values in conduitDict1 and 2
-	diff = {
-		'downstreamEl':			conduitDict1['downstreamEl'] - 		conduitDict2['downstreamEl'],
-		'geom1': 				conduitDict1['geom1'] - 			conduitDict2['geom1'],
-		'maxDpercent': 			conduitDict1['maxDpercent'] - 		conduitDict2['maxDpercent'],
-		'maxHGLDownstream': 	conduitDict1['maxHGLDownstream'] - 	conduitDict2['maxHGLDownstream'],
-		'maxHGLUpstream': 		conduitDict1['maxHGLUpstream'] - 	conduitDict2['maxHGLUpstream'],
-		'maxQpercent': 			conduitDict1['maxQpercent'] - 		conduitDict2['maxQpercent'],
-		'upstreamEl': 			conduitDict1['upstreamEl'] - 		conduitDict2['upstreamEl'],
-		'maxDepthUpstream': 	conduitDict1['maxDepthUpstream'] - 	conduitDict2['maxDepthUpstream'],
-		'maxflow': 				conduitDict1['maxflow'] - 			conduitDict2['maxflow'],
-		'maxDepthDownstream':	conduitDict1['maxDepthDownstream']-	conduitDict2['maxDepthDownstream']
-		}
-
-	return diff
-
-
 def compareModelResults(model1, model2, bbox=None, parameter='floodDuration', joinType='node'):
 
 	outFilePath = os.path.join(model2.inp.dir, model2.inp.name) + "_" + parameter + "_change.csv"
@@ -127,15 +104,21 @@ def compareModelResults(model1, model2, bbox=None, parameter='floodDuration', jo
 
 	with open(outFilePath, 'w') as file:
 
-		header = "id, " + parameter + "_change, " + "lifecycle," + "comment"
+		header = "id, existing " + parameter + ", proposed "+ parameter + ", " + parameter + "_change, " + "lifecycle," + "comment"
+		#head = ', '.join('id', 'existing ')
 		file.write("%s\n" % header)
 		for element, data in joinedData.iteritems():
-
+			
 			change = su.elementChange(data, parameter=parameter)
-			line = element + ", " + str(change) + ", " + data['lifecycle']
-
-			if data['existing'].get('floodDuration', 0) == 0 and data['proposed'].get('floodDuration', 0) > 0:
-				line += ", newflooding"
+			existing = data['existing'][parameter]
+			proposed = data['proposed'][parameter]
+			
+			#line = element + ", " + str(change) + ", " + str(data['lifecycle'])
+			
+			line = ','.join([str(x) for x in [element, existing, proposed, change, data['lifecycle'] ] ])
+			
+			if data['existing'].get(parameter, 0) == 0 and data['proposed'].get(parameter, 0) > 0:
+				line += ", new " + parameter
 
 			file.write("%s\n" % line)
 
@@ -143,7 +126,7 @@ def compareModelResults(model1, model2, bbox=None, parameter='floodDuration', jo
 
 	return outFilePath
 
-def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
+def comparisonReport (model1, model2, bbox=None, threshold=0.083):
 
 	outFile = os.path.join(model2.inp.dir, model2.inp.name) + "_change.csv"
 
@@ -173,10 +156,10 @@ def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
 		if floodDurationChange < 0:
 			nodesFloodDDecrease += 1
 
-		if existingFloodD == 0 and proposedFloodD > durationfloor:
+		if existingFloodD == 0 and proposedFloodD > threshold:
 			nodesFloodNew += 1
 
-		if proposedFloodD == 0 and existingFloodD > durationfloor:
+		if proposedFloodD == 0 and existingFloodD > threshold:
 			nodesFloodEliminated += 1
 
 
@@ -196,9 +179,12 @@ def comparisonReport (model1, model2, bbox=None, durationfloor=0.083):
 def drawModelComparison(model1, model2, **kwargs):
 
 	#unpack and update the options
-	ops = sg.default_draw_options()
+	ops = du.default_draw_options()
+	ops.update({'conduitSymb':du.conduit_options('proposed_simple')}) #default overide
+	#print ops
 	for key, value in kwargs.iteritems():
 		ops.update({key:value})
+		
 	#return ops
 	width = ops['width']
 	xplier = ops['xplier']
@@ -240,7 +226,6 @@ def drawModelComparison(model1, model2, **kwargs):
 	if ops['conduitSymb']:
 		for conduit, conduitData in joinedConduits.iteritems():
 			su.drawConduit(conduit, conduitData, draw, ops['conduitSymb'], xplier = xplier)
-			#su.drawConduit(conduit, conduitData, draw, type=conduitSymb, xplier=xplier)
 			drawCount += 1
 
 	#DRAW THE NODES
@@ -250,7 +235,6 @@ def drawModelComparison(model1, model2, **kwargs):
 
 			if ('floodDuration' and 'maxDepth' in nodeDict['proposed']) and ('floodDuration' and 'maxDepth' in nodeDict['existing']):
 				#this prevents draws if no flow is supplied (RDII and such)
-				#su.drawNode(node, nodeDict, draw, rpt=None, dTime=None, type=nodeSymb, xplier=xplier)
 				su.drawNode(node, nodeDict, draw, rpt=None, options=ops['nodeSymb'], dTime=None, xplier=xplier)
 				drawCount += 1
 

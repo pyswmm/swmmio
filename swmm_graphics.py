@@ -1,6 +1,7 @@
 #graphical functions for SWMM files
 #import swmmio
 import swmm_utils as su
+import draw_utils as du
 from time import gmtime, strftime
 import re
 import os
@@ -13,6 +14,7 @@ import math
 import datetime
 from datetime import timedelta
 import pickle
+
 
 
 def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
@@ -52,18 +54,7 @@ def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, 
 	if open:
 		os.startfile(newFile)
 	
-def drawPolygons(imgName=None, width = 1024, feature="Model_Sheds", where="SHEDNAME = 'D68-C1'"):
-	
-	polyDict = su.convertPolygonToPixels(feature, targetImgW=width, where=where)
-	img = Image.new('RGB', polyDict['imgSize'], (0,3,18))
-	draw = ImageDraw.Draw(img) 
-	for poly, polyData in polyDict['polygons'].iteritems():
-		
-		draw.polygon(polyData['draw_coordinates'], fill=(100, 4,150))
-		
-	saveImage(img, None, imgName, imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
 
-	
 def createFeaturesDict(options={},  bbox=None, shiftRatio=None, width=1024):
 
 	#create dictionary containing draw coordinate data for the given basemap options
@@ -100,34 +91,53 @@ def drawParcels(draw, parcel_flooding_results,  options={}, bbox=None, width=102
 									cols = ["PARCELID", "SHAPE@"], targetImgW=width, 
 									shiftRatio=shiftRatio, bbox=bbox)
 	
-	if 'parcels' in parcel_flooding_results: 
-		parcel_flooding_results = parcel_flooding_results['parcels'] #HACKKK
-	
+	#if 'parcels' in parcel_flooding_results: 
+	#	parcel_flooding_results = parcel_flooding_results['parcels'] #HACKKK
+	threshold = options['threshold']
+	newflood = moreflood = floodEliminated= floodlowered= 0
 	for parcel, parcelData in parcel_flooding_results.iteritems():
-		
+		fill = du.lightgrey #default
 		try:
 			if 'existing' and 'proposed' in parcelData:
 				#we're dealing with "compare" dictionary
 				floodDurationChange = su.elementChange(parcelData, parameter='flood_duration')
-				if floodDurationChange > 0 and parcelData['existing']['flood_duration'] > 0:
-					fill = su.red #su.col2RedGradient(floodDurationChange+0.5, 0, 3)
-				if floodDurationChange > 0 and parcelData['existing']['flood_duration'] == 0:
-					fill = su.purple
-				else:
-					fill = su.lightgrey
+				existingDur = parcelData['existing']['flood_duration']
+				proposedDur = parcelData['proposed']['flood_duration']
 				
-			elif parcelData['flood_duration'] > options['threshold']:
+				
+				if existingDur >= threshold and floodDurationChange > 0:
+					
+					#parcel previously flooded, now floods more
+					fill = du.red
+					moreflood += 1
+				
+				elif existingDur < threshold and proposedDur >= threshold:
+					
+					#parcel previously did not flood, now floods in proposed conditions
+					fill = du.purple
+					newflood += 1
+				
+				elif existingDur >= threshold and floodDurationChange < 0 and proposedDur >= threshold:
+					
+					#parcel flooding problem decreased
+					fill =du.lightgrey
+					floodlowered += 1
+				
+				elif existingDur >= threshold and proposedDur < threshold:
+					
+					#parcel flooding problem eliminated
+					fill =du.lightgreen
+					floodEliminated += 1
+				
+			elif parcelData['flood_duration'] > threshold:
 				fill = su.col2RedGradient(parcelData['flood_duration']+0.5, 0, 3)
-			else:
-				fill = su.lightgrey
-			
-			
-			
 			
 			parcel_pix = parcels_pixels['geometryDicts'][parcel]
 			draw.polygon(parcel_pix['draw_coordinates'], fill=fill, outline=options['outline'])	
 		except:
 			pass
+	
+	print "newflood = {}\nmoreflood={}\nfloodEliminated={}\nfloodlowered={}".format(newflood, moreflood, floodEliminated, floodlowered)
 	#saveImage(img, None, imgName=model.inp.name + "_parcels", imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
 		
 def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
@@ -158,209 +168,12 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 					polyDrawCount += 1
 				
 
-def basemap_options(**kwargs):
-	basemap_options = {
-    'gdb': r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
-    'features': [
-		#this is an array so we can control the order of basemap layers
-        {
-            'feature': 'D68_Dissolve',
-            'fill': None,
-            'outline': su.shed_blue,
-            'featureDict': None,
-            'cols': ["OBJECTID", "SHAPE@"]
-		},
-        # {
-            # 'feature': 'PWD_PARCELS_SPhila_ModelSpace',
-            # 'fill': su.lightgrey,
-            # 'outline': None,
-            # 'featureDict': None,
-            # 'cols': ["OBJECTID", "SHAPE@"]
-		# },
-		# {
-            # 'feature': 'SouthPhilaModelExtents',
-            # 'fill': su.shed_blue,
-            # 'outline': None,
-            # 'featureDict': None,
-            # 'cols': ["OBJECTID", "SHAPE@"]
-		# },
-		# {
-            # 'feature': 'detailedsheds',
-            # 'fill': None,
-            # 'outline': su.red,
-            # 'featureDict': None,
-            # 'cols': ["OBJECTID", "SHAPE@"]
-		# },
-		
-		{
-            'feature': 'PhiladelphiaParks',
-            'fill': su.park_green,
-            'outline': None,
-            'featureDict': None,
-            'cols': ["OBJECTID", "SHAPE@"]
-		},
-        {
-            'feature': 'HydroPolyTrim',
-            'fill':su.water_grey,
-            'outline': None,
-            'featureDict': None,
-            'cols': ["OBJECTID", "SHAPE@"]
-		},
-        {
-            'feature': 'Streets_Dissolved5_SPhilly',
-            'fill': su.lightgrey,
-            'width': 0,
-            'fill_anno': su.grey,
-            'outline': None,
-            'featureDict': None,
-            'cols': ["OBJECTID", "SHAPE@", "ST_NAME"]
-		}
-      ],
-	}
-	feats = []
-	for key, value in kwargs.iteritems():
-		basemap_options.update({key:value}) 
-	
-	return basemap_options	
-def conduit_options(type, **kwargs):
-	#drawing options for conduits
-	conduit_def_symbologies = {
-		'stress': {
-			'title': 'Condiut Stress',
-			'description': 'Shows how taxed conduits are based on their flow (peak flow) with respect to their full-flow capacity',
-			'threshold': 1,#fraction used 
-			'type': 'stress',
-			'fill':su.greyRedGradient,
-			'draw_size':su.line_size,
-			'exp':0.8,
-			'xplier':10	
-		},
-		'compare_flow': {
-			'title': 'Flow Comparison',
-			'description': 'Shows the change in peak flows in conduits between a baseline and proposed model',
-			'type': 'compare_flow'
-		},
-		'compare_hgl': {
-			'title': 'HGL Comparison',
-			'description': 'Shows the change in HGL in conduits between a baseline and proposed model',
-			'type': 'compare_hgl'
-		},
-		'capacity_remaining': {
-			'title': 'Remaining Capacity',
-			'description': 'Shows the amount of full flow capacity remaining in conduits',
-			'type': 'capacity_remaining',
-			'fill':su.blue,
-			'draw_size':su.line_size,
-			'exp':0.75
-		},
-		'flow': {
-			'title': 'Condiut Flow',
-			'description': 'Shows the flow in conduits with line weight',
-			'type': 'flow',
-			'fill':su.blue,
-			'draw_size':su.line_size,
-			'exp':0.67
-		},
-		'flow_stress': {
-			'title': 'Condiut Flow & Stress',
-			'description': 'Shows the flow in conduits with line weight and color based on "stress" (flow/full-flow capacity)',
-			'type': 'flow_stress',
-			'fill':su.greenRedGradient,
-			'draw_size':su.line_size,
-			'exp':0.67
-		},
-		'trace': {
-			'title': 'Trace Upstream',
-			'description': '',
-			'type': 'trace'
-		}
-	}
-	
-	selected_ops = conduit_def_symbologies[type]
-	for key, value in kwargs.iteritems():
-		selected_ops.update({key:value}) 
-	
-	return selected_ops
-def node_options(type, **kwargs):
 
-	#drawing options for conduits
-	node_symbologies = {
-		'flood': {
-			'title': 'Node Flood Duration',
-			'description': 'Shows the node duration proporationally in size',
-			'threshold': 0.083,#minutes,
-			'fill': su.red,
-			'type': 'flood'
-		},
-		'flood_color': {
-			'title': 'Node Flood Duration',
-			'description': 'Shows the node duration via color gradient in size',
-			'threshold': 0.083,#minutes,
-			'fill':su.greenRedGradient,
-			'type': 'flood_color'
-		}
-	}
-	
-	selected_ops = node_symbologies[type]
-	for key, value in kwargs.iteritems():
-		selected_ops.update({key:value}) 
-	
-	return selected_ops
-def parcel_options(type, **kwargs):
-
-	#drawing options for conduits
-	parcel_symbologies = {
-		'flood': {
-				'title': 'Parcel Flood Duration',
-				'description': 'Shows the parcels flood duration severity based on color',
-				'threshold': 0.08333,
-				'fill': su.red,
-				'outline': None,
-				'type': 'flood',
-				'feature':'PWD_PARCELS_SHEDS',
-				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
-				},
-		'compare_flood': {
-				'title': 'Parcel Flood Change',
-				'description': 'Shows the parcels flood duration severity based on color',
-				'threshold': 0.08333,
-				'fill': su.red,
-				'outline': None,
-				'type': 'compare_flood',
-				'feature':'PWD_PARCELS_SHEDS',
-				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
-				}
-			}
-		
-	selected_ops = parcel_symbologies[type]
-	for key, value in kwargs.iteritems():
-		selected_ops.update({key:value}) 
-	
-	return selected_ops
-	
-def default_draw_options():
-	
-	default_options = {
-		'width': 2048,
-		'bbox':None,
-		'imgName':None,
-		'nodeSymb': node_options('flood'),
-		'conduitSymb': conduit_options('stress'),
-		'basemap': basemap_options(),
-		'parcelSymb': parcel_options('flood'),
-		'bg': su.white,
-		'xplier': 1,
-		'traceUpNodes': [],
-		'traceDnNodes': [],
-		'fps': 7.5,
-		'title': None
-	}
-	return default_options
 
 def drawModel (model, **kwargs):	
 	
 	#unpack and update the options
-	ops = default_draw_options()
+	ops = du.default_draw_options()
 	for key, value in kwargs.iteritems():
 		ops.update({key:value})
 	#return ops	
@@ -414,7 +227,7 @@ def drawModel (model, **kwargs):
 															gdb= ops['parcelSymb']['gdb'], bbox=bbox, 
 															anno_results=anno_results)
 		
-		drawParcels(draw, parcel_flooding_results, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+		drawParcels(draw, parcel_flooding_results['parcels'], options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
 	
 	#DRAW THE BASEMAP
 	if ops['basemap']:
@@ -450,7 +263,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 	
 	
 	#unpack and update the options
-	ops = default_draw_options()
+	ops = du.default_draw_options()
 	for key, value in kwargs.iteritems():
 		ops.update({key:value})
 	#return ops	
@@ -678,7 +491,7 @@ def drawProfile (model, imgName=None, imgDir=None, width = 1024, height=512, dra
 		dnFloodEl = conduit['dnFloodEl']
 		
 		geom1 = float(conduit['geom1']) * shiftRatioY
-		x2 = length + x1 #su.getX2(inv1, inv2, length, x1)
+		x2 = length + x1 #du.getX2(inv1, inv2, length, x1)
 		invCoordPair = [(x1, inv1), (x2, inv2)] #coordPairs for the pipe invert
 		crwnCoordPair = [(x1, inv1-geom1), (x2, inv2-geom1)] #coordPairs for the pipe crown
 		HGLCoordPair = [(x1, HGL1), (x2, HGL2)] #coordPairs for the HGL
