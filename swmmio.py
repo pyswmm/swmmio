@@ -75,8 +75,8 @@ class Model(object):
 		allNodesDict = su.merge_dicts(storagesDict, junctionsDict, outfallsDict)
 
 		nodesDepthSummaryDict = {} # from rpt if one is supplied
-		conduitDictionaries = {}
-		downstreamConduits = []
+		conduit_objects = {}
+		#downstreamConduits = []
 		if rpt:
 			#create a dictionary holding data from an rpt file, if provided
 			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
@@ -89,7 +89,7 @@ class Model(object):
 		minEl = 999999 #used for transform
 		#errCount = 0
 	
-		for conduit, conduit_data in conduitsDict.iteritems():
+		for conduit_id, conduit_data in conduitsDict.iteritems():
 			
 			#try:
 			#if conduitsDict[conduit]:
@@ -102,118 +102,119 @@ class Model(object):
 			#	continue #if there aren't coords up/dn then this can't be drawn, probably rdii or something
 			#if the conduit's upstream & downstream nodes are found in the allNodesDict
 			#look up it's data
-			upstreamEl = 	float(allNodesDict[upstreamNodeID][0])
-			downstreamEl = 	float(allNodesDict[downstreamNodeID][0])
+			#upstreamEl = 	float(allNodesDict[upstreamNodeID][0])
+			#downstreamEl = 	float(allNodesDict[downstreamNodeID][0])
 			#length = su.pipeLengthPlanView(coordsDict[upstreamNodeID], coordsDict[downstreamNodeID]) #can probably just pull the length from the INP rather than calculate it
 			length = float(conduit_data[2])
 			upstreamXY = coordsDict[upstreamNodeID]
 			upstreamXY = [float(i) for i in upstreamXY] #convert to floats
 			downstreamXY = coordsDict[downstreamNodeID]
 			downstreamXY = [float(i) for i in downstreamXY] #convert to floats
-			geom1 = float(xsectionsDict[conduit][1]) #conduit diameter / height
+			geom1 = float(xsectionsDict[conduit_id][1]) #conduit diameter / height
 
 			if bbox and (not su.pointIsInBox(bbox, upstreamXY) and not su.pointIsInBox(bbox, downstreamXY)):
 				#skip conduits who are not within a given boudning box. This includes conduits who are partially in the box.
 				continue
 
 			#downstream pipe id: the pipe whose upstream id equals downstreamNodeID
-			downstreamConduitID = None
-			if findOrder:
-				downstreamConduitID = [key for key,value in conduitsDict.items() if value and value[0] == downstreamNodeID] # this seems expensive
-				if downstreamConduitID:
-					downstreamConduitID = downstreamConduitID[0] #grab the first in the array (should only be one)
-					downstreamConduits.append(downstreamConduitID)
+			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1)
 
-			conduitDict = {
-				'length':length,
-				'upstreamEl':upstreamEl,
-				'downstreamEl':downstreamEl,
-				'downstreamConduitID':downstreamConduitID,
-				'downNodeID':downstreamNodeID,
-				'upstreamNodeID':upstreamNodeID,
-				'geom1':geom1,
-				'coordinates':[upstreamXY, downstreamXY],
-				'maxDepthUpstream':0,
-				'maxHGLUpstream':0,
-				'maxDepthDownstream':0,
-				'maxHGLDownstream':0,
-				'upFloodDuration':0,
-				'dnFloodDuration':0,
-				'upFloodEl':0,
-				'dnFloodEl':0,
-				'maxflow':0,
-				'maxQpercent':0,
-				'maxDpercent':0
-				}
+			# conduitDict = {
+				# 'length':length,
+				# 'upstreamEl':upstreamEl,
+				# 'downstreamEl':downstreamEl,
+				# 'downstreamConduitID':downstreamConduitID,
+				# 'downNodeID':downstreamNodeID,
+				# 'upstreamNodeID':upstreamNodeID,
+				# 'geom1':geom1,
+				# 'coordinates':[upstreamXY, downstreamXY],
+				# 'maxDepthUpstream':0,
+				# 'maxHGLUpstream':0,
+				# 'maxDepthDownstream':0,
+				# 'maxHGLDownstream':0,
+				# 'upFloodDuration':0,
+				# 'dnFloodDuration':0,
+				# 'upFloodEl':0,
+				# 'dnFloodEl':0,
+				# 'maxflow':0,
+				# 'maxQpercent':0,
+				# 'maxDpercent':0
+				# }
 
 			if rpt and (upstreamNodeID in nodesDepthSummaryDict) and (downstreamNodeID in nodesDepthSummaryDict):
-				#if the up and downstream nodes are also found in the node depth summary dictionary,
-				#grab the relevant data and store a little dictionary
+				# #if the up and downstream nodes are also found in the node depth summary dictionary,
+				# #grab the relevant data and store a little dictionary
 				upNDA = nodesDepthSummaryDict[upstreamNodeID] #upstream node depth array
 				dnNDA = nodesDepthSummaryDict[downstreamNodeID] #downstream node depth array
 				upHGL = float(upNDA[3])
 				dnHGL = float(dnNDA[3])
-				maxEl = max(upHGL, dnHGL, maxEl) #increase the max elevation observed with the HGL
-				conduitDict.update({'maxDepthUpstream':float(upNDA[2]), 'maxHGLUpstream':upHGL, 'maxDepthDownstream':float(dnNDA[2]), 'maxHGLDownstream':dnHGL})
+				conduit.maxHGLDownstream = dnHGL
+				conduit.maxHGLUpstream = upHGL
+				# maxEl = max(upHGL, dnHGL, maxEl) #increase the max elevation observed with the HGL
+				# conduitDict.update({'maxDepthUpstream':float(upNDA[2]), 'maxHGLUpstream':upHGL, 'maxDepthDownstream':float(dnNDA[2]), 'maxHGLDownstream':dnHGL})
 
-			if rpt and (upstreamNodeID in nodesFloodSummaryDict):
-				#if the up and downstream nodes are also found in the node flooding summary dictionary,
-				#grab the relevant data and store a little dictionary
-				upNFA = nodesFloodSummaryDict[upstreamNodeID] #upstream node flooding array
-				upFloodDuration = float(upNFA[0])
-				conduitDict.update({'upFloodDuration':upFloodDuration})
+			# if rpt and (upstreamNodeID in nodesFloodSummaryDict):
+				# #if the up and downstream nodes are also found in the node flooding summary dictionary,
+				# #grab the relevant data and store a little dictionary
+				# upNFA = nodesFloodSummaryDict[upstreamNodeID] #upstream node flooding array
+				# upFloodDuration = float(upNFA[0])
+				# conduitDict.update({'upFloodDuration':upFloodDuration})
 
-			if rpt and (downstreamNodeID in nodesFloodSummaryDict):
-				dnNFA = nodesFloodSummaryDict[downstreamNodeID] #downstream node depth array
-				dnFloodDuration = float(dnNFA[0])
-				conduitDict.update({'dnFloodDuration':dnFloodDuration})
+			# if rpt and (downstreamNodeID in nodesFloodSummaryDict):
+				# dnNFA = nodesFloodSummaryDict[downstreamNodeID] #downstream node depth array
+				# dnFloodDuration = float(dnNFA[0])
+				# conduitDict.update({'dnFloodDuration':dnFloodDuration})
 
 			#determine the flood depth for each node
 			#Max Depth = max(junctionsDict[1], highest Connected Crown)
 			#based on sum of Invert El, Max Depth, Surcharge Depth
 			#not fully functional yet
 			#need to not use surchargeD if a ponding area is given, per SWMM
-			if upstreamNodeID in junctionsDict:
-				inv = junctionsDict[upstreamNodeID][0]
-				maxD = junctionsDict[upstreamNodeID][1]
-				surchargeD = junctionsDict[upstreamNodeID][3]
-				floodEl = sum( [float(x) for x in [inv, maxD, surchargeD]] )
-				conduitDict.update({'upFloodEl':floodEl})
+			# if upstreamNodeID in junctionsDict:
+				# inv = junctionsDict[upstreamNodeID][0]
+				# maxD = junctionsDict[upstreamNodeID][1]
+				# surchargeD = junctionsDict[upstreamNodeID][3]
+				# floodEl = sum( [float(x) for x in [inv, maxD, surchargeD]] )
+				# conduitDict.update({'upFloodEl':floodEl})
 
-			if downstreamNodeID in junctionsDict:
-				inv = junctionsDict[downstreamNodeID][0]
-				maxD = junctionsDict[downstreamNodeID][1]
-				surchargeD = junctionsDict[downstreamNodeID][3]
-				floodEl = sum( [float(x) for x in [inv, maxD, surchargeD]] )
-				conduitDict.update({'dnFloodEl':floodEl})
+			# if downstreamNodeID in junctionsDict:
+				# inv = junctionsDict[downstreamNodeID][0]
+				# maxD = junctionsDict[downstreamNodeID][1]
+				# surchargeD = junctionsDict[downstreamNodeID][3]
+				# floodEl = sum( [float(x) for x in [inv, maxD, surchargeD]] )
+				# conduitDict.update({'dnFloodEl':floodEl})
 
-			if rpt and conduit in allLinksSummaryDict:
+			if rpt and conduit_id in allLinksSummaryDict:
 				#if the conduit is found in the link summary dictionary,
 				#grab the link flow smmary data and store a little dictionary
-				lsa = allLinksSummaryDict[conduit] #link summary array
+				lsa = allLinksSummaryDict[conduit_id] #link summary array
 				#lsa = [float(i) for i in lsa] #convert to floats
 				if lsa[0] == "CONDUIT":
-					conduitDict.update({'maxflow':float(lsa[1]), 'maxQpercent':float(lsa[5]), 'maxDpercent':float(lsa[6])})
+					
+					conduit.maxflow = float(lsa[1])
+					conduit.maxQpercent = float(lsa[5])
+					#conduit.maxDpercent = float(lsa[6])
+					#conduitDict.update({'maxflow':float(lsa[1]), 'maxQpercent':float(lsa[5]), 'maxDpercent':float(lsa[6])})
 
 
-			if extraData:
-				#for germantown flood start elevations
-				upFloodEl = None
-				dnFloodEl = None
-				try:
-					upFloodEl = extraData[upstreamNodeID]
-					dnFloodEl = extraData[downstreamNodeID]
-					maxEl = max(upstreamEl+upFloodEl, downstreamEl+dnFloodEl, maxEl) #inverts plus the geom1 (pipe dimension)
-				except:print "no flood start el for: " + conduit
-				conduitDict.update({'upFloodEl':upFloodEl, 'dnFloodEl':dnFloodEl})
+			# if extraData:
+				# #for germantown flood start elevations
+				# upFloodEl = None
+				# dnFloodEl = None
+				# try:
+					# upFloodEl = extraData[upstreamNodeID]
+					# dnFloodEl = extraData[downstreamNodeID]
+					# maxEl = max(upstreamEl+upFloodEl, downstreamEl+dnFloodEl, maxEl) #inverts plus the geom1 (pipe dimension)
+				# except:print "no flood start el for: " + conduit
+				#conduitDict.update({'upFloodEl':upFloodEl, 'dnFloodEl':dnFloodEl})
 
 
 			#append data to the overall dictionary
-			conduitDictionaries.update({conduit:conduitDict})
+			conduit_objects.update({conduit_id:conduit})
 
-			maxEl = max(upstreamEl+geom1, downstreamEl+geom1, maxEl) #inverts plus the geom1 (pipe dimension)
-			minEl = min(upstreamEl, downstreamEl, minEl)
-			reachLength += length
+			#maxEl = max(upstreamEl+geom1, downstreamEl+geom1, maxEl) #inverts plus the geom1 (pipe dimension)
+			#minEl = min(upstreamEl, downstreamEl, minEl)
+			#reachLength += length
 
 			#except Exception (e):
 			#	print str(e)
@@ -221,21 +222,21 @@ class Model(object):
 
 
 		#find the starting conduit (the one not in the downstream concduits dict)
-		startingConduit = 'NA'
-		if findOrder:
-			startingConduit = [x for x in conduitsDict.keys() if x not in downstreamConduits]
+		# startingConduit = 'NA'
+		# if findOrder:
+			# startingConduit = [x for x in conduitsDict.keys() if x not in downstreamConduits]
 
 		#this is wrong unless for profiles
-		modelSize = (int(round(reachLength)), int(round(maxEl - minEl)))
+		#modelSize = (int(round(reachLength)), int(round(maxEl - minEl)))
 
 		output = {
-			'conduitDictionaries': conduitDictionaries,
-			'boundingBox':modelSize,
-			'startingConduit':startingConduit,
-			'downstreamConduits':downstreamConduits,
-			'maxEl':maxEl,
-			'minEl':minEl,
-			'reachLength':reachLength
+			'conduit_objects': conduit_objects
+			#'boundingBox':modelSize,
+			#'startingConduit':startingConduit
+			#'downstreamConduits':downstreamConduits
+			# 'maxEl':maxEl,
+			# 'minEl':minEl,
+			# 'reachLength':reachLength
 			}
 
 		return output
@@ -267,7 +268,7 @@ class Model(object):
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
 		#errCount = 0
-		nodeDictionaries = {}
+		node_objects = {}
 		for node in allNodesDict:
 
 			if not allNodesDict[node] or not node in coordsDict:
@@ -279,46 +280,54 @@ class Model(object):
 			invert = 	float(allNodesDict[node][0])
 			xy = [float(i) for i in coordsDict[node]]#convert to floats
 
-			nodeDict = {
-				'invert':invert,
-				'coordinates':xy,
-				'floodDuration':0,
-				'pondedArea':0,
-				'maxDepth':0,
-				'maxHGL':0,
-				'pondedArea':0
-			}
-
+			# nodeDict = {
+				# 'invert':invert,
+				# 'coordinates':xy,
+				# 'floodDuration':0,
+				# 'pondedArea':0,
+				# 'maxDepth':0,
+				# 'maxHGL':0,
+				# 'pondedArea':0
+			# }
+			
+			
 			if bbox and (not su.pointIsInBox(bbox, xy)):
 				#skip nodes who are not within a given boudning box.
 				continue
-
+			
+			n = Node(node, invert, xy)
+			
 			if (node in nodesDepthSummaryDict):
 				#if the up and downstream nodes are also found in the node depth summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NDA = nodesDepthSummaryDict[node] #upstream node depth array
-				HGL = float(NDA[3])
-				maxDepth = float(NDA[2])
-				maxEl = max(HGL, maxEl) #increase the max elevation observed with the HGL
-				nodeDict.update({'maxDepth':maxDepth, 'maxHGL':HGL})
-
+				
+				n.maxHGL = float(NDA[3])
+				n.maxDepth = float(NDA[2])
+				maxEl = max(n.maxHGL, maxEl) #increase the max elevation observed with the HGL
+				
+				#nodeDict.update({'maxDepth':maxDepth, 'maxHGL':HGL})
+				
+				
+				
 			if (node in nodesFloodSummaryDict):
 				#if the up and downstream nodes are also found in the node flooding summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NFA = nodesFloodSummaryDict[node] #upstream node flooding array
-				floodDuration = float(NFA[0])
-				nodeDict.update({'floodDuration':floodDuration})
-
+				n.flood_duration = float(NFA[0])
+				#nodeDict.update({'floodDuration':floodDuration})
+				
+				
 			#grab the ponded area each junction
-			if node in junctionsDict:
-				pondedA = float(junctionsDict[node][4])
-				nodeDict.update({'pondedArea':pondedA})
+			# if node in junctionsDict:
+				# pondedA = float(junctionsDict[node][4])
+				# nodeDict.update({'pondedArea':pondedA})
 
-
+		
 			#append data to the overall dictionary
-			nodeDictionaries.update({node:nodeDict})
+			node_objects.update({node:n})
 
-			maxEl = max(maxDepth, HGL, maxEl) #inverts plus the geom1 (pipe dimension)
+			maxEl = max(n.maxDepth, n.maxHGL, maxEl) #inverts plus the geom1 (pipe dimension)
 			minEl = min(invert, minEl)
 
 			#except:
@@ -326,7 +335,7 @@ class Model(object):
 			#	print 'problem with ', node
 
 		output = {
-			'nodeDictionaries': nodeDictionaries,
+			'node_objects': node_objects,
 			'maxEl':maxEl,
 			'minEl':minEl,
 			}
@@ -511,29 +520,6 @@ class SWMMIOFile(object):
 
 			return f.read(printLength)
 
-def dictionary_from_prep(file):
-	passedHeaders = False
-
-	with open(file) as f:
-		the_dict = {}
-		for line in f:
-
-			if len(line) <=3 and not ";" in line: break
-			if not passedHeaders:
-				passedHeaders = True
-				continue
-			
-			#check if line is commented out (having a semicolon before anything else) and skip accordingly
-			if ";" == line.replace(" ", "")[0]:
-				continue #omit this entire line
-			
-			line = line.split(";")[0] #don't look at anything to right of a semicolon (aka a comment)
-			
-			line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
-			rowdata = line.replace("\n", "").split(" ")
-			the_dict[str(rowdata[0])] = rowdata[1:]
-	
-	return the_dict
 	
 	
 class rpt(SWMMIOFile):
@@ -649,5 +635,56 @@ class inp(SWMMIOFile):
 		self.headerList = swmm_headers.inpHeaderList
 
 
+class Node(object):
+	
+	#object representing a swmm node object
+	
+	__slots__ = ('id', 'invert', 'coordinates', 'flood_duration', 'maxDepth',
+				'maxHGL', 'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
+	
+	def __init__(self, id, invert=None, coordinates=[]):
 
+		#assign the header list
+		self.id = id
+		self.invert = invert
+		self.coordinates = coordinates
+		self.flood_duration = 0
+		self.maxDepth = 0
+		self.maxHGL = 0
+		self.draw_coordinates = None
+		self.lifecycle = 'existing'
+		self.is_delta = None
+		self.delta_type = None #whether this object's data represents a change between two parent models
+		
+class Link(object):
+	
+	#object representing a swmm node object
+	
+	__slots__ = ('id', 'coordinates', 'maxflow', 'maxQpercent', 'upNodeID', 'downNodeID', 'maxHGLDownstream', 'maxHGLUpstream',
+				 'geom1', 'length','draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
+	
+	
+	def __init__(self, id, coordinates=[], geom1=None):
+
+		#assign the header list
+		self.id = id
+		self.coordinates = coordinates
+		self.maxflow = 0
+		self.maxQpercent = 0
+		self.maxHGLDownstream = 0 
+		self.maxHGLUpstream = 0 
+		self.upNodeID = None
+		self.downNodeID = None
+		self.geom1 = geom1 #faster to use zero as default?
+		self.length = None
+		self.draw_coordinates = None
+		self.lifecycle = 'existing'
+		self.is_delta = None
+		self.delta_type = None #whether this object's data represents a change between two parent models
+		
+		
+		
+		
+		
+		
 #end

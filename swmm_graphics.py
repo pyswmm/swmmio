@@ -2,6 +2,7 @@
 #import swmmio
 import swmm_utils as su
 import draw_utils as du
+import parcels
 from time import gmtime, strftime
 import re
 import os
@@ -130,7 +131,7 @@ def drawParcels(draw, parcel_flooding_results,  options={}, bbox=None, width=102
 					floodEliminated += 1
 				
 			elif parcelData['flood_duration'] > threshold:
-				fill = su.col2RedGradient(parcelData['flood_duration']+0.5, 0, 3)
+				fill = du.col2RedGradient(parcelData['flood_duration']+0.5, 0, 3)
 			
 			parcel_pix = parcels_pixels['geometryDicts'][parcel]
 			draw.polygon(parcel_pix['draw_coordinates'], fill=fill, outline=options['outline'])	
@@ -167,9 +168,6 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 					su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
 					polyDrawCount += 1
 				
-
-
-
 def drawModel (model, **kwargs):	
 	
 	#unpack and update the options
@@ -201,17 +199,18 @@ def drawModel (model, **kwargs):
 	
 	#organize relavant data from SWMM files, #FIX TO NOT RUN ALL THIS IF NOT NECESSARY
 	conduitData = model.organizeConduitData(bbox) #diction	ary of overall model data, dimension, and the conduit dicts
-	conduitDicts = conduitData['conduitDictionaries']
-	pixelData = su.convertCoordinatesToPixels(conduitDicts, targetImgW=width, bbox=bbox)
+	conduits = conduitData['conduit_objects']
+	pixelData = su.convertCoordinatesToPixels(conduits, targetImgW=width, bbox=bbox)
 	shiftRatio = pixelData['shiftRatio']
 	imgSize = pixelData['imgSize']
+	
 	if not bbox:
 		bbox = pixelData['boundingBox'] #this is the box tightly wrapping all conduits, will be <= the user provided bbox
 	
 	#node data 
 	nodeData = model.organizeNodeData(bbox)
-	nodeDicts = nodeData['nodeDictionaries']
-	su.convertCoordinatesToPixels(nodeDicts, targetImgW=width, bbox=bbox)
+	nodes = nodeData['node_objects']
+	su.convertCoordinatesToPixels(nodes, targetImgW=width, bbox=bbox)
 	
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
@@ -222,7 +221,7 @@ def drawModel (model, **kwargs):
 	if ops['parcelSymb']:
 		
 		#grab the parcel&node dict that associates node IDs to each parcel
-		parcel_flooding_results = su.parcel_flood_duration(model, parcel_features=ops['parcelSymb']['feature'], 
+		parcel_flooding_results = parcels.parcel_flood_duration(model, parcel_features=ops['parcelSymb']['feature'], 
 															threshold=ops['parcelSymb']['threshold'],
 															gdb= ops['parcelSymb']['gdb'], bbox=bbox, 
 															anno_results=anno_results)
@@ -237,17 +236,18 @@ def drawModel (model, **kwargs):
 	
 	#DRAW THE CONDUITS
 	if ops['conduitSymb']:
-		for conduit, coordPairDict in conduitDicts.iteritems():
+		for id, conduit in conduits.iteritems():
 			
-			if 'maxflow' in coordPairDict: 
-				su.drawConduit(conduit, coordPairDict, draw, ops['conduitSymb'], rpt=rpt, xplier = xplier, highlighted=focusConduits)	
+			if conduit.coordinates: #has coordinate? draw. protect from rdii junk
+				su.drawConduit(conduit, draw, ops['conduitSymb'], rpt=rpt, xplier = xplier, highlighted=focusConduits)	
 				drawCount += 1
 			
 	#DRAW THE NODES
 	if ops['nodeSymb']:
-		for node, nodeDict in nodeDicts.iteritems():
-			if 'floodDuration' in nodeDict: #this prevents draws if no flow is supplied (RDII and such)
-				su.drawNode(node, nodeDict, draw, rpt=rpt, options=ops['nodeSymb'], dTime=None, xplier=xplier)
+		for id, node in nodes.iteritems():
+			if node.coordinates: #this prevents draws if no flow is supplied (RDII and such)
+				#drawNode(node, draw, options, rpt=None, dTime=None, xplier=1):
+				su.drawNode(node, draw, rpt=rpt, options=ops['nodeSymb'], dTime=None, xplier=xplier)
 				drawCount += 1
 				
 	

@@ -9,7 +9,7 @@ from matplotlib.transforms import BboxBase
 import pickle
 import json
 import arcpy
-import draw_options as du
+import draw_utils as du
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
@@ -195,153 +195,23 @@ def subsetElements(model, type='node', key='floodDuration', min=0.083, max=99999
 	#return a subset of a dictionary of swmm elements based on a value 
 	
 	if type=='node':
-		elems = model.organizeNodeData(bbox)['nodeDictionaries']
+		elems = model.organizeNodeData(bbox)['node_objects']
 		
 	elif type=='conduit':
-		elems = model.organizeConduitData(bbox)['conduitDictionaries']
+		elems = model.organizeConduitData(bbox)['conduit_objects']
 	else: return []
 	
 	if pair_only:
 		#only return the element and the value being filtered on 
-		subset = {k:v[key] for (k,v) in elems.items() if v[key] >= min and v[key] < max}
+		subset = {k:v.flood_duration for (k,v) in elems.items() if v.flood_duration >= min }
 	else:
-		subset = {k:v for (k,v) in elems.items() if v[key] >= min and v[key] < max}
+		subset = {k:v for (k,v) in elems.items() if v.flood_duration >= min }
 	
 	return subset
 
-	 
-def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None, 
-							gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb', 
-							export_table=False,anno_results={}):
-	
-	#return a dictionary of each parcel ID with averagre flood duration
-	
-	#check if a parcel to node association dicitonary exists, load if possible
-	parcel_to_nodes_filename = os.path.join(model.inp.dir, 'parcel_nodes_dict.txt')
-	if not os.path.isfile(parcel_to_nodes_filename):
-		
-		#this is a heavy operation, allow a few minutes
-		print "generating parcel/node association dictionary..."
-		parcel_to_nodes_dict = parcel_to_nodes_dictionary(parcel_features, gdb=gdb, bbox=bbox) 
-		
-		#save for later use
-		with open(parcel_to_nodes_filename, 'w') as dictSaveFile:
-			pickle.dump(parcel_to_nodes_dict, dictSaveFile)
-	else:
-		print "loading parcel/node association dictionary..."
-		parcel_to_nodes_dict = pickle.load( open(parcel_to_nodes_filename, 'r') ) 
-		print "WARNING: make sure this loaded parcel dict contains all parcels!"
-	
-	#grab the list of flooded nodes, and create the dictionary of parcels linked to node IDs
-	flooded_nodes = subsetElements(model, min=threshold, bbox=bbox, pair_only=True)
-	
-	#parcels_dict = parcel_to_nodes_dictionary(parcel_features, where = None, gdb=gdb, bbox=bbox) #this is heavy
-	
-	#tally how many were flooded above set durations
-	#{minutes : number of parcels with flooding greater than}
-	duration_partition = {
-				5:0, 10:0, 15:0,
-				30:0, 45:0, 60:0,
-				75:0, 90:0, 105:0,
-				120:0
-				}
-	#calculate average flood duration for each parcel
-	parcels_flooded_count = 0
-	for parcel, parcel_data in parcel_to_nodes_dict.iteritems():
-	
-		associated_nodes = parcel_data['nodes'] #associated nodes
-		
-		if len(associated_nodes) > 0:
-			
-			total_parcel_flood_dur = 0.0
-			flood_duration = 0.0
-			for node in associated_nodes:
-				
-				#look up the flood duration
-				node_duration = flooded_nodes.get(node, 0)
-				total_parcel_flood_dur += node_duration #for avereage calculation
-				
-				#parcel flooding duration assumed to be the max of all adjacent node durations
-				flood_duration = max(flood_duration, node_duration)  
-			
-			avg_flood_duration = total_parcel_flood_dur/len(associated_nodes)
-			parcel_data.update({'avg_flood_duration':avg_flood_duration, 'flood_duration':flood_duration})
-			
-			if flood_duration >= threshold: 
-				#we've found a parcel that is considered flooded 
-				parcels_flooded_count += 1
-				
-			for duration, count in duration_partition.iteritems():
-				if flood_duration >= float(duration)/60.0:
-					count += 1
-					duration_partition.update({duration:count})
-	
-	parcels_count = len(parcel_to_nodes_dict)
-	parcels_flooded_fraction = float(parcels_flooded_count)/float(parcels_count)
-	
-	results = {
-				'parcels_flooded_count':parcels_flooded_count, 
-				'parcels_count':parcels_count,
-				'parcels_flooded_fraction':parcels_flooded_fraction,
-				'duration_partition':duration_partition
-				}
-	
-	results_string = "{} ({}%) of {} total".format(results['parcels_flooded_count'], round(results['parcels_flooded_fraction']*100),results['parcels_count'])
-	
-	print results_string
-	
-	#partition (detailed) results string
-	partitioned_results = "\n"
-	for d in sorted(duration_partition):
-		perc_of_tot = int(round( float(duration_partition[d]) / float(results['parcels_count']) * 100 ))
-		partitioned_results += '>{}mins : {} ({}%)\n'.format(d, duration_partition[d], perc_of_tot)
-		
-	#track results for annotation
-	anno_results.update({'Total Parcels':results['parcels_count'], '\nParcels Flooded':partitioned_results})
-	
-	#add in the actual list of parcels for drawing
-	results.update({'parcels':parcel_to_nodes_dict})
-	
-	return results
-	 
-def parcel_to_nodes_dictionary(feature, cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
-	
-	#create dictionary with keys for each parcel, and sub array containing associated nodes
-	features = os.path.join(gdb, feature)
-	import arcpy
-	parcels = {}
-	for row in arcpy.da.SearchCursor(features, cols):
-		
-		#first check if parcel is in bbox
-		jsonkey = 'rings' #for arc polygons
-		geometrySections = json.loads(row[3].JSON)[jsonkey]
-		parcel_in_bbox=True #assume yes first
-		for i, section in enumerate(geometrySections):
-			#check if part of geometry is within the bbox, skip if not
-			if bbox and len ( [x for x in section if pointIsInBox(bbox, x)] ) == 0:
-				parcel_in_bbox=False #continue #skip this section if none of it is within the bounding box
-			
-		if not parcel_in_bbox:
-			continue #skip if not in bbox
-		
-		PARCELID = str(row[0])
-		if PARCELID in parcels:
-			#append to existing array
-			parcels[PARCELID]['nodes'].append(row[1])
-			parcels[PARCELID]['sheds'].append(row[2])
-		else:
-			#new parcel id found
-			
-			#parcels.update({ PARCELID:{'nodes':[row[1]], 'sheds':[row[2]] }} )
-			parcels.update({ PARCELID:{'nodes':[row[1]], 'sheds':[row[2]] }} )
-			
-	return parcels
-	
 def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 	
 	#take data from a geodatabase and organize in a dictionary with coordinates and draw_coordinates
-	
-	
 	
 	features = os.path.join(gdb, feature)
 	geometryDicts = {}
@@ -414,7 +284,7 @@ def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68
 	
 	return polyImgDict
 	
-def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None, shiftRatio=None):
+def convertCoordinatesToPixels(element_objs, targetImgW=1024, bbox=None, shiftRatio=None):
 	
 	#adds a dictionary to each conduit or node dict called
 	#'draw_coordinates' which is a two part tuple, xy1, xy2
@@ -423,14 +293,9 @@ def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None, shiftRat
 		#start by determining the max and min coordinates in the whole model
 		maxX = maxY = 0.0 #determine current width prior to ratio transform
 		minX = minY = 99999999
-		for element, elementData in elementDict.iteritems():
+		for id, element in element_objs.iteritems():
 			
-			if 'existing' and 'proposed' in elementData:
-				#then we have a "compare" dictionary, must drill down further, use proposed
-				coordPair = elementData['proposed']['coordinates']
-			else: 
-				coordPair = elementData['coordinates']
-			
+			coordPair = element.coordinates
 			
 			if type(coordPair[0]) is list:
 				#loop for elements with multiple coordinates (lines)
@@ -455,14 +320,9 @@ def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None, shiftRat
 		shiftRatio = float(targetImgW / width) # to scale down from coordinate to pixels
 	
 	print "reg shift ratio = ", shiftRatio
-	for element, elementData in elementDict.iteritems():
+	for id, element in element_objs.iteritems():
 		
-		if 'existing' and 'proposed' in elementData:
-			#then we have a "compare" dictionary, must drill down further, use proposed
-			coordPair = elementData['proposed']['coordinates']
-		else: 
-			coordPair = elementData['coordinates']
-		
+		coordPair = element.coordinates
 		
 		drawcoords = []
 		if type(coordPair[0]) is list:
@@ -475,7 +335,7 @@ def convertCoordinatesToPixels(elementDict, targetImgW=1024, bbox=None, shiftRat
 			#zeroth index is not list, therefore coordPair is a single coord
 			drawcoords = coordToDrawCoord(coordPair, bbox, shiftRatio)
 			
-		elementData.update({'draw_coordinates':drawcoords})
+		element.draw_coordinates = drawcoords
 	
 	imgSize = (width*shiftRatio, height*shiftRatio)
 	imgSize = [int(math.ceil(x)) for x in imgSize] #convert to ints
@@ -503,20 +363,26 @@ def coordToDrawCoord(coordinates, bbox, shiftRatio):
 	
 	return (x,y)
 
+def circleBBox(coordinates, radius):
+	#returns the bounding box of a circle given as centriod coordinate and radius
+	x = coordinates[0] #this indexing is because other elements haev more than on coordinate (ulgy pls fix)
+	y = coordinates[1]
+	r = radius
 	
+	return (x-r, y-r, x+r, y+r)	
 
 
-def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
+def drawNode(node, draw, options, rpt=None, dTime=None, xplier=1):
 	
 	color = (210, 210, 230) #default color 
 	radius = 0 #aka don't show this node by default
 	outlineColor = None 
-	xy = nodeData['draw_coordinates']
+	xy = node.draw_coordinates
 	threshold = options['threshold']
 	type = options['type']
 	if dTime:
 		
-		data = rpt.returnDataAtDTime(id, dTime, sectionTitle="Node Results") 
+		data = rpt.returnDataAtDTime(node.id, dTime, sectionTitle="Node Results") 
 		q = abs(float(data[2])) #absolute val because backflow
 		floodingQ = float(data[3])
 		HGL = float(data[5]) 
@@ -528,25 +394,26 @@ def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 				radius = q/2 
 				color = red #greenRedGradient(HGLup, 0, 15) #color
 	
-	elif 'existing' and 'proposed' in nodeData:
-		#we're dealing with "compare" dictionary
-		floodDurationChange = elementChange(nodeData, parameter='floodDuration')
+	elif node.is_delta:
+		#we're dealing with "compare" object
+		#floodDurationChange = elementChange(node, parameter='floodDuration')
 		
-		if floodDurationChange > 0 :
-			#Flood duration increase
-			radius = floodDurationChange*20
+		if node.flood_duration > 0 :
+			#Flood duration increases
+			radius = node.flood_duration*20
 			color = red 
 			
-		if nodeData['existing'].get('floodDuration', 0) == 0 and nodeData['proposed'].get('floodDuration', 0) > 0:
+		#if nodeData['existing'].get('floodDuration', 0) == 0 and nodeData['proposed'].get('floodDuration', 0) > 0:
+		if node.delta_type == 'new_flooding':
 			#new flooding found
-			radius = floodDurationChange*20
+			radius = node.flood_duration*20
 			color = purple #purple	
 			outlineColor = (90, 90, 90)
 		
 	else:
-		floodDuration = nodeData.get('floodDuration', 0)
-		maxDepth = nodeData['maxDepth']
-		maxHGL = nodeData['maxHGL']
+		floodDuration = node.flood_duration
+		maxDepth = node.maxDepth
+		maxHGL = node.maxHGL
 	
 		if type == 'flood':
 			#if floodDuration > 0.08333:
@@ -564,9 +431,9 @@ def drawNode(id, nodeData, draw, options, rpt=None, dTime=None, xplier=1):
 				radius = 1
 	
 	radius *= xplier
-	draw.ellipse(du.circleBBox(xy, radius), fill =color, outline=outlineColor)
+	draw.ellipse(circleBBox(xy, radius), fill =color, outline=outlineColor)
 
-def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier = 1, highlighted=None):
+def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, highlighted=None):
 	
 	#Method for drawing (in plan view) a single conduit, given its RPT results 
 	
@@ -574,14 +441,13 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 	fill = (120, 120, 130)
 	drawSize = 1
 	should_draw = True #boolean that can prevent a draw based on params
-	coordPair = conduitData['draw_coordinates']
+	coordPair = conduit.draw_coordinates
 	type = options['type']
 	#general method for drawing one conduit
 	if rpt:
 		#if an RPT is supplied, collect the summary data
-		maxQPercent = conduitData['maxQpercent']
-		q =  conduitData['maxflow']
-		
+		maxQPercent = conduit.maxQpercent
+		q =  conduit.maxflow
 		
 		if maxQPercent !=0:
 			capacity = q / maxQPercent
@@ -591,7 +457,7 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 		
 		if dTime:
 			#if a datetime is provided, grab the specif flow data at this time
-			data = rpt.returnDataAtDTime(id, dTime) #this is slow
+			data = rpt.returnDataAtDTime(conduit.id, dTime) #this is slow
 			q = abs(float(data[2])) #absolute val because backflow	
 			stress = q / capacity    #how taxed is the pipe
 		
@@ -625,27 +491,23 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 			
 			#drawSize = int( round(max(remaining_capacity, 1)*xplier) )
 			
-	elif 'existing' and 'proposed' in conduitData:
+	elif conduit.is_delta:
 		#we're dealing with "compare" dictionary
-		lifecycle = conduitData['lifecycle'] #new, chnaged, or existing conduit
-		qChange = 	elementChange(conduitData, parameter='maxflow')
-		upHGL = 	elementChange(conduitData, parameter='maxHGLUpstream')
-		dnHGL = 	elementChange(conduitData, parameter='maxHGLDownstream')
-		maxQperc = 	elementChange(conduitData, parameter='maxQpercent')
-		avgHGL = (upHGL + dnHGL) / 2.0
+		qChange = 	conduit.maxflow #elementChange(conduitData, parameter='maxflow')
+		maxQperc = 	conduit.maxQpercent #elementChange(conduitData, parameter='maxQpercent')
 		
 		
 		#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
-		if lifecycle == 'new':
+		if conduit.lifecycle == 'new':
 			fill = blue
-			drawSize = min(10, conduitData['proposed']['geom1']) 
+			drawSize = min(10, conduit.geom1) 
 		
-		if lifecycle == 'changed':
+		if conduit.lifecycle == 'changed':
 			fill = blue
-			drawSize = min(50, conduitData['proposed']['geom1'])
+			drawSize = min(10, conduit.geom1)
 		
 		#IF THE CONDUITS IS 'EXISTING', DISPLAY SYMBOLOGY ACCORDINGLY (how things changed, etc)
-		if lifecycle == 'existing':
+		if conduit.lifecycle == 'existing':
 			
 			if type == 'proposed_simple':
 				#drawSize = 0 #don't draw, only print the proposed infrastructure
@@ -655,21 +517,23 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 					
 				if qChange > 0:
 					fill = du.greyRedGradient(qChange, 0, 20)
-					drawSize = int(round(math.pow(qChange, 1)))
+					drawSize = int(round(math.pow(qChange, 0.67)))
 				
 				if qChange <= 0:
 					fill = du.greyGreenGradient(abs(qChange), 0, 20)
-					drawSize = int(round(math.pow(qChange, 1)))
+					drawSize = int(round(math.pow(abs(qChange), 0.67)))
 				
 			if type == 'compare_hgl':
+			
+				avgHGL = (conduit.maxHGLUpstream + conduit.maxHGLDownstream) / 2.0
 				
 				if avgHGL > 0:
 					fill = du.greyRedGradient(avgHGL+15, 0, 20)
-					drawSize = int(round(math.pow(avgHGL*5, 1)))
+					drawSize = int(round(math.pow(avgHGL, 1)))
 				
 				if avgHGL <= 0:
 					fill = du.greyGreenGradient(abs(avgHGL)+15, 0, 20)
-					drawSize = int(round(math.pow(avgHGL*5, 1)))
+					drawSize = int(round(math.pow(avgHGL, 1)))
 			
 	
 	#if highlighted list is provided, overide any symbology for the highlighted conduits 	
@@ -682,12 +546,12 @@ def drawConduit(id, conduitData, canvas, options, rpt=None, dTime = None, xplier
 	
 	if should_draw:
 		#draw that thing
-		canvas.line(coordPair, fill = fill, width = drawSize)
+		draw.line(coordPair, fill = fill, width = drawSize)
 		if pipeLengthPlanView(coordPair[0], coordPair[1]) > drawSize*0.75:
 			#if length is long enough, add circles on the ends to smooth em out
 			#this check avoids circles being drawn for tiny pipe segs
-			canvas.ellipse(du.circleBBox(coordPair[0], drawSize*0.5), fill =fill)
-			canvas.ellipse(du.circleBBox(coordPair[1], drawSize*0.5), fill =fill)
+			draw.ellipse(du.circleBBox(coordPair[0], drawSize*0.5), fill =fill)
+			draw.ellipse(du.circleBBox(coordPair[1], drawSize*0.5), fill =fill)
 
 def angleBetweenPoint(xy1, xy2):
 	dx, dy = (xy2[0] - xy1[0]), (xy2[1] - xy1[1]) 

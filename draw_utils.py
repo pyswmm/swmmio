@@ -19,7 +19,6 @@ purple = (250, 0, 250)
 
 
 def basemap_options(**kwargs):
-	print 'options! :) '
 	basemap_options = {
     'gdb': r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
     'features': [
