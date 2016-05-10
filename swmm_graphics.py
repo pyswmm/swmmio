@@ -96,44 +96,35 @@ def drawParcels(draw, parcel_flooding_results,  options={}, bbox=None, width=102
 	#	parcel_flooding_results = parcel_flooding_results['parcels'] #HACKKK
 	threshold = options['threshold']
 	newflood = moreflood = floodEliminated= floodlowered= 0
-	for parcel, parcelData in parcel_flooding_results.iteritems():
+	for PARCELID, parcel in parcel_flooding_results.iteritems():
 		fill = du.lightgrey #default
 		try:
-			if 'existing' and 'proposed' in parcelData:
+			if parcel.is_delta:
 				#we're dealing with "compare" dictionary
-				floodDurationChange = su.elementChange(parcelData, parameter='flood_duration')
-				existingDur = parcelData['existing']['flood_duration']
-				proposedDur = parcelData['proposed']['flood_duration']
-				
-				
-				if existingDur >= threshold and floodDurationChange > 0:
-					
+				if parcel.delta_type == 'increased_flooding':
 					#parcel previously flooded, now floods more
 					fill = du.red
 					moreflood += 1
 				
-				elif existingDur < threshold and proposedDur >= threshold:
-					
+				if parcel.delta_type == 'new_flooding':
 					#parcel previously did not flood, now floods in proposed conditions
 					fill = du.purple
 					newflood += 1
 				
-				elif existingDur >= threshold and floodDurationChange < 0 and proposedDur >= threshold:
-					
+				if parcel.delta_type == 'decreased_flooding':
 					#parcel flooding problem decreased
-					fill =du.lightgrey
+					fill =du.lightblue
 					floodlowered += 1
 				
-				elif existingDur >= threshold and proposedDur < threshold:
-					
+				if parcel.delta_type == 'eliminated_flooding':
 					#parcel flooding problem eliminated
 					fill =du.lightgreen
 					floodEliminated += 1
 				
-			elif parcelData['flood_duration'] > threshold:
-				fill = du.col2RedGradient(parcelData['flood_duration']+0.5, 0, 3)
+			elif parcel.flood_duration > threshold:
+				fill = du.col2RedGradient(parcel.flood_duration + 0.5, 0, 3)
 			
-			parcel_pix = parcels_pixels['geometryDicts'][parcel]
+			parcel_pix = parcels_pixels['geometryDicts'][PARCELID]
 			draw.polygon(parcel_pix['draw_coordinates'], fill=fill, outline=options['outline'])	
 		except:
 			pass

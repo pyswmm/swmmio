@@ -149,7 +149,7 @@ def conduit_options(type, **kwargs):
 		selected_ops.update({key:value}) 
 	
 	return selected_ops
-def node_options(type, **kwargs):
+def node_options(type='flood', **kwargs):
 
 	#drawing options for conduits
 	node_symbologies = {
@@ -174,7 +174,7 @@ def node_options(type, **kwargs):
 		selected_ops.update({key:value}) 
 	
 	return selected_ops
-def parcel_options(type, **kwargs):
+def parcel_options(type='flood', **kwargs):
 
 	#drawing options for conduits
 	parcel_symbologies = {
@@ -182,6 +182,7 @@ def parcel_options(type, **kwargs):
 				'title': 'Parcel Flood Duration',
 				'description': 'Shows the parcels flood duration severity based on color',
 				'threshold': 0.08333,
+				'delta_threshold':0.25,
 				'fill': red,
 				'outline': None,
 				'type': 'flood',
@@ -192,6 +193,7 @@ def parcel_options(type, **kwargs):
 				'title': 'Parcel Flood Change',
 				'description': 'Shows the parcels flood duration severity based on color',
 				'threshold': 0.08333,
+				'delta_threshold':0.25,
 				'fill': red,
 				'outline': None,
 				'type': 'compare_flood',

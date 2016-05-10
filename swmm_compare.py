@@ -8,8 +8,10 @@ import math
 import swmm_utils as su
 import swmm_graphics as sg
 import draw_utils as du
+import parcels as p
 #import SWMMIO
 import os
+
 from PIL import Image, ImageDraw
 
 
@@ -92,7 +94,7 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit', compare_param=
 		joinedData.update({id:compareDict})
 
 	return joinedData
-	
+
 
 def compareNodes (model1, model2, bbox=None, floodthreshold=0.08333):
 
@@ -280,13 +282,20 @@ def drawModelComparison(model1, model2, **kwargs):
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
 	
+	anno_results = {}
+	
 	#DRAW THE PARCELS
 	if ops['parcelSymb']:
 		
-		joined_parcels = joinModelData(model1, model2, bbox, joinType='parcel')
-		#track results
+		#joined_parcels = joinModelData(model1, model2, bbox, joinType='parcel')
+		floodthresh = ops['parcelSymb']['threshold']
+		delta_thresh = ops['parcelSymb']['delta_threshold']
 		
-		sg.drawParcels(draw, joined_parcels, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
+		delta_parcels = p.compareParcels(model1, model2, bbox=None, 
+										floodthreshold=floodthresh, 
+										delta_threshold=delta_thresh, anno_results=anno_results)['parcels']
+		
+		sg.drawParcels(draw, delta_parcels, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
 	
 	if ops['basemap']:
 		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
@@ -313,7 +322,7 @@ def drawModelComparison(model1, model2, **kwargs):
 				# drawCount += 1
 
 	#su.drawAnnotation (draw, model2.inp, imgWidth=width, title=title, objects=[model1.rpt, model2.rpt], symbologyType=conduitSymb, fill=su.black)
-	su.annotateMap (draw, model1, model2, options=ops)
+	su.annotateMap (draw, model1, model2, options=ops, results = anno_results)
 	del draw
 	#SAVE IMAGE TO DISK
 	sg.saveImage(img, model2, imgName)
