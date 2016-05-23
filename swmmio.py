@@ -86,12 +86,14 @@ class Model(object):
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
 		#errCount = 0
-	
+
 		for conduit_id, conduit_data in conduitsDict.iteritems():
-			
+
 			#try:
 			upstreamNodeID = conduit_data[0]
 			downstreamNodeID = conduit_data[1]
+			inletoffset = float(conduit_data[4])
+			outletoffset = float(conduit_data[5])
 			length = float(conduit_data[2])
 			upstreamXY = coordsDict[upstreamNodeID]
 			upstreamXY = [float(i) for i in upstreamXY] #convert to floats
@@ -104,9 +106,9 @@ class Model(object):
 				continue
 
 			#downstream pipe id: the pipe whose upstream id equals downstreamNodeID
-			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1)
+			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1, inletoffset, outletoffset)
 
-			
+
 			if rpt and (upstreamNodeID in nodesDepthSummaryDict) and (downstreamNodeID in nodesDepthSummaryDict):
 				# #if the up and downstream nodes are also found in the node depth summary dictionary,
 				# #grab the relevant data and store a little dictionary
@@ -116,7 +118,7 @@ class Model(object):
 				dnHGL = float(dnNDA[3])
 				conduit.maxHGLDownstream = dnHGL
 				conduit.maxHGLUpstream = upHGL
-			
+
 
 			if rpt and conduit_id in allLinksSummaryDict:
 				#if the conduit is found in the link summary dictionary,
@@ -124,10 +126,10 @@ class Model(object):
 				lsa = allLinksSummaryDict[conduit_id] #link summary array
 				#lsa = [float(i) for i in lsa] #convert to floats
 				if lsa[0] == "CONDUIT":
-					
+
 					conduit.maxflow = float(lsa[1])
 					conduit.maxQpercent = float(lsa[5])
-					
+
 
 			#append data to the overall dictionary
 			conduit_objects.update({conduit_id:conduit})
@@ -185,29 +187,29 @@ class Model(object):
 			#try:
 			invert = 	float(allNodesDict[node][0])
 			xy = [float(i) for i in coordsDict[node]]#convert to floats
-			
+
 			if bbox and (not su.pointIsInBox(bbox, xy)):
 				#skip nodes who are not within a given boudning box.
 				continue
-			
+
 			n = Node(node, invert, xy)
-			
+
 			if (node in nodesDepthSummaryDict):
 				#if the up and downstream nodes are also found in the node depth summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NDA = nodesDepthSummaryDict[node] #upstream node depth array
-				
+
 				n.maxHGL = float(NDA[3])
 				n.maxDepth = float(NDA[2])
 				maxEl = max(n.maxHGL, maxEl) #increase the max elevation observed with the HGL
-				
+
 			if (node in nodesFloodSummaryDict):
 				#if the up and downstream nodes are also found in the node flooding summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NFA = nodesFloodSummaryDict[node] #upstream node flooding array
 				n.flood_duration = float(NFA[0])
 				#nodeDict.update({'floodDuration':floodDuration})
-				
+
 			#append data to the overall dictionary
 			node_objects.update({node:n})
 
@@ -227,7 +229,7 @@ class Model(object):
 		return output
 
 	def exportData(self, fname=None, type='node', bbox=None, openfile=True):
-		
+
 		#this is broken since using objects for nodes/links
 		#exports the organized SWMM data into a csv table
 
@@ -318,7 +320,7 @@ class SWMMIOFile(object):
 		outFile = open(outFilePath, 'w')
 		headerList = self.headerList #inpSectionHeaders.headerList #replace sloppy rpt file headers with these one-row headers (CSV ready)
 		cleaned = None
-
+		#return headerList
 		with open(self.filePath) as rptSection:
 
 			rptSection.seek(byteRange[0]) #jump to the start location
@@ -326,7 +328,7 @@ class SWMMIOFile(object):
 			byteRemovedFromHeaderCleaning = 0
 			#clean up the headers
 			for hPair in headerList:
-				#maybe slow because we're scanning the file multiple times for each header pair
+				#scanning the file multiple times for each header pair
 				raw = raw.replace(hPair[0], hPair[1])
 				byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
 
@@ -360,6 +362,12 @@ class SWMMIOFile(object):
 		return outFilePath
 
 	def createDictionary (self, sectionTitle = defaultSection):
+
+		"""
+		Help info about this fucking piece of shit method that suddenly does
+		not work. thanks.
+		"""
+
 		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
 
 		if not preppedTempFilePath:
@@ -375,13 +383,13 @@ class SWMMIOFile(object):
 				if not passedHeaders:
 					passedHeaders = True
 					continue
-				
+
 				#check if line is commented out (having a semicolon before anything else) and skip accordingly
 				if ";" == line.replace(" ", "")[0]:
 					continue #omit this entire line
-				
+
 				line = line.split(";")[0] #don't look at anything to right of a semicolon (aka a comment)
-				
+
 				line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
 				rowdata = line.replace("\n", "").split(" ")
 				the_dict[str(rowdata[0])] = rowdata[1:] #create dictionary row with key and array of remaing stuff on line as the value
@@ -400,14 +408,16 @@ class SWMMIOFile(object):
 
 			if lookUpStr:
 				for line in f:
-					l += len(line) + len("\n")
+					#l += len(line) + len("\n")
 					if lookUpStr in line:
 						f.seek(l)
+						break
+					l += len(line) + len("\n")
 
-			return f.read(printLength)
+			print f.read(printLength)
 
-	
-	
+
+
 class rpt(SWMMIOFile):
 
 	#creates an accessible SWMM .rpt object, inherits from SWMMIO object
@@ -520,14 +530,13 @@ class inp(SWMMIOFile):
 		#assign the header list
 		self.headerList = swmm_headers.inpHeaderList
 
-
 class Node(object):
-	
+
 	#object representing a swmm node object
-	
+
 	__slots__ = ('id', 'invert', 'coordinates', 'flood_duration', 'maxDepth',
 				'maxHGL', 'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
-	
+
 	def __init__(self, id, invert=None, coordinates=[]):
 
 		#assign the header list
@@ -541,25 +550,27 @@ class Node(object):
 		self.lifecycle = 'existing'
 		self.is_delta = None
 		self.delta_type = None #whether this object's data represents a change between two parent models
-		
+
 class Link(object):
-	
+
 	#object representing a swmm Link (conduit) object
-	
-	__slots__ = ('id', 'coordinates', 'maxflow', 'maxQpercent', 'upNodeID', 'downNodeID', 
-				'maxHGLDownstream', 'maxHGLUpstream', 'geom1', 'length',
+
+	__slots__ = ('id', 'coordinates', 'maxflow', 'maxQpercent', 'upNodeID', 'downNodeID',
+				'maxHGLDownstream', 'maxHGLUpstream', 'geom1', 'length','inletoffset', 'outletoffset',
 				'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
-	
-	
-	def __init__(self, id, coordinates=[], geom1=None):
+
+
+	def __init__(self, id, coordinates=[], geom1=None, inletoffset=0, outletoffset=0):
 
 		#assign the header list
 		self.id = id
 		self.coordinates = coordinates
 		self.maxflow = 0
 		self.maxQpercent = 0
-		self.maxHGLDownstream = 0 
-		self.maxHGLUpstream = 0 
+		self.maxHGLDownstream = 0
+		self.maxHGLUpstream = 0
+		self.inletoffset = inletoffset
+		self.outletoffset = outletoffset
 		self.upNodeID = None
 		self.downNodeID = None
 		self.geom1 = geom1 #faster to use zero as default?
@@ -568,10 +579,10 @@ class Link(object):
 		self.lifecycle = 'existing'
 		self.is_delta = None
 		self.delta_type = None #whether this object's data represents a change between two parent models
-		
-		
-		
-		
-		
-		
+
+
+
+
+
+
 #end

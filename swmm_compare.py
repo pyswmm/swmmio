@@ -30,40 +30,39 @@ def getUnmatchedElementsInSection (inp1, inp2, section="[CONDUITS]"):
 	return unmatchedList
 
 def parameter_delta(existing_elem, proposed_elem, parameter='maxflow'):
-	
+
 	#returns change from existing to proposed
 	proposedVal = proposed_elem.get(parameter, 0.0)
 	existingVal = existing_elem.get(parameter, 0.0)
-	
+
 	return proposedVal - existingVal
-	
+
 def joinModelData (model1, model2, bbox=None, joinType='conduit', compare_param=None):
 
 	#joins data from two models in a side by side dictionary
 	#presumably, a baseline and a proposed SFR solution
 
-
 	if joinType == 'conduit':
-		
+
 		existing_elements = model1.organizeConduitData(bbox)['conduit_objects']
-		proposed_elements = model2.organizeConduitData(bbox)['conduit_objects'] 
+		proposed_elements = model2.organizeConduitData(bbox)['conduit_objects']
 
 	elif joinType == 'node':
-	
+
 		existing_elements = model1.organizeNodeData(bbox)['node_objects']
-		proposed_elements = model2.organizeNodeData(bbox)['node_objects'] 
-	
+		proposed_elements = model2.organizeNodeData(bbox)['node_objects']
+
 	elif joinType == 'parcel':
-		
-		existing_elements = su.parcel_flood_duration(model1, parcel_features='PWD_PARCELS_SHEDS', 
+
+		existing_elements = su.parcel_flood_duration(model1, parcel_features='PWD_PARCELS_SHEDS',
 															threshold=0, bbox=bbox)['parcels']
-		proposed_elements = su.parcel_flood_duration(model2, parcel_features='PWD_PARCELS_SHEDS', 
+		proposed_elements = su.parcel_flood_duration(model2, parcel_features='PWD_PARCELS_SHEDS',
 															threshold=0, bbox=bbox)['parcels']
-		
-		
+
+
 	joinedData = {}
 	for id, data in proposed_elements.iteritems():
-	
+
 		proposed = data
 		existing = existing_elements.get(id, {})
 		lifecycle = 'existing'
@@ -73,24 +72,24 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit', compare_param=
 		elif 'geom1' in proposed and proposed['geom1'] != existing_elements[id]['geom1']:
 			#if this is ID matched one in the existing model
 			#and geom 1 changes, this is a replaced/changed pipe
-			lifecycle = 'changed' 
-		
+			lifecycle = 'changed'
+
 		if compare_param:
 			#if an explicit param is given, find the delta between the models
 			#change = parameter_delta(existing, proposed, parameter=compare_param)
 			proposedVal = proposed.get(compare_param, 0.0)
 			existingVal = existing.get(compare_param, 0.0)
 			compareDict = {
-						'parameter':compare_param, 
+						'parameter':compare_param,
 						'change':proposedVal-existingVal,
-						'proposed':proposedVal, 
-						'existing':existingVal, 
+						'proposed':proposedVal,
+						'existing':existingVal,
 						'lifecycle':lifecycle
 						}
-			
+
 		else:
 			compareDict = {'proposed':proposed, 'existing':existing, 'lifecycle':lifecycle}
-		
+
 		joinedData.update({id:compareDict})
 
 	return joinedData
@@ -99,56 +98,56 @@ def joinModelData (model1, model2, bbox=None, joinType='conduit', compare_param=
 def compareNodes (model1, model2, bbox=None, floodthreshold=0.08333):
 
 	#return a dict of node objects with the delta between models
-	
+
 	existing_elements = model1.organizeNodeData(bbox)['node_objects']
-	proposed_elements = model2.organizeNodeData(bbox)['node_objects'] 
-	
+	proposed_elements = model2.organizeNodeData(bbox)['node_objects']
+
 	for id, proposed in proposed_elements.iteritems():
-		
+
 		existing = existing_elements.get(id, {})
-		
+
 		if id in existing_elements:
 			#not a new element
 			flood_duration_delta = proposed.flood_duration - existing.flood_duration
 			proposed.flood_duration = flood_duration_delta
 			proposed.maxDepth = proposed.maxDepth - existing.maxDepth
 			proposed.maxHGL = proposed.maxHGL = existing.maxHGL
-			
+
 			#detect what "type" the flooding change is
 			if proposed.flood_duration >= floodthreshold and existing.flood_duration < floodthreshold:
 				proposed.delta_type = 'new_flooding'
-				
+
 			elif existing.flood_duration >= floodthreshold and flood_duration_delta >= 0.25:
-				#flooding increased by more than 15 minutes 
+				#flooding increased by more than 15 minutes
 				proposed.delta_type = 'increased_flooding'
-			
+
 			elif existing.flood_duration >= floodthreshold and flood_duration_delta <= -0.25:
 				proposed.delta_type = 'decreased_flooding'
-			
+
 			elif existing.flood_duration >= floodthreshold and proposed.flood_duration < floodthreshold:
 				proposed.delta_type = 'eliminated_flooding'
-		
+
 		else:
 			#element is unique to the proposed system (new infratructure)
 			lifecycle = 'new'
-			
-			
+
+
 		proposed.is_delta = True
-		
+
 	return proposed_elements #with delta data
-		
+
 def compareConduits (model1, model2, bbox=None):
 
 	#return a dict of node objects with the delta between models
-	
+
 	existing_elements = model1.organizeConduitData(bbox)['conduit_objects']
-	proposed_elements = model2.organizeConduitData(bbox)['conduit_objects'] 
-	
+	proposed_elements = model2.organizeConduitData(bbox)['conduit_objects']
+
 	for id, proposed in proposed_elements.iteritems():
-		
+
 		existing = existing_elements.get(id, {})
 		if id in existing_elements:
-			#dealinhg with an exiting pipe 
+			#dealinhg with an exiting pipe
 			proposed.maxflow = proposed.maxflow - existing.maxflow
 			proposed.maxQpercent = proposed.maxQpercent - existing.maxQpercent
 			proposed.maxHGLDownstream = proposed.maxHGLDownstream - existing.maxHGLDownstream
@@ -156,15 +155,15 @@ def compareConduits (model1, model2, bbox=None):
 			if proposed.geom1 != existing.geom1:
 				#if this is ID matched one in the existing model
 				#and geom 1 changes, this is a replaced/changed pipe
-				proposed.lifecycle = 'changed' 
+				proposed.lifecycle = 'changed'
 		else:
 			#element is unique to the proposed system (new infratructure)
 			proposed.lifecycle = 'new'
-		
+
 		proposed.is_delta = True
-		
+
 	return proposed_elements #with delta data
-	
+
 
 def compareModelResults(model1, model2, bbox=None, parameter='floodDuration', joinType='node'):
 
@@ -177,15 +176,15 @@ def compareModelResults(model1, model2, bbox=None, parameter='floodDuration', jo
 		#head = ', '.join('id', 'existing ')
 		file.write("%s\n" % header)
 		for element, data in joinedData.iteritems():
-			
+
 			change = su.elementChange(data, parameter=parameter)
 			existing = data['existing'][parameter]
 			proposed = data['proposed'][parameter]
-			
+
 			#line = element + ", " + str(change) + ", " + str(data['lifecycle'])
-			
+
 			line = ','.join([str(x) for x in [element, existing, proposed, change, data['lifecycle'] ] ])
-			
+
 			if data['existing'].get(parameter, 0) == 0 and data['proposed'].get(parameter, 0) > 0:
 				line += ", new " + parameter
 
@@ -253,7 +252,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	#print ops
 	for key, value in kwargs.iteritems():
 		ops.update({key:value})
-		
+
 	#return ops
 	width = ops['width']
 	xplier = ops['xplier']
@@ -264,7 +263,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	#joinedNodes = joinModelData(model1, model2, bbox, joinType='node')
 	condtuits_delta = compareConduits(model1, model2, bbox)
 	nodes_delta = compareNodes(model1, model2, bbox)
-	
+
 
 	xplier *= width/1024 #scale the symbology sizes
 	width = width*2
@@ -281,31 +280,34 @@ def drawModelComparison(model1, model2, **kwargs):
 	imgSize = [int(x) for x in imgSize]
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
-	
+
 	anno_results = {}
-	
+
 	#DRAW THE PARCELS
 	if ops['parcelSymb']:
-		
+
 		#joined_parcels = joinModelData(model1, model2, bbox, joinType='parcel')
 		floodthresh = ops['parcelSymb']['threshold']
 		delta_thresh = ops['parcelSymb']['delta_threshold']
-		
-		delta_parcels = p.compareParcels(model1, model2, bbox=None, 
-										floodthreshold=floodthresh, 
-										delta_threshold=delta_thresh, anno_results=anno_results)['parcels']
-		
-		sg.drawParcels(draw, delta_parcels, options=ops['parcelSymb'], bbox=bbox, width=width, shiftRatio=shiftRatio)
-	
+
+		delta_parcels = p.compareParcels(model1, model2, bbox=None,
+										floodthreshold=floodthresh,
+										delta_threshold=delta_thresh,
+										anno_results=anno_results)['parcels']
+
+		sg.drawParcels(draw, delta_parcels, options=ops['parcelSymb'], bbox=bbox,
+						width=width, shiftRatio=shiftRatio)
+
 	if ops['basemap']:
-		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, shiftRatio=shiftRatio, xplier=xplier)
+		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox,
+						shiftRatio=shiftRatio, xplier=xplier)
 
 	drawCount = 0
 	#DRAW THE CONDUITS
 	if ops['conduitSymb']:
 		for id, conduit in condtuits_delta.iteritems():
 			if conduit.coordinates: #has coordinate? draw. protect from rdii junk
-				su.drawConduit(conduit, draw, ops['conduitSymb'], xplier = xplier)	
+				su.drawConduit(conduit, draw, ops['conduitSymb'], xplier = xplier)
 				drawCount += 1
 
 	#DRAW THE NODES
