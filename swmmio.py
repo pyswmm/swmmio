@@ -6,8 +6,10 @@ from time import gmtime, strftime
 import re
 import os
 import numpy
-from PIL import Image, ImageDraw, ImageFont
-from images2gif import writeGif
+import pandas as pd
+#from PIL import Image, ImageDraw, ImageFont
+#from images2gif import writeGif
+import parcels
 import pickle
 import swmm_utils as su
 import swmm_headers
@@ -269,44 +271,33 @@ class Model(object):
 		return n
 
 
-	def exportData(self, fname=None, type='node', bbox=None, openfile=True):
+	#def exportData(self, fname=None, type='node', bbox=None, openfile=True):
+	def export_elements(self,  element_type='node', filename=None, bbox=None, openfile=True):
 
-		#this is broken since using objects for nodes/links
 		#exports the organized SWMM data into a csv table
 
-		#organize the data
-		if type == 'node':
+		#organize the data -> dictionary of objects
+		if element_type == 'node':
 			data = self.organizeNodeData(bbox)
-			dicts = data['nodeDictionaries']
-		elif type == 'conduit':
+			dicts = data['node_objects']
+		elif element_type == 'conduit':
 			data = self.organizeConduitData(bbox)
-			dicts = data['conduitDictionaries']
-		elif type =='parcels':
-			data = su.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
+			dicts = data['conduit_objects']
+		elif element_type =='parcel':
+			data = parcels.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
 			dicts =data['parcels']
 		else:
 			return "incorrect data type specified"
 
-		#make first header column hold the node ID
-		#have to hack the dictionary a bit:
-		keys = dicts[dicts.keys()[0]].keys() #accesses the keys of the first node ID
-		keys.reverse()
-		keys.append('id')
-		keys.reverse() #reverse to append the id key to the front of the keys list
+		#grab first object in list to structure the dataframe
+		ref_object = dicts[dicts.keys()[0]]
+		data = [[getattr(v,j) for j in ref_object.__slots__] for k,v in dicts.items()]
+		df = pd.DataFrame(data, columns = ref_object.__slots__)
 
-		if not fname: fname = self.inp.name + "_" + type + 's_' + su.randAlphaNum(5)
-		csvfilepath = os.path.join(self.inp.dir, fname) + '.csv'
-		with open(csvfilepath, 'wb') as file:
-			fieldnames = keys
-			writer = csv.DictWriter(file, fieldnames=fieldnames)
-			writer.writeheader()
-
-			for id, data in dicts.iteritems():
-
-				therowdict = {'id':id}
-				therowdict.update(data)
-
-				writer.writerow(therowdict)
+		#save to file csv
+		if not filename: filename = self.inp.name + "_" + element_type + 's_'
+		csvfilepath = os.path.join(self.inp.dir, filename) + '.csv'
+		df.to_csv(csvfilepath)
 
 		if openfile:
 			os.startfile(csvfilepath)
