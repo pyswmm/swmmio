@@ -67,7 +67,7 @@ def getFeatureExtent(feature, where="SHEDNAME = 'D68-C1'", geodb=r'C:\Data\ArcGI
 			#print part
 
 #FUNCTIONS
-def traceFromNode(model, startNode, mode='up'):
+def traceFromNode(model, startNode, mode='up', stopnode=None):
 
 	#nodes = model.organizeNodeData(bbox)['nodeDictionaries']
 	#links = model.organizeConduitData(bbox)['conduitDictionaries']
@@ -78,7 +78,7 @@ def traceFromNode(model, startNode, mode='up'):
 	outfallsDict = inp.createDictionary("[OUTFALLS]")
 	allNodesDict = merge_dicts(storagesDict, junctionsDict, outfallsDict)
 
-	tracedNodes = []
+	tracedNodes = [startNode] #include the starting node
 	tracedConduits = []
 
 	#recursive function to trace upstream
@@ -97,6 +97,8 @@ def traceFromNode(model, startNode, mode='up'):
 				#grab its dnstream node ID
 				tracedConduits.append(conduit)
 				tracedNodes.append(conduitDnNodeID)
+				if stopnode and conduitDnNodeID == stopnode:
+					break
 				trace(conduitDnNodeID)
 
 			if mode == 'up' and conduitDnNodeID == nodeID and conduit not in tracedConduits:
@@ -105,13 +107,24 @@ def traceFromNode(model, startNode, mode='up'):
 				#grab its upstream node ID
 				tracedConduits.append(conduit)
 				tracedNodes.append(conduitUpNodeID)
+				if stopnode and conduitUpNodeID == stopnode:
+					break
 				trace(conduitUpNodeID)
 
 	#kickoff the trace
 	print "Starting trace {0} from {1}".format(mode, startNode)
 	trace(startNode)
-
+	print "Traced {0} nodes from {1}".format(len(tracedNodes), startNode)
 	return {'nodes':tracedNodes, 'conduits':tracedConduits}
+
+def length_of_conduits(conduitsubset):
+
+	#return the total length of conduits given a dictionary of Link objects
+	l = 0
+	for id, conduit in conduitsubset.iteritems():
+		l +=conduit.length
+
+	return l
 
 def randAlphaNum(n=6):
 	import random
@@ -344,24 +357,27 @@ def convertCoordinatesToPixels(element_objs, targetImgW=1024, bbox=None, shiftRa
 	modelSizeDict = {'imgSize':imgSize, 'boundingBox': bbox, 'shiftRatio':shiftRatio }
 	return modelSizeDict
 
-def coordToDrawCoord(coordinates, bbox, shiftRatio):
+def coordToDrawCoord(coordinates, bbox=None, shiftRatio=None, shiftRatioY=None, width=None, height=None):
 
 	#convert single coordinate pair into the drawing space (pixels rather than cartesian coords)
 	#given a cartesian bbox and shiftRatio
 
 	#transform coords by normalizing by the mins, apply a ratio to
 	#produce the desired width pixel space
+	minX = minY = 0
+	if bbox:
+		minX = float(bbox[0][0])
+		minY = float(bbox[0][1])
+		maxX = float(bbox[1][0])
+		maxY = float(bbox[1][1])
 
-	minX = float(bbox[0][0])
-	minY = float(bbox[0][1])
-	maxX = float(bbox[1][0])
-	maxY = float(bbox[1][1])
+		height = maxY - minY
+		width = maxX - minX
 
-	height = maxY - minY
-	width = maxX - minX
-
+	if not shiftRatioY:
+		shiftRatioY = shiftRatio
 	x =  (coordinates[0] - minX) * shiftRatio
-	y =  (height - coordinates[1] + minY) * shiftRatio #subtract from height because PIL origin is in top right
+	y =  (height - coordinates[1] + minY) * shiftRatioY #subtract from height because PIL origin is in top right
 
 	return (x,y)
 
@@ -539,7 +555,7 @@ def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, high
 
 
 	#if highlighted list is provided, overide any symbology for the highlighted conduits
-	if highlighted and id in highlighted:
+	if highlighted and conduit.id in highlighted:
 		fill = blue
 		drawSize = 3
 

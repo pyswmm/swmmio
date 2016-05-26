@@ -49,6 +49,10 @@ class Model(object):
 		self.inp = inp(inpFile)
 		self.rpt = rpt(rptFile)
 
+		#slots to hold processed data
+		self.organized_node_data = None
+		self.organized_condtuit_data = None
+
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
 
 		#creates a dictionary of dictionaries containing relevant data
@@ -107,7 +111,9 @@ class Model(object):
 
 			#downstream pipe id: the pipe whose upstream id equals downstreamNodeID
 			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1, inletoffset, outletoffset)
-
+			conduit.length = length
+			conduit.upNodeID = upstreamNodeID
+			conduit.downNodeID = downstreamNodeID
 
 			if rpt and (upstreamNodeID in nodesDepthSummaryDict) and (downstreamNodeID in nodesDepthSummaryDict):
 				# #if the up and downstream nodes are also found in the node depth summary dictionary,
@@ -153,6 +159,8 @@ class Model(object):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#per node within a SWMM model.
+		# if self.organized_node_data and not subset:
+		# 	return self.organized_node_data
 
 		#parse out the main objects of this model
 		inp = self.inp
@@ -193,6 +201,11 @@ class Model(object):
 				continue
 
 			n = Node(node, invert, xy)
+			try:
+			    n.maxDepth = float(allNodesDict[node][1])
+			except ValueError:
+			    pass #not a float, probably a 'FIXED' tag at that index on a outfall node
+
 
 			if (node in nodesDepthSummaryDict):
 				#if the up and downstream nodes are also found in the node depth summary dictionary,
@@ -200,7 +213,7 @@ class Model(object):
 				NDA = nodesDepthSummaryDict[node] #upstream node depth array
 
 				n.maxHGL = float(NDA[3])
-				n.maxDepth = float(NDA[2])
+				#n.maxDepth = float(NDA[2])
 				maxEl = max(n.maxHGL, maxEl) #increase the max elevation observed with the HGL
 
 			if (node in nodesFloodSummaryDict):
@@ -226,7 +239,35 @@ class Model(object):
 			'minEl':minEl,
 			}
 
+		#save for later use
+		# self.organized_node_data = output
+
 		return output
+
+	def node(self, node, conduit=None):
+
+		#method for provide information about specific model elements
+		#returns a node object given its ID
+		if not self.organized_node_data:
+			self.organized_node_data = self.organizeNodeData()
+
+		n = self.organized_node_data['node_objects'][node]
+		subcats_inp = self.inp.createDictionary("[SUBCATCHMENTS]")
+		subcats_rpt = self.rpt.createDictionary('Subcatchment Runoff Summary')
+
+		n.nodes_upstream = su.traceFromNode(self, node, mode='up')['nodes']
+		n.subcats_direct = [k for k,v in subcats_inp.items() if v[1]==node]
+		n.subcats_upstream = [k for k,v in subcats_inp.items() if v[1] in n.nodes_upstream]
+
+
+		n.drainage_area_direct = sum([float(x) for x in [v[2] for k,v in subcats_inp.items() if k in n.subcats_direct]])
+		n.drainage_area_upstream = sum([float(x) for x in [v[2] for k,v in subcats_inp.items() if k in n.subcats_upstream]])
+
+		n.runoff_upstream_mg = sum([float(x) for x in [v[5] for k,v
+								in subcats_rpt.items() if k in n.subcats_upstream]])
+		n.runoff_upstream_cf = n.runoff_upstream_mg*1000000/7.48
+		return n
+
 
 	def exportData(self, fname=None, type='node', bbox=None, openfile=True):
 
@@ -364,8 +405,7 @@ class SWMMIOFile(object):
 	def createDictionary (self, sectionTitle = defaultSection):
 
 		"""
-		Help info about this fucking piece of shit method that suddenly does
-		not work. thanks.
+		Help info about this method.
 		"""
 
 		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
@@ -415,8 +455,6 @@ class SWMMIOFile(object):
 					l += len(line) + len("\n")
 
 			print f.read(printLength)
-
-
 
 class rpt(SWMMIOFile):
 
@@ -534,7 +572,10 @@ class Node(object):
 
 	#object representing a swmm node object
 
-	__slots__ = ('id', 'invert', 'coordinates', 'flood_duration', 'maxDepth',
+	__slots__ = ('id', 'invert', 'coordinates', 'nodes_upstream', 'subcats_direct', 'subcats_upstream',
+				'drainage_area_direct', 'drainage_area_upstream',
+				'runoff_upstream_cf', 'runoff_upstream_mg',
+				'flood_duration', 'maxDepth',
 				'maxHGL', 'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
 
 	def __init__(self, id, invert=None, coordinates=[]):
@@ -543,6 +584,13 @@ class Node(object):
 		self.id = id
 		self.invert = invert
 		self.coordinates = coordinates
+		self.nodes_upstream = None
+		self.subcats_direct = [] #subcatchment draining into this node, if any
+		self.subcats_upstream = [] #all subcats upstream
+		self.drainage_area_direct = None #only populated when needed
+		self.drainage_area_upstream = None #only populated when needed
+		self.runoff_upstream_cf = None #only populated when needed
+		self.runoff_upstream_mg = None #only populated when needed
 		self.flood_duration = 0
 		self.maxDepth = 0
 		self.maxHGL = 0
