@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#coding:utf-8
+
 #this is fairly specific stuff and will only work given certain geospatial data
 
 import swmm_utils as su

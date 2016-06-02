@@ -9,6 +9,7 @@ lightblue = (184, 217, 242)
 shed_blue = (0,169,230)
 white =		(250,250,240)
 black = 	(0,3,18)
+mediumgrey = (190, 190, 180)
 lightgrey = (235, 235, 225)
 grey = 		(100,95,97)
 park_green = (115, 178, 115)
@@ -131,7 +132,7 @@ def conduit_options(type, **kwargs):
 		},
 		'flow': {
 			'title': 'Condiut Flow',
-			'description': 'Shows the flow in conduits with line weight',
+			'description': 'Shows the flow in conduits with proportional ine weight',
 			'type': 'flow',
 			'fill':blue,
 			'draw_size':line_size,
@@ -223,6 +224,7 @@ def default_draw_options():
 		'width': 2048,
 		'bbox':None,
 		'imgName':None,
+		'imgDir':None,
 		'nodeSymb': node_options('flood'),
 		'conduitSymb': conduit_options('stress'),
 		'basemap': basemap_options(),

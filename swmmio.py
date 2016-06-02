@@ -1,4 +1,5 @@
-#sys.path.append(r"P:\Tools\swmmio")
+#!/usr/bin/env python
+#coding:utf-8
 #sys.path.append(r"P:\Tools")
 
 import random
@@ -7,8 +8,6 @@ import re
 import os
 import numpy
 import pandas as pd
-#from PIL import Image, ImageDraw, ImageFont
-#from images2gif import writeGif
 import parcels
 import pickle
 import swmm_utils as su

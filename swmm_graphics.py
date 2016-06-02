@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#coding:utf-8
+
 #graphical functions for SWMM files
 #import swmmio
 import swmm_utils as su
@@ -170,6 +173,7 @@ def drawModel (model, **kwargs):
 	xplier = ops['xplier']
 	bbox = ops['bbox']
 	imgName = ops['imgName'] # for some reason saveImage() won't take the dict reference
+	imgDir = ops['imgDir'] # for some reason saveImage() won't take the dict reference
 
 	focusConduits = []
 	for node in ops['traceUpNodes']:
@@ -249,7 +253,7 @@ def drawModel (model, **kwargs):
 	del draw, ops
 
 	#SAVE IMAGE TO DISK
-	saveImage(img, model, imgName)
+	saveImage(img, model, imgName, imgDir=imgDir)
 
 def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 

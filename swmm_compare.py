@@ -11,9 +11,49 @@ import draw_utils as du
 import parcels as p
 #import SWMMIO
 import os
+import pandas as pd
 
 from PIL import Image, ImageDraw
 
+def get_all_unmatched_inp_elements (model1, model2):
+
+	unmatches = {}
+	for headerpair in model1.inp.headerList:
+
+		#grab the section header
+		header = headerpair[0].split("\n")[0]
+		dict1 = model1.inp.createDictionary(header)
+		dict2 = model2.inp.createDictionary(header)
+
+		#returns all elements that are new or removed from model1 to model2
+		added = 	[k for k in dict2 if k not in dict1]
+		removed = 	[k for k in dict1 if k not in dict2]
+		unmatches.update({header:{'added':added, 'removed':removed}})
+
+	return unmatches
+def extents_of_changes(model1, model2, extent_buffer=0.0):
+
+	#Return a bbox sorounding the model elements that have changed
+
+	#list of node IDs that have 'new' coordinates
+	newcoordIDs = get_all_unmatched_inp_elements(model1, model2)['[COORDINATES]']['added']
+	allcoords = model2.inp.createDictionary('[COORDINATES]')
+	newcoords = [v for k,v in allcoords.iteritems() if k in newcoordIDs]
+
+	#build dataframe with these coordinates
+	df = pd.DataFrame(data=newcoords, columns=['x', 'y'], dtype=float )
+
+	#create bbox from mins/maxima
+	df['x']=df.x.astype(int)  #convert to int
+	df['y']=df.y.astype(int)  #convert to int
+	x1, y1, x2, y2 = df.x.min(), df.y.min(), df.x.max(), df.y.max()
+
+	#Add a buffer (1 = no buffer)
+	l = float(x2 - x1)  #length of extents (ft)
+	buff = l*float(extent_buffer)
+
+	bbox = [(x1-buff, y1-buff), (x2+buff, y2+buff)]
+	return bbox
 
 def getUnmatchedElementsInSection (inp1, inp2, section="[CONDUITS]"):
 

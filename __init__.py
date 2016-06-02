@@ -11,6 +11,7 @@
 from swmm_compare import comparisonReport, drawModelComparison
 from swmm_graphics import drawModel, animateModel, drawProfile
 from swmmio import Model
+import swmmio
 
 
 #CONSTANTS

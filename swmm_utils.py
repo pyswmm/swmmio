@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#coding:utf-8
+
 #Utilities and such for SWMMIO processing
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -23,6 +26,7 @@ sm6 = 			((2692788, 225853), (2693684, 226477))
 chris = 		((2688798, 221573), (2702834, 230620))
 nolibbox= 		((2685646, 238860),	(2713597, 258218))
 mckean = 		((2691080, 226162),	(2692236, 226938))
+d68d70 = 		((2691647, 221073),	(2702592, 227171))
 d70 = 			((2694096, 222741),	(2697575, 225059))
 ritner_moyamen =((2693433, 223967),	(2694587, 224737))
 morris_10th = 	((2693740, 227260),	(2694412, 227693))
@@ -514,15 +518,15 @@ def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, high
 		qChange = 	conduit.maxflow #elementChange(conduitData, parameter='maxflow')
 		maxQperc = 	conduit.maxQpercent #elementChange(conduitData, parameter='maxQpercent')
 
-
+		#default draw behavoir = draw grey lines proportional to geom1
+		drawSize = min(7, conduit.geom1*0.7)
+		fill = du.mediumgrey
 		#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
 		if conduit.lifecycle == 'new':
 			fill = blue
-			drawSize = min(10, conduit.geom1)
-
 		if conduit.lifecycle == 'changed':
-			fill = blue
-			drawSize = min(10, conduit.geom1)
+			fill = green #blue
+			#drawSize = min(10, conduit.geom1)
 
 		#IF THE CONDUITS IS 'EXISTING', DISPLAY SYMBOLOGY ACCORDINGLY (how things changed, etc)
 		if conduit.lifecycle == 'existing':
@@ -530,7 +534,8 @@ def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, high
 			if type == 'proposed_simple':
 				#drawSize = 0 #don't draw, only print the proposed infrastructure
 				#fill = red
-				should_draw = False
+				#should_draw = False
+				pass
 			if type == 'compare_flow':
 				drawSize = options['draw_size'](abs(qChange*options['xplier']), options['exp'])
 				if qChange > 0:
