@@ -52,12 +52,17 @@ class Model(object):
 
 		#slots to hold processed data
 		self.organized_node_data = None
-		self.organized_condtuit_data = None
+		self.organized_conduit_data = None
+		self.bbox = None #to remember how the model data was clipped
 
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#for conduits within a SWMM model. Upstream and downstream node data is attributed to the
+
+		#check if this has been done already and return that data accordingly
+		if self.organized_conduit_data and bbox==self.bbox:
+			return self.organized_conduit_data
 
 		#parse out the main objects of this model
 		inp = self.inp
@@ -154,14 +159,21 @@ class Model(object):
 			# 'reachLength':reachLength
 			}
 
+		#remember this stuff for later
+		self.organized_conduit_data = output
+		self.bbox = bbox
+
 		return output
 
 	def organizeNodeData (self, bbox=None, subset=None):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#per node within a SWMM model.
-		# if self.organized_node_data and not subset:
-		# 	return self.organized_node_data
+
+		#check if this has been done already and return that data accordingly
+		if self.organized_node_data and bbox==self.bbox:
+			print "loaded node objs from " + self.rpt.fName
+			return self.organized_node_data
 
 		#parse out the main objects of this model
 		inp = self.inp
@@ -240,8 +252,10 @@ class Model(object):
 			'minEl':minEl,
 			}
 
-		#save for later use
-		# self.organized_node_data = output
+		#save for later use. save the bbox instance so we refresh this attributed
+		#whenever the bbox is changed (so we don't leave elements out)
+		self.organized_node_data = output
+		self.bbox = bbox
 
 		return output
 
@@ -427,6 +441,11 @@ class SWMMIOFile(object):
 		os.remove(preppedTempFilePath)
 
 		return the_dict
+
+
+	def create_dataframe (self, section=defaultSection):
+		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle)
+
 
 	def printSectionOfFile(self, lookUpStr=None, startByte=0, printLength = 500):
 

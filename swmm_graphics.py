@@ -21,7 +21,7 @@ import pickle
 
 
 
-def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=True):
+def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=False):
 
 	#get the size from the Image object
 	imgSize = (img.getbbox()[2], img.getbbox()[3])
@@ -132,7 +132,7 @@ def drawParcels(draw, parcel_flooding_results,  options={}, bbox=None, width=102
 		except:
 			pass
 
-	print "newflood = {}\nmoreflood={}\nfloodEliminated={}\nfloodlowered={}".format(newflood, moreflood, floodEliminated, floodlowered)
+	#print "newflood = {}\nmoreflood={}\nfloodEliminated={}\nfloodlowered={}".format(newflood, moreflood, floodEliminated, floodlowered)
 	#saveImage(img, None, imgName=model.inp.name + "_parcels", imgDir=r'C:\Users\Adam.Erispaha\Desktop\S Phila SWMM\img')
 
 def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftRatio=None, width=1024, xplier=1):
@@ -183,8 +183,6 @@ def drawModel (model, **kwargs):
 	for node in ops['traceDnNodes']:
 		#return list of elements downstream of node
 		focusConduits += su.traceFromNode(model, node, mode='down')['conduits']
-
-	print 'found {} downstream conduits'.format(len(focusConduits))
 
 	#antialias X2
 	xplier *= width/1024 #scale the symbology sizes
@@ -330,7 +328,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 		dictSaveFile.close()
 
 	else:
-		print "loading byte dict"
+		#print "loading byte dict"
 		rpt.elementByteLocations = pickle.load( open(byteLocDictionaryFName, 'r') )
 		#rpt.byteLocDict = conduitByteLocationDict
 

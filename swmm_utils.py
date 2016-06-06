@@ -338,7 +338,6 @@ def convertCoordinatesToPixels(element_objs, targetImgW=1024, bbox=None, shiftRa
 	if not shiftRatio:
 		shiftRatio = float(targetImgW / width) # to scale down from coordinate to pixels
 
-	print "reg shift ratio = ", shiftRatio
 	for id, element in element_objs.iteritems():
 
 		coordPair = element.coordinates
@@ -521,11 +520,11 @@ def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, high
 		#default draw behavoir = draw grey lines proportional to geom1
 		drawSize = min(7, conduit.geom1*0.7)
 		fill = du.mediumgrey
-		#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
-		if conduit.lifecycle == 'new':
-			fill = blue
-		if conduit.lifecycle == 'changed':
-			fill = green #blue
+		# #FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
+		# if conduit.lifecycle == 'new':
+		# 	fill = blue
+		# if conduit.lifecycle == 'changed':
+		# 	fill = green #blue
 			#drawSize = min(10, conduit.geom1)
 
 		#IF THE CONDUITS IS 'EXISTING', DISPLAY SYMBOLOGY ACCORDINGLY (how things changed, etc)
@@ -563,7 +562,11 @@ def drawConduit(conduit, draw, options, rpt=None, dTime = None, xplier = 1, high
 	if highlighted and conduit.id in highlighted:
 		fill = blue
 		drawSize = 3
-
+	#FIRST DRAW NEW OR CHANGED CONDUITS IN A CLEAR WAY
+	if conduit.lifecycle == 'new':
+		fill = blue
+	if conduit.lifecycle == 'changed':
+		fill = green #blue
 	drawSize = int(drawSize*xplier)
 
 

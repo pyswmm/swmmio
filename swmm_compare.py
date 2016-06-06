@@ -301,14 +301,14 @@ def drawModelComparison(model1, model2, **kwargs):
 
 	#joinedConduits = joinModelData(model1, model2, bbox)
 	#joinedNodes = joinModelData(model1, model2, bbox, joinType='node')
-	condtuits_delta = compareConduits(model1, model2, bbox)
+	conduits_delta = compareConduits(model1, model2, bbox)
 	nodes_delta = compareNodes(model1, model2, bbox)
 
 
 	xplier *= width/1024 #scale the symbology sizes
 	width = width*2
 
-	modelSizeDict = su.convertCoordinatesToPixels(condtuits_delta, bbox=bbox, targetImgW=width)
+	modelSizeDict = su.convertCoordinatesToPixels(conduits_delta, bbox=bbox, targetImgW=width)
 	shiftRatio = modelSizeDict['shiftRatio']
 
 	su.convertCoordinatesToPixels(nodes_delta, targetImgW=width, bbox=bbox, shiftRatio=shiftRatio)
@@ -345,7 +345,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	drawCount = 0
 	#DRAW THE CONDUITS
 	if ops['conduitSymb']:
-		for id, conduit in condtuits_delta.iteritems():
+		for id, conduit in conduits_delta.iteritems():
 			if conduit.coordinates: #has coordinate? draw. protect from rdii junk
 				su.drawConduit(conduit, draw, ops['conduitSymb'], xplier = xplier)
 				drawCount += 1

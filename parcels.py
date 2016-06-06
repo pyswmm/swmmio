@@ -186,7 +186,6 @@ def associate_parcels(model, feature='PWD_PARCELS_SHEDS', cols = ["PARCELID", "O
 	#in this shapefile (one to many), with one row for each associated shed.
 	#given this, this function creates a list of unique parcels and arrays with their associated sheds
 
-
 	#check if a parcel to node association dicitonary exists, load if possible
 	parcel_to_nodes_filename = os.path.join(model.inp.dir, 'parcel_nodes_dict.txt')
 	if not os.path.isfile(parcel_to_nodes_filename):
@@ -221,12 +220,12 @@ def associate_parcels(model, feature='PWD_PARCELS_SHEDS', cols = ["PARCELID", "O
 				parcels_dictionary.update({PARCELID:{'nodes':[row[1]], 'sheds':[row[2]]}}  )
 
 		#save for later use
-		print 'writing new parcel/node association dict'
+		#print 'writing new parcel/node association dict'
 		with open(parcel_to_nodes_filename, 'w') as dictSaveFile:
 			pickle.dump(parcels_dictionary, dictSaveFile)
 
 	else:
-		print "loading parcel/node association dict: {}".format(parcel_to_nodes_filename)
+		#print "loading parcel/node association dict: {}".format(parcel_to_nodes_filename)
 		parcels_dictionary = pickle.load( open(parcel_to_nodes_filename, 'r') )
 		print "WARNING: make sure this loaded parcel dict contains all parcels!"
 

@@ -27,6 +27,7 @@ def generate_figures(model1, model2, bbox=None):
 
     #PROPOSED CONDITIONS FLOOD DURATION
     imgname = "02 Proposed Parcel Flood Duration"
+    #ops.update({'conduitSymb':du.conduit_options('proposed_simple')})
     sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox, imgName=imgname)
 
     #IMPACT OF INFRASTRUCTURE
