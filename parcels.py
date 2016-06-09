@@ -161,7 +161,7 @@ def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
 
 	results_string = "{} ({}%) of {} total".format(parcels_flooded_count, round(parcels_flooded_fraction*100),parcels_count)
 
-	print results_string
+	#print results_string
 
 	#partition (detailed) results string
 	partitioned_results = "\n"
@@ -227,7 +227,7 @@ def associate_parcels(model, feature='PWD_PARCELS_SHEDS', cols = ["PARCELID", "O
 	else:
 		#print "loading parcel/node association dict: {}".format(parcel_to_nodes_filename)
 		parcels_dictionary = pickle.load( open(parcel_to_nodes_filename, 'r') )
-		print "WARNING: make sure this loaded parcel dict contains all parcels!"
+		#print "WARNING: make sure this loaded parcel dict contains all parcels!"
 
 
 	#create a dictionary of parcel objects

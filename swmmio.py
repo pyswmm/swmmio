@@ -12,6 +12,7 @@ import parcels
 import pickle
 import swmm_utils as su
 import swmm_headers
+import swmm_headers_extended as she
 import glob
 import csv
 
@@ -48,8 +49,10 @@ class Model(object):
 
 		#file name and path variables
 		self.inp = inp(inpFile)
-		self.rpt = rpt(rptFile)
-
+		if os.path.exists(rptFile):
+			self.rpt = rpt(rptFile)
+		else:
+			self.rpt=None
 		#slots to hold processed data
 		self.organized_node_data = None
 		self.organized_conduit_data = None
@@ -90,7 +93,7 @@ class Model(object):
 			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
 			allLinksSummaryDict = rpt.createDictionary("Link Flow Summary")
 			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-			print "created node and link summary dicts from " + rpt.fName
+			#print "created node and link summary dicts from " + rpt.fName
 
 		reachLength = 0.00 #used for tranform
 		maxEl = 0.00 #used for tranform
@@ -172,7 +175,7 @@ class Model(object):
 
 		#check if this has been done already and return that data accordingly
 		if self.organized_node_data and bbox==self.bbox:
-			print "loaded node objs from " + self.rpt.fName
+			#print "loaded node objs from " + self.rpt.fName
 			return self.organized_node_data
 
 		#parse out the main objects of this model
@@ -192,7 +195,7 @@ class Model(object):
 		#create a dictionary holding data from an rpt file
 		nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
 		nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-		print "created node summary dicts from " + rpt.fName
+		#print "created node summary dicts from " + rpt.fName
 
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
@@ -339,7 +342,8 @@ class SWMMIOFile(object):
 			l = 0 #line bytes index
 			for line in f:
 
-				if start and len(line) <= 3 and (l - start) > 100:
+				#if start and len(line) <= 3 and (l - start) > 100:
+				if start and line == "\n" and (l - start) > 100:
 					#LOGIC ^ if start exists (was found) and the current line length is 3 or
 					#less (length of /n ) and we're more than 100 bytes from the start location
 					#then we are at the first "blank" line after our start section (aka the end of the section)
@@ -358,10 +362,12 @@ class SWMMIOFile(object):
 		#parse through a section of the file based on the location of bytes and cleaned up headers
 
 		byteRange = self.findByteRangeOfSection(sectionTitle)
-		if not byteRange[0]: return None #if nothing is found, return nothing
+		if not byteRange[0]:
+			print 'nothing found'
+			return None #if nothing is found, return nothing
 
 		numbytes = byteRange[1] - byteRange[0]
-		outFilePath = self.dir + "\\" + self.name + "_section.txt"
+		outFilePath = self.dir + "\\" + self.name + "_" + sectionTitle + "_.txt"
 		outFile = open(outFilePath, 'w')
 		headerList = self.headerList #inpSectionHeaders.headerList #replace sloppy rpt file headers with these one-row headers (CSV ready)
 		cleaned = None
@@ -377,7 +383,7 @@ class SWMMIOFile(object):
 				raw = raw.replace(hPair[0], hPair[1])
 				byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
 
-			cleaned = raw #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
+			cleaned = raw.split('[')[0] #truncate any next section #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
 			outFile.write(cleaned)
 
 		outFile.close()
@@ -443,8 +449,6 @@ class SWMMIOFile(object):
 		return the_dict
 
 
-	def create_dataframe (self, section=defaultSection):
-		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle)
 
 
 	def printSectionOfFile(self, lookUpStr=None, startByte=0, printLength = 500):

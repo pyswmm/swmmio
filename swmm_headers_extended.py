@@ -2,6 +2,19 @@
 #DEFINE INP HEADER TEST THAT SHOULD BE REPLACED
 #=================
 
+inp_header_dict = {
+    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
+    '[COORDINATES]': 'Name X Y',
+    '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
+    '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
+    '[OUTFALLS]': 'Name InvertElev OutfallType Timeseries TideGate',
+    '[STORAGE]': 'Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit',
+    '[VERTICES]': 'Name X Y',
+    '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff',
+    '[PUMPS]':'Name '
+
+}
+
 junctionsOld = """[JUNCTIONS]
 ;;               Invert     Max.       Init.      Surcharge  Ponded
 ;;Name           Elev.      Depth      Depth      Depth      Area
