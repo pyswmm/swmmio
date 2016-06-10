@@ -130,7 +130,7 @@ def length_of_conduits(conduitsubset):
 
 	return l
 
-def randAlphaNum(n=6):
+def AlphaNum(n=6):
 	import random
 	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 	return ''.join(random.choice(chars) for i in range(n))
