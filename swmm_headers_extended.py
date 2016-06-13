@@ -22,7 +22,7 @@ inp_header_dict = {
     '[LOSSES]':'Link Inlet Outlet Average FlapGate',
     '[PUMPS]':'Name InletNode OutletNode PumpCurve InitStatus Depth ShutoffDepth',
     '[DWF]':'Node Parameter AverageValue TimePatterns',
-    '[CURVES]':'Name Type X Y',
+    #'[CURVES]':'Name Type X Y',
     '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSource'
 }
 

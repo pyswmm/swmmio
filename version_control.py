@@ -64,17 +64,8 @@ def create_branch(basemodel, branch_name):
         return "branch or directory already exists"
 
     shutil.copyfile(basemodel.inp.filePath, os.path.join(newdir, safename + '.inp'))
-
-    #commit changes from change object to the basemodel
-    #create DF of section
-    #c = vc.Change(wec_01, wec_02)
-    # removedIDs = changes.removed
-    # changedIDs = changes.changed
-    # to_remove = removedIDs.index.union(changedIDs.index)
-    # #to_remove
-    # v1 = df_base.drop(to_remove)
-    # newdf = pd.concat([v1, changes.added])
     new_branch = swmmio.Model(newdir)
+
     return new_branch
 
 def combine_models(basemodel, *models):
@@ -92,9 +83,10 @@ def combine_models(basemodel, *models):
             print 'working on {}'.format(section)
             changes = [Change(basemodel, m, section) for m in models]
             new_section = apply_changes(basemodel, changes, section=section)
-            if sections['headers'][section] == 'blob':
+            add_str =  ''
+            if sections['headers'][section] == 'blob' and not new_section.empty:
                 add_str = new_section.fillna('').to_string(index_names=False, header=False, index=False)
-            else:
+            elif not new_section.empty:
                 add_str = new_section.fillna('').to_string(index_names=False, header=False)
             f.write('\n\n' + section + '\n')
             f.write(add_str)
