@@ -16,14 +16,16 @@ inp_header_dict = {
     '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff',
     '[PUMPS]':'Name',
     '[XSECTIONS]':'Link Shape Geom1 Geom2 Geom3 Geom4 Barrels',
-    '[Polygons]':'Name X-Coord Y-Coord',
     '[SUBCATCHMENTS]':'Name Raingage Outlet Area PercImperv Width PercSlope CurbLength SnowPack',
     '[SUBAREAS]':'Name N-Imperv N-Perv S-Imperv S-Perv PctZero RouteTo PctRouted',
     '[LOSSES]':'Link Inlet Outlet Average FlapGate',
     '[PUMPS]':'Name InletNode OutletNode PumpCurve InitStatus Depth ShutoffDepth',
     '[DWF]':'Node Parameter AverageValue TimePatterns',
-    #'[CURVES]':'Name Type X Y',
-    '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSource'
+    '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSourceType DataSourceName',
+    '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
+    #'[Polygons]':'Name X-Coord Y-Coord',
+    #'[CURVES]':'Name Type X-Value Y-Value',
+
 }
 
 junctionsOld = """[JUNCTIONS]

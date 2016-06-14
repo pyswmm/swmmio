@@ -6,7 +6,7 @@ import swmmio
 import swmm_headers_extended as she
 import swmm_utils as su
 
-pd.options.display.max_colwidth = 100
+pd.options.display.max_colwidth = 200
 
 def create_dataframe (inp, section='[CONDUITS]'):
 
@@ -40,11 +40,16 @@ def create_dataframe (inp, section='[CONDUITS]'):
     if headers[section] == 'blob':
         #return the whole row, without specifc col headers
         df = pd.read_table(outFilePath, delim_whitespace=False, comment=";")
+    elif headers[section] == '[CURVES]':
+        #return the whole row, without specifc col headers
+        df = pd.read_table(outFilePath, delim_whitespace=False)
     else:
         df = pd.read_table(outFilePath, header=0, delim_whitespace=True, comment=";", index_col=0)
-
     os.remove(outFilePath)
-    #os.startfile(outFilePath)
+
+    #add new blank comment column
+    df['Comment'] = ''
+
 
     return df
 
@@ -84,11 +89,45 @@ def combine_models(basemodel, *models):
             changes = [Change(basemodel, m, section) for m in models]
             new_section = apply_changes(basemodel, changes, section=section)
             add_str =  ''
+
+            f.write('\n\n' + section + '\n') #add SWMM-friendly header e.g. [DWF]
+
             if sections['headers'][section] == 'blob' and not new_section.empty:
-                add_str = new_section.fillna('').to_string(index_names=False, header=False, index=False)
+
+                #to left justify based on the longest string in the blob column
+                formatter = '{{:<{}s}}'.format(new_section[section].str.len().max()).format
+                add_str = new_section.fillna('').to_string(
+                                                            index_names=False,
+                                                            header=False,
+                                                            index=False,
+                                                            justify='left',
+                                                            formatters={section:formatter}
+                                                            )
+
             elif not new_section.empty:
-                add_str = new_section.fillna('').to_string(index_names=False, header=False)
-            f.write('\n\n' + section + '\n')
+                #naming the columns to the index name so the it prints in-line with col headers
+
+                #new_section.columns.name = ";" + new_section.index.name
+                f.write(';')
+                #f.seek(-1, 1)
+                #to left justify on longest string in the Comment column
+                #this is overly annoying, to deal with 'Objects' vs numbers to removed
+                #one byte added from the semicolon (to keep things lined up)
+                objectformatter =   {hedr:'{{:<{}}}'.format(new_section[hedr].apply(str).str.len().max()).format
+                                        for hedr in new_section.columns}
+                numformatter =      {hedr:' {{:<{}}}'.format(new_section[hedr].apply(str).str.len().max()).format
+                                        for hedr in new_section.columns if new_section[hedr].dtype!="O"}
+                formatter = objectformatter.update(numformatter)
+                add_str = new_section.fillna('').to_string(
+                                                            index_names=False,
+                                                            header=True,
+                                                            justify='left',
+                                                            formatters=objectformatter#{'Comment':formatter}
+                                                            )
+
+
+            #f.write(';;' + sections['headers'][section] + '\n')
+            #write the dataframe as a string
             f.write(add_str)
 
 
@@ -96,12 +135,20 @@ def combine_models(basemodel, *models):
 def apply_changes(model, changes, section='[JUNCTIONS]'):
 
     df1 = create_dataframe(model.inp, section)
-    rmvs = pd.concat([c.removed for c in changes] + [c.altered for c in changes])
-    adds = pd.concat([c.added for c in changes] + [c.altered for c in changes])
-    ids_to_remove = rmvs.index
-    df2 = df1.drop(ids_to_remove)
+    #rmvs = pd.concat([c.removed for c in changes] + [c.altered for c in changes])
 
-    newdf = pd.concat([df2, adds])
+    #df of elements to be commented out in new inp,
+    #(those altered [to be replaceed by new row] or those deleted)
+    tobecommented = pd.concat([c.removed for c in changes])
+    tobealtered = pd.concat([c.altered for c in changes])
+    ids_to_remove_from_df1 = tobecommented.index | tobealtered.index #union of altered and removed indices
+    tobecommented.index = ["; " + str(x) for x in tobecommented.index] #add comment character
+
+    #add rows for new elements and altered element
+    adds = pd.concat([c.added for c in changes] + [c.altered for c in changes])
+    df2 = df1.drop(ids_to_remove_from_df1)
+
+    newdf = pd.concat([df2, tobecommented, adds])
 
     return newdf
 
@@ -117,15 +164,26 @@ class Change(object):
         #find where elements were changed (but kept with same ID)
         common_ids = df1.index.difference(removed_ids) #original - removed = in common
         #both dfs concatenated, with matched indices for each element
-        full_set = pd.concat([df1.ix[common_ids],df2.ix[common_ids]])
+        full_set = pd.concat([df1.ix[common_ids], df2.ix[common_ids]])
         #drop dupes on the set, all things that did not changed should have 1 row
         changes_with_dupes = full_set.drop_duplicates()
         #duplicate indicies are rows that have changes, isolate these
         changed_ids = changes_with_dupes.index.get_duplicates()
 
-        #for
+        added = df2.ix[added_ids]
+        added['Comment'] = '; Added from model {}'.format(model2.inp.filePath)
+
+        altered = df2.ix[changed_ids]
+        altered['Comment'] = '; Altered in model {}'.format(model2.inp.filePath)
+
+        removed = df1.ix[removed_ids]
+        #comment out the removed elements
+        #removed.index = ["; " + str(x) for x in removed.index]
+        removed['Comment'] = '; Removed in model {}'.format(model2.inp.filePath)
+
         self.old = df1
         self.new = df2
-        self.added = df2.ix[added_ids]
-        self.removed = df1.ix[removed_ids]
-        self.altered = df2.ix[changed_ids]
+        self.added = added
+        self.removed = removed
+        self.altered = altered
+        #self.altered['Comments'] == 'Items changed from model {}'.format(model2.inp.filePath)

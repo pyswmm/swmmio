@@ -130,6 +130,15 @@ def length_of_conduits(conduitsubset):
 
 	return l
 
+def length_of_new_conduit(model1, model2):
+    newconduitIDs = scomp.get_all_unmatched_inp_elements(model1, model2)['[CONDUITS]']['added']
+    all_conduits = model2.organizeConduitData()['conduit_objects']
+    l = 0
+    for condID in newconduitIDs:
+        l += all_conduits[condID].length
+
+    return l
+
 def AlphaNum(n=6):
 	import random
 	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
