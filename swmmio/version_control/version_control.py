@@ -2,50 +2,34 @@ import pandas as pd
 import shutil
 import os
 import fileinput
-import swmmio
-import swmm_headers_extended as she
-import swmm_utils as su
+from swmmio.swmmio import Model
+from swmmio.utils import functions as funcs
+#import swmm_headers_extended as she
+import swmmio.swmm_utils as su
+#from .utils.text import * #functions for processing inp/rpt/txt files
 
 pd.options.display.max_colwidth = 200
 
 def create_dataframe (inp, section='[CONDUITS]'):
 
-    #create dict with headers and col names
-    headers = she.complete_inp_headers(inp)['headers']
+    #create temp file with section isolated from inp file
+    tempfilepath = swmmio.utils.text.extract_section_from_file(inp.filePath, section)
+    #return the header definitions (section title with cleaned one-liner column headers)
+    headerdefs = funcs.complete_inp_headers(inp.filePath)['headers']
 
-    with open(inp.filePath) as f:
-        startfound = False
-        endfound = False
-        outFilePath = inp.dir + "\\" + inp.name + "_" + section + ".txt"
-        with open(outFilePath, 'w') as newf:
-
-            for line in f:
-
-                if startfound and line.strip() in headers:
-                    endfound = True
-                    #print 'end found: {}'.format(line.strip())
-                    break
-                elif not startfound and section in line:
-                    startfound = True
-                    #replace line with usable headers
-                    if headers[section] != 'blob':
-                        line = headers[section] + '\n'
-
-                if startfound:
-                    newf.write(line)
-
-    # if not endfound:
-    #     #found no header section
-    #     return None
-    if headers[section] == 'blob':
+    if headerdefs[section] == 'blob':
         #return the whole row, without specifc col headers
-        df = pd.read_table(outFilePath, delim_whitespace=False, comment=";")
-    elif headers[section] == '[CURVES]':
+        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
+    elif section == '[CURVES]':
         #return the whole row, without specifc col headers
-        df = pd.read_table(outFilePath, delim_whitespace=False)
+        df = pd.read_table(tempfilepath, delim_whitespace=False)
     else:
-        df = pd.read_table(outFilePath, header=0, delim_whitespace=True, comment=";", index_col=0)
-    os.remove(outFilePath)
+        #this section header is recognized and will be organized into known columns
+        headerlist = headerdefs[section].split()
+        df = pd.read_table(tempfilepath, header=0, delim_whitespace=True,
+                            comment=";", index_col=0, names=headerlist)
+
+    os.remove(tempfilepath)
 
     #add new blank comment column
     df['Comment'] = ''
@@ -69,21 +53,21 @@ def create_branch(basemodel, branch_name):
         return "branch or directory already exists"
 
     shutil.copyfile(basemodel.inp.filePath, os.path.join(newdir, safename + '.inp'))
-    new_branch = swmmio.Model(newdir)
+    new_branch = Model(newdir)
 
     return new_branch
 
 def combine_models(basemodel, *models):
 
     #create new branch model based on basemodel
-    newname = '_'.join([x.inp.name for x in models]) + "_" + su.AlphaNum(3)
+    newname = '_'.join([x.inp.name for x in models]) + "_" + fun.random_alphanumeric(3)
     new_branch = create_branch(basemodel, branch_name = newname)
 
 
     with open (new_branch.inp.filePath, 'w') as f:
 
         #compute the changes for each model from the basemodel
-        sections = she.complete_inp_headers(basemodel.inp)
+        sections = funcs.complete_inp_headers(basemodel.inp.filePath)
         for section in sections['order']:
             print 'working on {}'.format(section)
             changes = [Change(basemodel, m, section) for m in models]

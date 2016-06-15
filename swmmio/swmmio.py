@@ -12,7 +12,6 @@ import parcels
 import pickle
 import swmm_utils as su
 import swmm_headers
-import swmm_headers_extended as she
 import glob
 import csv
 
@@ -383,8 +382,9 @@ class SWMMIOFile(object):
 				raw = raw.replace(hPair[0], hPair[1])
 				byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
 
-			cleaned = raw.split('[')[0] #truncate any next section #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
-			outFile.write(cleaned)
+			#cleaned = raw.split('[')[0] #truncate any next section #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
+			#outFile.write(cleaned)
+			outFile.write(raw)
 
 		outFile.close()
 

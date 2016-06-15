@@ -139,10 +139,7 @@ def length_of_new_conduit(model1, model2):
 
     return l
 
-def AlphaNum(n=6):
-	import random
-	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-	return ''.join(random.choice(chars) for i in range(n))
+
 
 def pointIsInBox (bbox, point):
 

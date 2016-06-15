@@ -1,33 +1,6 @@
 #=================
 #DEFINE INP HEADER TEST THAT SHOULD BE REPLACED
 #=================
-
-
-inp_header_dict = {
-    '[TITLE]':'blob',
-    '[OPTIONS]':'Name Value',
-    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
-    '[COORDINATES]': 'Name X Y',
-    '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
-    '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
-    '[OUTFALLS]': 'Name InvertElev OutfallType Timeseries TideGate',
-    '[STORAGE]': 'Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit',
-    '[VERTICES]': 'Name X Y',
-    '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff',
-    '[PUMPS]':'Name',
-    '[XSECTIONS]':'Link Shape Geom1 Geom2 Geom3 Geom4 Barrels',
-    '[SUBCATCHMENTS]':'Name Raingage Outlet Area PercImperv Width PercSlope CurbLength SnowPack',
-    '[SUBAREAS]':'Name N-Imperv N-Perv S-Imperv S-Perv PctZero RouteTo PctRouted',
-    '[LOSSES]':'Link Inlet Outlet Average FlapGate',
-    '[PUMPS]':'Name InletNode OutletNode PumpCurve InitStatus Depth ShutoffDepth',
-    '[DWF]':'Node Parameter AverageValue TimePatterns',
-    '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSourceType DataSourceName',
-    '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
-    #'[Polygons]':'Name X-Coord Y-Coord',
-    #'[CURVES]':'Name Type X-Value Y-Value',
-
-}
-
 junctionsOld = """[JUNCTIONS]
 ;;               Invert     Max.       Init.      Surcharge  Ponded
 ;;Name           Elev.      Depth      Depth      Depth      Area
@@ -79,8 +52,10 @@ storageOld = """[STORAGE]
 ;;-------------- -------- -------- -------- ---------- -------- -------- -------- -------- -------- -----------------------"""
 storageNew = "Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit"
 
-inpHeaderList = [
+xsectionOld = """[XSECTIONS]"""
+xsectionNew = 'Link Shape Geom1 Geom2 Geom3 Geom4 Barrels'
 
+inpHeaderList = [
 	[junctionsOld, junctionsNew],
 	[conduitsOld, conduitsNew],
 	[orificesOld, orificesNew],
@@ -88,39 +63,11 @@ inpHeaderList = [
 	[coordinatesOld, coordinatesNew],
 	[verticiesOld, verticiesNew],
 	[outfallsOld, outfallsNew],
-	[storageOld, storageNew]
+	[storageOld, storageNew],
+    [xsectionOld, xsectionNew]
 
 ]
-def complete_inp_headers (inp):
 
-    #create a dictionary with all the headers found in an INP file
-    #and updates them based on the definitions in inp_header_dict
-    #this ensure the list is comprehensive
-
-    foundheaders= {}
-    order = []
-    #print inp_header_dict
-    with open(inp.filePath) as f:
-        for line in f:
-            if '[' and ']' in line:
-                h = line.strip()
-                order.append(h)
-                if h in inp_header_dict:
-                    foundheaders.update({h:inp_header_dict[h]})
-                else:
-                    foundheaders.update({h:'blob'})
-
-
-    #isolate which headers we have more data for, then update the found headers
-    #this step prevents loopingthrough and searching for a defined inp_header_dict
-    #thats not in the INP
-    #updaters = {k:v for k,v in inp_header_dict.items() if k in foundheaders}
-    #[d for d in foundheaders]
-    #d = foundheaders.update(inp_header_dict)
-    #foundheaders.update(updaters)
-    #d = foundunmtchrs.update(foundmatchers)
-
-    return {'headers':foundheaders, 'order':order}
 #=================
 #DEFINE RPT HEADER TEST THAT SHOULD BE REPLACED
 #=================
