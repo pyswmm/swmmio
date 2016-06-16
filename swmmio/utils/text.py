@@ -51,3 +51,17 @@ def extract_section_from_file(filepath, sectionheader, cleanheaders=False, start
         os.startfile(outfilepath)
 
     return outfilepath
+
+
+def extract_section_from_rpt(filepath, sectionheader, cleanheaders=False, startfile=False):
+    """
+    INPUT path to rpt file and a text string
+    matchig the section header of the to be extracted
+
+    creates a new text file in the same directory as the filepath
+    and returns the path to the new file.
+
+    optionally inserts row at begining of file with one-line headers that are
+    defined in swmmio.defs.inpheaders (useful for creating dataframes)
+    """
+    pass

@@ -4,38 +4,13 @@ import os
 import fileinput
 from swmmio.swmmio import Model
 from swmmio.utils import functions as funcs
+from swmmio.utils.dataframes import create_dataframeINP
 #import swmm_headers_extended as she
 import swmmio.swmm_utils as su
 #from .utils.text import * #functions for processing inp/rpt/txt files
 
 pd.options.display.max_colwidth = 200
 
-def create_dataframe (inp, section='[CONDUITS]'):
-
-    #create temp file with section isolated from inp file
-    tempfilepath = swmmio.utils.text.extract_section_from_file(inp.filePath, section)
-    #return the header definitions (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_inp_headers(inp.filePath)['headers']
-
-    if headerdefs[section] == 'blob':
-        #return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
-    elif section == '[CURVES]':
-        #return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False)
-    else:
-        #this section header is recognized and will be organized into known columns
-        headerlist = headerdefs[section].split()
-        df = pd.read_table(tempfilepath, header=0, delim_whitespace=True,
-                            comment=";", index_col=0, names=headerlist)
-
-    os.remove(tempfilepath)
-
-    #add new blank comment column
-    df['Comment'] = ''
-
-
-    return df
 
 def create_branch(basemodel, branch_name):
 
@@ -60,7 +35,7 @@ def create_branch(basemodel, branch_name):
 def combine_models(basemodel, *models):
 
     #create new branch model based on basemodel
-    newname = '_'.join([x.inp.name for x in models]) + "_" + fun.random_alphanumeric(3)
+    newname = '_'.join([x.inp.name for x in models]) + "_" + funcs.random_alphanumeric(3)
     new_branch = create_branch(basemodel, branch_name = newname)
 
 
@@ -118,7 +93,7 @@ def combine_models(basemodel, *models):
 
 def apply_changes(model, changes, section='[JUNCTIONS]'):
 
-    df1 = create_dataframe(model.inp, section)
+    df1 = create_dataframeINP(model.inp, section)
     #rmvs = pd.concat([c.removed for c in changes] + [c.altered for c in changes])
 
     #df of elements to be commented out in new inp,
@@ -140,8 +115,8 @@ class Change(object):
 
     def __init__(self, model1, model2, section='[JUNCTIONS]'):
 
-        df1 = create_dataframe(model1.inp, section)
-        df2 = create_dataframe(model2.inp, section)
+        df1 = create_dataframeINP(model1.inp, section)
+        df2 = create_dataframeINP(model2.inp, section)
         added_ids = df2.index.difference(df1.index)
         removed_ids = df1.index.difference(df2.index)
 

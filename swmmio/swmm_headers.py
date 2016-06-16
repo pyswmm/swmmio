@@ -1,6 +1,7 @@
 #=================
 #DEFINE INP HEADER TEST THAT SHOULD BE REPLACED
 #=================
+
 junctionsOld = """[JUNCTIONS]
 ;;               Invert     Max.       Init.      Surcharge  Ponded
 ;;Name           Elev.      Depth      Depth      Depth      Area
@@ -40,31 +41,15 @@ profilesOld = """[PROFILES]
 ;;-------------- ----------"""
 profilesNew= "Name Links"
 
-outfallsOld = """[OUTFALLS]
-;;               Invert     Outfall    Stage/Table      Tide
-;;Name           Elev.      Type       Time Series      Gate
-;;-------------- ---------- ---------- ---------------- ----"""
-outfallsNew = "Name InvertElev OutfallType Timeseries TideGate"
-
-storageOld = """[STORAGE]
-;;               Invert   Max.     Init.    Storage    Curve                      Ponded   Evap.
-;;Name           Elev.    Depth    Depth    Curve      Params                     Area     Frac.    Infiltration Parameters
-;;-------------- -------- -------- -------- ---------- -------- -------- -------- -------- -------- -----------------------"""
-storageNew = "Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit"
-
-xsectionOld = """[XSECTIONS]"""
-xsectionNew = 'Link Shape Geom1 Geom2 Geom3 Geom4 Barrels'
 
 inpHeaderList = [
+
 	[junctionsOld, junctionsNew],
 	[conduitsOld, conduitsNew],
 	[orificesOld, orificesNew],
 	[weirsOld, weirsNew],
 	[coordinatesOld, coordinatesNew],
-	[verticiesOld, verticiesNew],
-	[outfallsOld, outfallsNew],
-	[storageOld, storageNew],
-    [xsectionOld, xsectionNew]
+	[verticiesOld, verticiesNew]
 
 ]
 

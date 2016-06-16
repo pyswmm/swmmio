@@ -1,4 +1,4 @@
-from swmmio.defs.inpheaders import inp_header_dict
+from swmmio.defs.inpheaders import inp_header_dict, rpt_header_dict
 
 
 def random_alphanumeric(n=6):
@@ -35,14 +35,34 @@ def complete_inp_headers (inpfilepath, inp_header_dict=inp_header_dict):
                 else:
                     foundheaders.update({h:'blob'})
 
+    return {'headers':foundheaders, 'order':order}
 
-    #isolate which headers we have more data for, then update the found headers
-    #this step prevents loopingthrough and searching for a defined inp_header_dict
-    #thats not in the INP
-    #updaters = {k:v for k,v in inp_header_dict.items() if k in foundheaders}
-    #[d for d in foundheaders]
-    #d = foundheaders.update(inp_header_dict)
-    #foundheaders.update(updaters)
-    #d = foundunmtchrs.update(foundmatchers)
+def complete_rpt_headers (rptfilepath, rpt_header_dict=rpt_header_dict):
+    """
+    creates a dictionary with all the headers found in an RPT file
+    (which varies based on what the user has defined in a given model)
+    and updates them based on the definitions in rpt_header_dict
+    this ensures the list is comprehensive
+
+    RETURNS:
+        a dictionary including
+            'headers'->
+                    header section keys and their respective cleaned column headers
+            'order' ->
+                    an array of section headers found in the RPT file
+                    that perserves the original order
+    """
+    foundheaders= {}
+    order = []
+    #print inp_header_dict
+    with open(rptfilepath) as f:
+        for line in f:
+            if '[' and ']' in line:
+                h = line.strip()
+                order.append(h)
+                if h in inp_header_dict:
+                    foundheaders.update({h:inp_header_dict[h]})
+                else:
+                    foundheaders.update({h:'blob'})
 
     return {'headers':foundheaders, 'order':order}

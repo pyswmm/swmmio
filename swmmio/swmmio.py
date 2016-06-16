@@ -342,7 +342,7 @@ class SWMMIOFile(object):
 			for line in f:
 
 				#if start and len(line) <= 3 and (l - start) > 100:
-				if start and line == "\n" and (l - start) > 100:
+				if start and line.strip() == "" and (l - start) > 100:
 					#LOGIC ^ if start exists (was found) and the current line length is 3 or
 					#less (length of /n ) and we're more than 100 bytes from the start location
 					#then we are at the first "blank" line after our start section (aka the end of the section)
@@ -358,7 +358,7 @@ class SWMMIOFile(object):
 
 	def readSectionAndCleanHeaders(self, sectionTitle = defaultSection, outFile = None):
 
-		#parse through a section of the file based on the location of bytes and cleaned up headers
+		#parse through a section of the file based on the location of bytes and cleane up headers
 
 		byteRange = self.findByteRangeOfSection(sectionTitle)
 		if not byteRange[0]:
@@ -377,10 +377,12 @@ class SWMMIOFile(object):
 			raw = rptSection.read(numbytes)
 			byteRemovedFromHeaderCleaning = 0
 			#clean up the headers
+			#print raw
 			for hPair in headerList:
+				#print hPair[0]
 				#scanning the file multiple times for each header pair
 				raw = raw.replace(hPair[0], hPair[1])
-				byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
+				#byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
 
 			#cleaned = raw.split('[')[0] #truncate any next section #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
 			#outFile.write(cleaned)
