@@ -75,7 +75,7 @@ def combine_models(basemodel, *models):
                                         for hedr in new_section.columns}
                 numformatter =      {hedr:' {{:<{}}}'.format(new_section[hedr].apply(str).str.len().max()).format
                                         for hedr in new_section.columns if new_section[hedr].dtype!="O"}
-                formatter = objectformatter.update(numformatter)
+                objectformatter.update(numformatter)
                 add_str = new_section.fillna('').to_string(
                                                             index_names=False,
                                                             header=True,
