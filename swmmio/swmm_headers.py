@@ -2,42 +2,55 @@
 #DEFINE INP HEADER TEST THAT SHOULD BE REPLACED
 #=================
 
+
+"""
+
+NOTEEEEE:
+It is very important that this file not be saved in Atom 
+or other text editors and OSs outside of Notepad++ and Windows 7. 
+Something therein causes the line endings to changed slightly in each of 
+the 'old' header pairs. Turn on "Show All Characters" to see how line 
+endings near CRLF characters are diff than the inp/rpt files" 
+
+"""
+
+
 junctionsOld = """[JUNCTIONS]
-;;               Invert     Max.       Init.      Surcharge  Ponded
-;;Name           Elev.      Depth      Depth      Depth      Area
+;;               Invert     Max.       Init.      Surcharge  Ponded    
+;;Name           Elev.      Depth      Depth      Depth      Area      
 ;;-------------- ---------- ---------- ---------- ---------- ----------"""
 junctionsNew = "Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea"
 
 conduitsOld = """[CONDUITS]
-;;               Inlet            Outlet                      Manning    Inlet      Outlet     Init.      Max.
-;;Name           Node             Node             Length     N          Offset     Offset     Flow       Flow
+;;               Inlet            Outlet                      Manning    Inlet      Outlet     Init.      Max.      
+;;Name           Node             Node             Length     N          Offset     Offset     Flow       Flow      
 ;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------"""
 conduitsNew = "Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow"
 
 orificesOld = """[ORIFICES]
 ;;               Inlet            Outlet           Orifice      Crest      Disch.     Flap Open/Close
-;;Name           Node             Node             Type         Height     Coeff.     Gate Time
+;;Name           Node             Node             Type         Height     Coeff.     Gate Time      
 ;;-------------- ---------------- ---------------- ------------ ---------- ---------- ---- ----------"""
 orificesNew = "Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime"
 
 weirsOld = """[WEIRS]
-;;               Inlet            Outlet           Weir         Crest      Disch.     Flap End      End
-;;Name           Node             Node             Type         Height     Coeff.     Gate Con.     Coeff.
+;;               Inlet            Outlet           Weir         Crest      Disch.     Flap End      End       
+;;Name           Node             Node             Type         Height     Coeff.     Gate Con.     Coeff.    
 ;;-------------- ---------------- ---------------- ------------ ---------- ---------- ---- -------- ----------"""
 weirsNew = "Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff"
 
 coordinatesOld = """[COORDINATES]
-;;Node           X-Coord            Y-Coord
+;;Node           X-Coord            Y-Coord           
 ;;-------------- ------------------ ------------------"""
 coordinatesNew = "Name X Y"
 
 verticiesOld = """[VERTICES]
-;;Link           X-Coord            Y-Coord
+;;Link           X-Coord            Y-Coord           
 ;;-------------- ------------------ ------------------"""
 verticiesNew = "Name X Y"
 
 profilesOld = """[PROFILES]
-;;Name           Links
+;;Name           Links     
 ;;-------------- ----------"""
 profilesNew= "Name Links"
 
@@ -85,7 +98,7 @@ xSectionSummNew = "Name Shape DFull AreaFull HydRad MaxW NumBarrels FullFlow"
 
 subcatRunoffSummOld = """Subcatchment Runoff Summary
   ***************************
-
+  
   --------------------------------------------------------------------------------------------------------
                             Total      Total      Total      Total      Total       Total     Peak  Runoff
                            Precip      Runon       Evap      Infil     Runoff      Runoff   Runoff   Coeff
@@ -95,7 +108,7 @@ subcatRunoffSummNew = "Name TotalPrecip TotalRunon TotalEvap TotalInfil TotalRun
 
 nodeFloodingSummaryOld = """Node Flooding Summary
   *********************
-
+  
   Flooding refers to all water that overflows a node, whether it ponds or not.
   --------------------------------------------------------------------------
                                                              Total   Maximum
@@ -107,7 +120,7 @@ nodeFloodingSummaryNew = "Name HoursFlooded MaxQ MaxDay MaxHr TotalFloodVol Maxi
 
 nodeInflowSummaryOld = """Node Inflow Summary
   *******************
-
+  
   -------------------------------------------------------------------------------------
                                   Maximum  Maximum                  Lateral       Total
                                   Lateral    Total  Time of Max      Inflow      Inflow
@@ -118,7 +131,7 @@ nodeInflowSummaryNew = "Name Type MaxLatInflow MaxTotalInflow MaxDay MaxHr LatIn
 
 nodeSurchargeSummaryOld = """Node Surcharge Summary
   **********************
-
+  
   Surcharging occurs when water rises above the top of the highest conduit.
   ---------------------------------------------------------------------
                                                Max. Height   Min. Depth
@@ -129,7 +142,7 @@ nodeSurchargeSummaryNew = "Name Type Hours MaxH MinD"
 
 nodeDepthSummaryOld = """Node Depth Summary
   ******************
-
+  
   ---------------------------------------------------------------------
                                  Average  Maximum  Maximum  Time of Max
                                    Depth    Depth      HGL   Occurrence
@@ -139,7 +152,7 @@ nodeDepthSummaryNew = "Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr"
 
 linkFlowSummaryOld = """Link Flow Summary
   ********************
-
+  
   -----------------------------------------------------------------------------
                                  Maximum  Time of Max   Maximum    Max/    Max/
                                   |Flow|   Occurrence   |Veloc|    Full    Full

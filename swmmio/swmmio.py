@@ -14,6 +14,7 @@ import swmm_utils as su
 import swmm_headers
 import glob
 import csv
+from .utils import text as txt
 
 class Model(object):
 
@@ -356,48 +357,14 @@ class SWMMIOFile(object):
 
 		return [start, end]
 
-	def readSectionAndCleanHeaders(self, sectionTitle = defaultSection, outFile = None):
-
-		#parse through a section of the file based on the location of bytes and cleane up headers
-
-		byteRange = self.findByteRangeOfSection(sectionTitle)
-		if not byteRange[0]:
-			print 'nothing found'
-			return None #if nothing is found, return nothing
-
-		numbytes = byteRange[1] - byteRange[0]
-		outFilePath = self.dir + "\\" + self.name + "_" + sectionTitle + "_.txt"
-		outFile = open(outFilePath, 'w')
-		headerList = self.headerList #inpSectionHeaders.headerList #replace sloppy rpt file headers with these one-row headers (CSV ready)
-		cleaned = None
-		#return headerList
-		with open(self.filePath) as rptSection:
-
-			rptSection.seek(byteRange[0]) #jump to the start location
-			raw = rptSection.read(numbytes)
-			byteRemovedFromHeaderCleaning = 0
-			#clean up the headers
-			#print raw
-			for hPair in headerList:
-				#print hPair[0]
-				#scanning the file multiple times for each header pair
-				raw = raw.replace(hPair[0], hPair[1])
-				#byteRemovedFromHeaderCleaning += len(hPair[0][0]) - len(hPair[0][1])
-
-			#cleaned = raw.split('[')[0] #truncate any next section #.read(numbytes - byteRemovedFromHeaderCleaning) #now its cleaned
-			#outFile.write(cleaned)
-			outFile.write(raw)
-
-		outFile.close()
-
-		return outFilePath
-
 	def exportCSV(self, sectionTitle = defaultSection):
 		#create CSV of section of choice in inp file
 
 		outFilePath = self.dir + "\\" + self.name + "_" + sectionTitle.replace(" ", "") + ".csv"
 		outFile = open(outFilePath, 'w') #create outfile
-		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
+		preppedTempFilePath = txt.extract_section_from_file(self.filePath, sectionTitle)
+		if not preppedTempFilePath:
+			return None #if nothing was found, do nothing
 
 		with open(preppedTempFilePath) as rptFile:
 			for line in rptFile:
@@ -420,8 +387,8 @@ class SWMMIOFile(object):
 		Help info about this method.
 		"""
 
-		preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
-
+		#preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
+		preppedTempFilePath = txt.extract_section_from_file(self.filePath, sectionTitle)
 		if not preppedTempFilePath:
 			return None #if nothing was found, do nothing
 
