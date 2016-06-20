@@ -22,7 +22,7 @@ def create_dataframeINP (inp, section='[CONDUITS]'):
         df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
     elif section == '[CURVES]' or section =='[TIMESERIES]':
         #return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, index_col=0, skiprows=[0])
+        df = pd.read_table(tempfilepath, delim_whitespace=False, index_col=0)#, skiprows=[0])
     else:
         #this section header is recognized and will be organized into known columns
         headerlist = headerdefs['headers'][section].split()
