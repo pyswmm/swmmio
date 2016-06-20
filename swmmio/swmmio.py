@@ -469,7 +469,7 @@ class rpt(SWMMIOFile):
 		self.dateOfAnalysis = date
 
 		#assign the header list
-		self.headerList = swmm_headers.rptHeaderList
+		#self.headerList = swmm_headers.rptHeaderList
 		self.byteLocDict = None #populated if necessary elsewhere (LEGACY, can prob remove)
 		self.elementByteLocations = {"Link Results":{}, "Node Results":{}} #populated if necessary elsewhere
 
@@ -547,7 +547,7 @@ class inp(SWMMIOFile):
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
 
 		#assign the header list
-		self.headerList = swmm_headers.inpHeaderList
+		#self.headerList = swmm_headers.inpHeaderList
 
 class Node(object):
 
