@@ -51,8 +51,11 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfi
                 elif not startfound and sectionheader in line:
                     startfound = True
                     #replace line with usable headers
-                    if cleanheaders and [sectionheader] != 'blob':
-                        line = allheaders[sectionheader] + '\n'
+                    if cleanheaders:
+                        if allheaders[sectionheader] != 'blob':
+                            line = allheaders[sectionheader] + '\n'
+                        else:
+                            line = sectionheader + '\n'
 
                 if startfound:
                     newf.write(line)
