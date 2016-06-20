@@ -5,9 +5,9 @@
 
 
 import math
-import swmm_utils as su
-import swmm_graphics as sg
-import draw_utils as du
+from swmmio.utils import swmm_utils as su
+from swmmio.graphics import swmm_graphics as sg
+from swmmio.graphics import draw_utils as du
 import parcels as p
 #import SWMMIO
 import os

@@ -41,4 +41,4 @@ rpt_header_dict={
     'Node Surcharge Summary':'Name Type Hours MaxH MinD',
     'Node Depth Summary':'Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr',
     'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc'
-    }
+}
