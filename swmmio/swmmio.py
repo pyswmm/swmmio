@@ -10,8 +10,7 @@ import numpy
 import pandas as pd
 import parcels
 import pickle
-import swmm_utils as su
-import swmm_headers
+from .utils import swmm_utils as su
 import glob
 import csv
 from .utils import text as txt

@@ -5,7 +5,7 @@ sys.path.append(r'P:\06_Tools\swmmio')
 from swmmio import swmm_headers
 
 #check that header match and replace somethig in the file
-class InpHeadersTest(unittest.TestCase):
+class sectionheadersTest(unittest.TestCase):
     def test(self):
         with open(r'sample_models\sample.inp') as f:
             #print f.read(1000)

@@ -1,4 +1,4 @@
-from swmmio.defs.inpheaders import inp_header_dict, rpt_header_dict
+from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 
 def random_alphanumeric(n=6):

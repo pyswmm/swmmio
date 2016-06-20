@@ -24,7 +24,7 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfi
     and returns the path to the new file.
 
     optionally inserts row at begining of file with one-line headers that are
-    defined in swmmio.defs.inpheaders (useful for creating dataframes)
+    defined in swmmio.defs.sectionheaders (useful for creating dataframes)
     """
 
     #headers = she.complete_inp_headers(inp)['headers']
@@ -74,7 +74,7 @@ def extract_section_from_rpt(filepath, sectionheader, cleanheaders=False, startf
     and returns the path to the new file.
 
     optionally inserts row at begining of file with one-line headers that are
-    defined in swmmio.defs.inpheaders (useful for creating dataframes)
+    defined in swmmio.defs.sectionheaders (useful for creating dataframes)
     """
     if not headerdefs:
         allheaders = complete_rpt_headers(filepath)['headers']

@@ -3,10 +3,10 @@
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
 
-import swmm_graphics as sg
 import swmm_compare as scomp
-import swmm_utils as su
-import draw_utils as du
+from swmmio.utils import swmm_utils as su
+from swmmio.graphics import swmm_graphics as sg
+from swmmio.graphics import draw_utils as du
 import os
 
 def generate_figures(model1, model2, bbox=None):

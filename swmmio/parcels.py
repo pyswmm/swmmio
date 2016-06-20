@@ -3,7 +3,7 @@
 
 #this is fairly specific stuff and will only work given certain geospatial data
 
-import swmm_utils as su
+from swmmio.utils import swmm_utils as su
 import os
 import pickle
 import json
