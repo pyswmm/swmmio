@@ -3,15 +3,15 @@
 
 #graphical functions for SWMM files
 #import swmmio
-import swmm_utils as su
-import draw_utils as du
-import parcels
+from swmmio.utils import swmm_utils as su
+from swmmio.graphics import draw_utils as du
+from swmmio import parcels
 from time import gmtime, strftime
 import re
 import os
 import numpy
 from PIL import Image, ImageDraw, ImageFont
-from images2gif import writeGif
+from swmmio.vendor.images2gif import writeGif
 import glob
 import shutil
 import math

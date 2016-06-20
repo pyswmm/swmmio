@@ -12,7 +12,7 @@ from matplotlib.transforms import BboxBase
 import pickle
 import json
 import arcpy
-import draw_utils as du
+from swmmio.graphics import draw_utils as du
 
 #contants
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))
