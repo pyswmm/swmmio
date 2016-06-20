@@ -2,8 +2,7 @@
 #coding:utf-8
 
 #this is fairly specific stuff and will only work given certain geospatial data
-
-from swmmio.utils import swmm_utils as su
+from .utils import swmm_utils as su
 import os
 import pickle
 import json

@@ -5,8 +5,7 @@ import fileinput
 from swmmio.swmmio import Model
 from swmmio.utils import functions as funcs
 from swmmio.utils.dataframes import create_dataframeINP
-#import swmm_headers_extended as she
-import swmmio.swmm_utils as su
+from swmmio.utils import swmm_utils as su
 #from .utils.text import * #functions for processing inp/rpt/txt files
 
 pd.options.display.max_colwidth = 200
