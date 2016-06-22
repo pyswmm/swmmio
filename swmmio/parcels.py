@@ -27,6 +27,7 @@ class Parcel(object):
 
 def compareParcels(model1, model2, parcel_features='PWD_PARCELS_SHEDS', bbox=None,
 					floodthreshold=0.08333, delta_threshold=0.25, anno_results={}):
+
 	#return a dict of node objects with the delta between models
 
 	existing_elements = parcel_flood_duration(model1, parcel_features=parcel_features,
@@ -98,10 +99,11 @@ def compareParcels(model1, model2, parcel_features='PWD_PARCELS_SHEDS', bbox=Non
 def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
 							gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
 							export_table=False,anno_results={}):
-
-	#this method includes the logic for calculating a flood duration (and avg duration)
-	#on the given parcels. Return is a dictionary with each parcel ID and a Parcel object
-	#with the flooding data populated
+	"""
+	this method includes the logic for calculating a flood duration (and avg duration)
+	on the given parcels. Return is a dictionary with each parcel ID and a Parcel object
+	with the flooding data populated
+	"""
 
 	#collect the parcels in a dictionary of Parcel objects
 	parcel_objects = associate_parcels(model, parcel_features, gdb=gdb, bbox=bbox)
@@ -178,12 +180,14 @@ def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
 
 def associate_parcels(model, feature='PWD_PARCELS_SHEDS', cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 
-	#create dictionary with keys for each parcel, and sub array containing associated nodes
-	#this method expects a shapefile that results from a spatial join
-	#(one to many) between the given model and the parcels in the study area. Where parcels
-	#spatially fall within multiple sheds, they will be represented in multiple rows
-	#in this shapefile (one to many), with one row for each associated shed.
-	#given this, this function creates a list of unique parcels and arrays with their associated sheds
+	"""
+	create dictionary with keys for each parcel, and sub array containing associated nodes
+	this method expects a shapefile that results from a spatial join
+	(one to many) between the given model and the parcels in the study area. Where parcels
+	spatially fall within multiple sheds, they will be represented in multiple rows
+	in this shapefile (one to many), with one row for each associated shed.
+	given this, this function creates a list of unique parcels and arrays with their associated sheds
+	"""
 
 	#check if a parcel to node association dicitonary exists, load if possible
 	parcel_to_nodes_filename = os.path.join(model.inp.dir, 'parcel_nodes_dict.txt')
