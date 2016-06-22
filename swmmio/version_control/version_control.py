@@ -37,21 +37,34 @@ def combine_models(basemodel, *models):
     newname = '_'.join([x.inp.name for x in models]) + "_" + funcs.random_alphanumeric(3)
     new_branch = create_branch(basemodel, branch_name = newname)
 
+    #ignore certain problematic sections and simply copy it from the basemodel
+    blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
     with open (new_branch.inp.filePath, 'w') as f:
+
+        #create the MS Excel writer object
+        xlpath = os.path.join(new_branch.inp.dir,newname + '.xlsx')
+        excelwriter = pd.ExcelWriter(xlpath)
 
         #compute the changes for each model from the basemodel
         sections = funcs.complete_inp_headers(basemodel.inp.filePath)
         for section in sections['order']:
             print 'working on {}'.format(section)
-            changes = [Change(basemodel, m, section) for m in models]
-            new_section = apply_changes(basemodel, changes, section=section)
+
+            if section not in blindcopies:
+                #if this section is not problematic, process as expected
+                changes = [Change(basemodel, m, section) for m in models]
+                new_section = apply_changes(basemodel, changes, section=section)
+            else:
+                #blindly copy this section from the base model
+                new_section = create_dataframeINP(basemodel.inp, section=section)
+
             add_str =  ''
 
             f.write('\n\n' + section + '\n') #add SWMM-friendly header e.g. [DWF]
 
             if sections['headers'][section] == 'blob' and not new_section.empty:
-
+                print 'is blob'
                 #to left justify based on the longest string in the blob column
                 formatter = '{{:<{}s}}'.format(new_section[section].str.len().max()).format
                 add_str = new_section.fillna('').to_string(
@@ -61,6 +74,9 @@ def combine_models(basemodel, *models):
                                                             justify='left',
                                                             formatters={section:formatter}
                                                             )
+                #write section to excel sheet
+                sheetname = section.replace('[', "").replace(']', "")
+                new_section.to_excel(excelwriter, sheetname, index=False)
 
             elif not new_section.empty:
                 #naming the columns to the index name so the it prints in-line with col headers
@@ -83,11 +99,15 @@ def combine_models(basemodel, *models):
                                                             formatters=objectformatter#{'Comment':formatter}
                                                             )
 
+                #write section to excel sheet
+                sheetname = section.replace('[', "").replace(']', "")
+                new_section.to_excel(excelwriter, sheetname)
 
             #f.write(';;' + sections['headers'][section] + '\n')
             #write the dataframe as a string
             f.write(add_str)
 
+        excelwriter.save()
 
 
 def apply_changes(model, changes, section='[JUNCTIONS]'):

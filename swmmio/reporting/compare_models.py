@@ -5,10 +5,10 @@
 
 
 import math
-from .utils import swmm_utils as su
-from .graphics import swmm_graphics as sg
-from .graphics import draw_utils as du
-import parcels as p
+from swmmio.utils import swmm_utils as su
+from swmmio.graphics import swmm_graphics as sg
+from swmmio.graphics import draw_utils as du
+import swmmio.parcels as p
 #import SWMMIO
 import os
 import pandas as pd
@@ -54,20 +54,6 @@ def extents_of_changes(model1, model2, extent_buffer=0.0):
 
 	bbox = [(x1-buff, y1-buff), (x2+buff, y2+buff)]
 	return bbox
-
-def getUnmatchedElementsInSection (inp1, inp2, section="[CONDUITS]"):
-
-	#used to identify what elements are unique in two similar models,
-	#presumably to identify which elements are 'proposed' vs existing
-
-	dict1 = inp1.createDictionary(section)
-	dict2 = inp2.createDictionary(section)
-
-	#differ = su.DictDiffer(dict1, dict2)
-
-	#uniqs found with this:
-	unmatchedList = list (   set(dict1.keys()) - set(dict2.keys())   )
-	return unmatchedList
 
 def parameter_delta(existing_elem, proposed_elem, parameter='maxflow'):
 
