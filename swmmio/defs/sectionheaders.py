@@ -38,7 +38,10 @@ rpt_header_dict={
     'Subcatchment Runoff Summary':'Name TotalPrecip TotalRunon TotalEvap TotalInfil TotalRunoffIn TotalRunoffMG PeakRunoff RunoffCoeff',
     'Node Flooding Summary':'Name HoursFlooded MaxQ MaxDay MaxHr TotalFloodVol MaximumPondDepth',
     'Node Inflow Summary':'Name Type MaxLatInflow MaxTotalInflow MaxDay MaxHr LatInflowV TotalInflowV',
-    'Node Surcharge Summary':'Name Type Hours MaxH MinD',
+    'Node Surcharge Summary':'Name Type HourSurcharged MaxHeightAboveCrown MinDepthBelowRim',
     'Node Depth Summary':'Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr',
-    'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc'
+    'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc',
+    'Subcatchment Results':     'Date Time PrecipInchPerHour LossesInchPerHr RunoffCFS',
+    'Node Results':             'Date Time InflowCFS FloodingCFS DepthFt HeadFt',
+    'Link Results':             'Date Time FlowCFS VelocityFPS DepthFt PercentFull',
 }
