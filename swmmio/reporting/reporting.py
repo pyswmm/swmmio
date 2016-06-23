@@ -7,7 +7,9 @@ import compare_models as scomp
 from swmmio.utils import swmm_utils as su
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import draw_utils as du
+from swmmio.utils.dataframes import create_dataframeRPT
 import os
+import pandas as pd
 
 def generate_figures(model1, model2, bbox=None):
 
@@ -42,3 +44,25 @@ def generate_figures(model1, model2, bbox=None):
     imgname = "05 Hydraulic Deltas"
     scomp.drawModelComparison(model1, model2, conduitSymb=du.conduit_options('compare_flow'),
                                 bbox=bbox, imgName=imgname)
+
+
+def timeseries_join(elements, *models):
+    """
+    Given a list of element IDs and Model objects, a dataframe is returned
+    with the elements' time series data for each model.
+    Example:
+        df = timeseries_join(elements = ['P1, P2'], model1, model2)
+        returns df with index = DateTime and cols = [model1_P1_FlowCFS, model1_P2_FlowCFS,
+                                                    model2_P1_FlowCFS, model2_P2_FlowCFS]
+    """
+    # dfs = [[dataframes.create_dataframeRPT(m.rpt, 'Link Results', el)[['FlowCFS']]
+    #         for el in elements] for m in models]
+    param_name = 'FlowCFS' #as named by our dataframe method
+    section_name = 'Link Results' #in the rpt
+    dfs = [create_dataframeRPT(m.rpt, section_name, elem)[[param_name]].rename(
+                columns={param_name:'{}_{}_{}'.format(m.inp.name, elem, param_name)}
+                )
+                for m in models for elem in elements]
+
+    df = pd.concat(dfs, axis=1)
+    return df
