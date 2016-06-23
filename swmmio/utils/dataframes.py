@@ -37,7 +37,7 @@ def create_dataframeINP (inp, section='[CONDUITS]'):
 
     return df
 
-def create_dataframeRPT(rpt, section='Link Flow Summary'):
+def create_dataframeRPT(rpt, section='Link Flow Summary', element_id=None):
     """
     given an rpt object, create a dataframe of data in a given section
     """
@@ -45,7 +45,7 @@ def create_dataframeRPT(rpt, section='Link Flow Summary'):
     #find all the headers and their defs (section title with cleaned one-liner column headers)
     headerdefs = funcs.complete_rpt_headers(rpt.filePath)
     #create temp file with section isolated from rpt file
-    tempfilepath = txt.extract_section_from_rpt(rpt.filePath, section, headerdefs=headerdefs)
+    tempfilepath = txt.extract_section_from_rpt(rpt.filePath, section, headerdefs=headerdefs, element_id=element_id)
 
     if not tempfilepath:
         print 'header "{}" not found in "{}"'.format(section, rpt.filePath)
@@ -55,15 +55,22 @@ def create_dataframeRPT(rpt, section='Link Flow Summary'):
         #return the whole row, without specifc col headers
         df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
     else:
-        #this section header is recognized and will be organized into known columns
-        headerlist = headerdefs['headers'][section].split()
-        df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                            comment=";", index_col=0, names = headerlist)
+        if element_id:
+            #we'retrying to pull a time series, parse the datetimes by
+            #concatenating the Date Time columns (cols 1,2)
+            df0 = pd.read_table(tempfilepath, delim_whitespace=True)
+            df = df0[df0.columns[2:]] #the data sans date time columns
+            df.index=pd.to_datetime(df0['Date'] + ' ' + df0['Time'])
+            df.index.name = "".join(df0.columns[:2])
+        else:
+            #this section header is recognized and will be organized into known columns
+            #headerlist = headerdefs['headers'][section].split()
+            df = pd.read_table(tempfilepath, delim_whitespace=True)
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 
     #add new blank comment column
-    df['Comment'] = ''
+    #df['Comment'] = ''
 
 
     return df
