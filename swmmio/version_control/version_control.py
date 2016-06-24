@@ -11,32 +11,34 @@ from swmmio.utils import swmm_utils as su
 pd.options.display.max_colwidth = 200
 
 
-def create_branch(basemodel, branch_name):
+def create_branch(basemodel, branch_name, newdir=None):
 
-    #takes a swmmio model object, create a new inp and commits changes
-    #based on the given change object
-    #returns a swmmio Model object
+    """
+    takes a swmmio model object, create a new inp
+    returns a swmmio Model object
+    """
 
     #create new directory and copy base inp
-    wd = basemodel.inp.dir
     safename = branch_name.replace(" ", '-')
-    newdir = os.path.join(wd, safename)
-    if not os.path.exists(newdir):
-        os.makedirs(newdir)
-    else:
-        return "branch or directory already exists"
+    if not newdir:
+        wd = basemodel.inp.dir
+        newdir = os.path.join(wd, safename)
+        if not os.path.exists(newdir):
+            os.makedirs(newdir)
+        else:
+            return "branch or directory already exists"
 
     shutil.copyfile(basemodel.inp.filePath, os.path.join(newdir, safename + '.inp'))
     new_branch = Model(newdir)
 
     return new_branch
 
-def combine_models(basemodel, *models):
+def combine_models(basemodel, newdir, models):
 
     #create new branch model based on basemodel
-    newname = '_'.join([x.inp.name for x in models]) + "_" + funcs.random_alphanumeric(3)
-    new_branch = create_branch(basemodel, branch_name = newname)
-
+    newname = '_'.join([x.inp.name for x in models])# + "_" + funcs.random_alphanumeric(3)
+    new_branch = create_branch(basemodel, branch_name = newname, newdir=newdir)
+    print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in models]))
     #ignore certain problematic sections and simply copy it from the basemodel
     blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
@@ -49,7 +51,7 @@ def combine_models(basemodel, *models):
         #compute the changes for each model from the basemodel
         sections = funcs.complete_inp_headers(basemodel.inp.filePath)
         for section in sections['order']:
-            print 'working on {}'.format(section)
+            #print 'working on {}'.format(section)
 
             if section not in blindcopies:
                 #if this section is not problematic, process as expected
@@ -64,7 +66,6 @@ def combine_models(basemodel, *models):
             f.write('\n\n' + section + '\n') #add SWMM-friendly header e.g. [DWF]
 
             if sections['headers'][section] == 'blob' and not new_section.empty:
-                print 'is blob'
                 #to left justify based on the longest string in the blob column
                 formatter = '{{:<{}s}}'.format(new_section[section].str.len().max()).format
                 add_str = new_section.fillna('').to_string(
