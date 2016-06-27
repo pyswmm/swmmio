@@ -13,7 +13,7 @@ from swmmio.utils import swmm_utils as su
 pd.options.display.max_colwidth = 200
 
 
-def create_branch(basemodel, branch_name, newdir=None):
+def copy_model(basemodel, branch_name, newdir=None):
 
     """
     takes a swmmio model object, create a new inp
@@ -70,93 +70,131 @@ def create_combinations(baseline_dir, genres_dir, combi_dir):
 
                 #create the new model
                 model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
-                combine_models(basemodel, newdir=new_combi_dir, models=model_objects)
+                create_model(basemodel, newdir=new_combi_dir, parent_models=model_objects)
 
-def combine_models(basemodel, newdir, models):
+def create_model(basemodel, newdir, parent_models=None, overwrite_sections=None):
 
-    #create new branch model based on basemodel
-    newname = '_'.join([x.inp.name for x in models])# + "_" + funcs.random_alphanumeric(3)
-    new_branch = create_branch(basemodel, branch_name = newname, newdir=newdir)
-    print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in models]))
+    """
+    create new model based on a given basemodel and optionally a list of
+    parent models (models to inherit changes from with resprect to the base model).
+
+    overwrite_sections is an option dictionary with keys matching seciton headers and
+    values being a dataframe with data to be substituted into the new model. If the
+    overwrite section is not found in the original model, it is inserted at the end.
+    """
+
+    if parent_models:
+        newname = '_'.join([x.inp.name for x in parent_models])# + "_" + funcs.random_alphanumeric(3)
+        print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in parent_models]))
+    else:
+        newname = basemodel.inp.name
+        parent_models = []
+        print 'copying {}'.format(basemodel.inp.name)
+
+    #new_branch = copy_model(basemodel, branch_name = newname, newdir=newdir)
+    new_branch_temp = os.path.join(newdir, newname +'.tmp.inp')
+
 
     #ignore certain problematic sections and simply copy it from the basemodel
     blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
-    with open (new_branch.inp.filePath, 'w') as f:
+    #with open (new_branch.inp.filePath, 'w') as f:
+    with open (new_branch_temp, 'w') as f:
 
         #create the MS Excel writer object
-        xlpath = os.path.join(new_branch.inp.dir,newname + '.xlsx')
+        xlpath = os.path.join(newdir, newname + '.xlsx')
         excelwriter = pd.ExcelWriter(xlpath)
 
-        #create an info sheet
+        #create an info sheet for the Excel file
         timeofcreation = datetime.now()
-        s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in models] )
-        s.index = ['DateCreated', 'Basemodel']+['ParentModel_'+str(i) for i,x in enumerate(models)]
+        s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in parent_models] )
+        s.index = ['DateCreated', 'Basemodel']+['ParentModel_' + str(i) for i,x in enumerate(parent_models)]
         df = pd.DataFrame(s, columns=['FileInfo'])
         df.to_excel(excelwriter, 'FileInfo')
 
         #compute the changes for each model from the basemodel
         sections = funcs.complete_inp_headers(basemodel.inp.filePath)
         for section in sections['order']:
-            #print 'working on {}'.format(section)
 
-            if section not in blindcopies:
-                #if this section is not problematic, process as expected
-                changes = [Change(basemodel, m, section) for m in models]
+            if parent_models and (section not in blindcopies):
+                #if parent models were provided and this section
+                #is not a known problematic section, process as normal
+                changes = [Change(basemodel, m, section) for m in parent_models]
                 new_section = apply_changes(basemodel, changes, section=section)
+
+            elif overwrite_sections and section in overwrite_sections:
+                #if we've passed in optional data to overwrite certain sections,
+                #overwrite the current section if found in that dictionary
+                new_section = overwrite_sections[section]
+
             else:
                 #blindly copy this section from the base model
                 new_section = create_dataframeINP(basemodel.inp, section=section)
 
-            add_str =  ''
+            write_section(f, excelwriter, sections, section, new_section)
 
-            f.write('\n\n' + section + '\n') #add SWMM-friendly header e.g. [DWF]
 
-            if sections['headers'][section] == 'blob' and not new_section.empty:
-                #to left justify based on the longest string in the blob column
-                formatter = '{{:<{}s}}'.format(new_section[section].str.len().max()).format
-                add_str = new_section.fillna('').to_string(
-                                                            index_names=False,
-                                                            header=False,
-                                                            index=False,
-                                                            justify='left',
-                                                            formatters={section:formatter}
-                                                            )
-                #write section to excel sheet
-                sheetname = section.replace('[', "").replace(']', "")
-                new_section.to_excel(excelwriter, sheetname, index=False)
-
-            elif not new_section.empty:
-                #naming the columns to the index name so the it prints in-line with col headers
-
-                #new_section.columns.name = ";" + new_section.index.name
-                f.write(';')
-                #f.seek(-1, 1)
-                #to left justify on longest string in the Comment column
-                #this is overly annoying, to deal with 'Objects' vs numbers to removed
-                #one byte added from the semicolon (to keep things lined up)
-                objectformatter =   {hedr:'{{:<{}}}'.format(new_section[hedr].apply(str).str.len().max()).format
-                                        for hedr in new_section.columns}
-                numformatter =      {hedr:' {{:<{}}}'.format(new_section[hedr].apply(str).str.len().max()).format
-                                        for hedr in new_section.columns if new_section[hedr].dtype!="O"}
-                objectformatter.update(numformatter)
-                add_str = new_section.fillna('').to_string(
-                                                            index_names=False,
-                                                            header=True,
-                                                            justify='left',
-                                                            formatters=objectformatter#{'Comment':formatter}
-                                                            )
-
-                #write section to excel sheet
-                sheetname = section.replace('[', "").replace(']', "")
-                new_section.to_excel(excelwriter, sheetname)
-
-            #f.write(';;' + sections['headers'][section] + '\n')
-            #write the dataframe as a string
-            f.write(add_str)
+        if overwrite_sections:
+            #check if we've passed in overwrite_sections that were not found in the
+            #original file. if thats the case, append them to the end of the file
+            for sect in [s for s in overwrite_sections if s not in sections['headers']]:
+                write_section(f, excelwriter, sections, sect, overwrite_sections[sect])
 
         excelwriter.save()
 
+    #delete old file and rename temp file
+    os.remove(basemodel.inp.filePath)
+    newfile = os.path.join(newdir, newname + '.inp')
+    os.rename(new_branch_temp, newfile)
+
+    return Model(newfile)
+
+def write_section(file_object, excelwriter, sections, sectionheader, section_data):
+
+    f = file_object
+    add_str =  ''
+
+    f.write('\n\n' + sectionheader + '\n') #add SWMM-friendly header e.g. [DWF]
+
+    if sections['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
+        #to left justify based on the longest string in the blob column
+        formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
+        add_str = section_data.fillna('').to_string(
+                                                    index_names=False,
+                                                    header=False,
+                                                    index=False,
+                                                    justify='left',
+                                                    formatters={sectionheader:formatter}
+                                                    )
+        #write section to excel sheet
+        sheetname = sectionheader.replace('[', "").replace(']', "")
+        section_data.to_excel(excelwriter, sheetname, index=False)
+
+    elif not section_data.empty:
+        #naming the columns to the index name so the it prints in-line with col headers
+        f.write(';')
+        #to left justify on longest string in the Comment column
+        #this is overly annoying, to deal with 'Objects' vs numbers to removed
+        #one byte added from the semicolon (to keep things lined up)
+        objectformatter =   {hedr:'{{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+                                for hedr in section_data.columns}
+        numformatter =      {hedr:' {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+                                for hedr in section_data.columns if section_data[hedr].dtype!="O"}
+        objectformatter.update(numformatter)
+        add_str = section_data.fillna('').to_string(
+                                                    index_names=False,
+                                                    header=True,
+                                                    justify='left',
+                                                    formatters=objectformatter#{'Comment':formatter}
+                                                    )
+
+        #write section to excel sheet
+        sheetname = sectionheader.replace('[', "").replace(']', "")
+        section_data.to_excel(excelwriter, sheetname)
+
+
+    #write the dataframe as a string
+    f.write(add_str)
 
 def apply_changes(model, changes, section='[JUNCTIONS]'):
 

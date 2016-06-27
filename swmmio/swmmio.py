@@ -45,6 +45,8 @@ class Model(object):
 				name = os.path.splitext(inpsInDir[0])[0]
 				inpFile = os.path.join(file, inpsInDir[0])
 				rptFile = os.path.join(file, name) + ".rpt"
+			else:
+				return None
 
 		#file name and path variables
 		self.inp = inp(inpFile)
@@ -548,6 +550,20 @@ class inp(SWMMIOFile):
 
 		#assign the header list
 		#self.headerList = swmm_headers.inpHeaderList
+
+	def replace_section(self, newdata, sectionheader='[FILES]'):
+
+		"""
+		replace a given section of the INP file with the contents of a passed
+		dataframe object. Function creates a temporary copy of the original,
+		rebuilds the entire inp, section by section, saves the temp file, then
+		renames the temp file to the original file name.
+		"""
+		pass
+
+
+
+
 
 class Node(object):
 
