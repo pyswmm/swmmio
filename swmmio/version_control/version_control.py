@@ -2,6 +2,8 @@ import pandas as pd
 import shutil
 import os
 import fileinput
+import itertools
+from datetime import datetime
 from swmmio.swmmio import Model
 from swmmio.utils import functions as funcs
 from swmmio.utils.dataframes import create_dataframeINP
@@ -33,12 +35,50 @@ def create_branch(basemodel, branch_name, newdir=None):
 
     return new_branch
 
+def create_combinations(baseline_dir, genres_dir, combi_dir):
+    genres = os.listdir(genres_dir)
+    flavors = []
+    for gen in genres:
+        for flav in os.listdir(os.path.join(genres_dir, gen)):
+            #print os.path.join(gen, flav)
+            flavors.append(os.path.join(gen, flav))
+
+    newmodels = []
+    basemodel = Model(baseline_dir)
+    #creat directories for new model combinations
+    for L in range(1, len(flavors)+1):
+      for subset in itertools.combinations(flavors, L):
+
+
+        #newcombi = '_'.join(subset)
+        newcombi = '_'.join([os.path.split(s)[1] for s in subset])
+        new_combi_dir = os.path.join(combi_dir, newcombi)
+
+        #create a list of the parent directories, use that to prevent
+        #two or more from same genre
+        genredirs = [os.path.split(s)[0] for s in subset]
+        if len(genredirs) == len(set(genredirs)) and len(subset) > 1:
+                #confirming the list length is equal to the set length (hashable)
+                #confirms that there are not duplicates in the items list
+
+            if not os.path.exists(new_combi_dir):#and newcombi not in flavors:
+                #check to make sure new model doesn't repeat two or more from
+                #a particular genre.
+                print new_combi_dir
+                os.mkdir(new_combi_dir)
+                newmodels.append(new_combi_dir)
+
+                #create the new model
+                model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
+                combine_models(basemodel, newdir=new_combi_dir, models=model_objects)
+
 def combine_models(basemodel, newdir, models):
 
     #create new branch model based on basemodel
     newname = '_'.join([x.inp.name for x in models])# + "_" + funcs.random_alphanumeric(3)
     new_branch = create_branch(basemodel, branch_name = newname, newdir=newdir)
     print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in models]))
+
     #ignore certain problematic sections and simply copy it from the basemodel
     blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
@@ -47,6 +87,13 @@ def combine_models(basemodel, newdir, models):
         #create the MS Excel writer object
         xlpath = os.path.join(new_branch.inp.dir,newname + '.xlsx')
         excelwriter = pd.ExcelWriter(xlpath)
+
+        #create an info sheet
+        timeofcreation = datetime.now()
+        s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in models] )
+        s.index = ['DateCreated', 'Basemodel']+['ParentModel_'+str(i) for i,x in enumerate(models)]
+        df = pd.DataFrame(s, columns=['FileInfo'])
+        df.to_excel(excelwriter, 'FileInfo')
 
         #compute the changes for each model from the basemodel
         sections = funcs.complete_inp_headers(basemodel.inp.filePath)
