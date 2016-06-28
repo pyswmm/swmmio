@@ -2,7 +2,9 @@ import subprocess
 import os
 import pandas as pd
 from swmmio.version_control import version_control as vc
+from swmmio.version_control.modify_model import modify_model
 from swmmio.utils import dataframes
+from swmmio.run_models import defs
 
 
 #path to the SWMM5 Engine
@@ -48,9 +50,8 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
     hotstart2 = os.path.join(model.inp.dir, model.inp.name + '_hot2.hsf')
 
     #create new model inp with params to save hotstart1
-    report = pd.Series(['INPUT NO','CONTROLS NO','SUBCATCHMENTS NONE','NODES NONE', 'LINKS NONE'])
-    report_df = pd.DataFrame(report, columns=['[REPORT]'])
-
+    report_df = defs.REPORT_none
+    options_df = defs.OPTIONS_no_rain
     options_df = dataframes.create_dataframeINP(model.inp, '[OPTIONS]')
     options_df.ix['IGNORE_RAINFALL'] = ''
     options_df.set_value('IGNORE_RAINFALL', 'Value', 'YES')
@@ -58,31 +59,26 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
     s = pd.Series(['SAVE HOTSTART "{}"'.format(hotstart1)])
     hot1_df = pd.DataFrame(s, columns=['[FILES]'])
 
-    model1 = vc.create_model(model, model.inp.dir, parent_models=None,
-                            overwrite_sections={'[FILES]':hot1_df,
-                                                '[REPORT]':report_df,
-                                                '[OPTIONS]':options_df})
+    model = modify_model(model.inp.filePath, '[FILES]', hot1_df)
+    model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_none)
+    model = modify_model(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_no_rain)
 
-    subprocess.call([swmm_eng, model1.inp.filePath, rpt_path])
+    subprocess.call([swmm_eng, model.inp.filePath, rpt_path])
 
     #create new model inp with params to use hotstart1 and save hotstart2
     s = pd.Series(['USE HOTSTART "{}"'.format(hotstart1), 'SAVE HOTSTART "{}"'.format(hotstart2)])
     hot2_df = pd.DataFrame(s, columns=['[FILES]'])
-    model2 = vc.create_model(model1, model.inp.dir, parent_models=None,
-                            overwrite_sections={'[FILES]':hot2_df})
 
-    subprocess.call([swmm_eng, model2.inp.filePath, rpt_path])
+    model = modify_model(model.inp.filePath, '[FILES]', hot2_df)
+
+    subprocess.call([swmm_eng, model.inp.filePath, rpt_path])
 
     #create new model inp with params to use hotstart1 and save hotstart2
-    report = pd.Series(['INPUT NO','CONTROLS NO','SUBCATCHMENTS NONE','NODES ALL', 'LINKS ALL'])
-    report_df = pd.DataFrame(report, columns=['[REPORT]'])
-    options_df.set_value('IGNORE_RAINFALL', 'Value', 'NO')
-
     s = pd.Series(['USE HOTSTART "{}"'.format(hotstart2)])
     hot3_df = pd.DataFrame(s, columns=['[FILES]'])
-    model3 = vc.create_model(model2, model2.inp.dir, parent_models=None,
-                            overwrite_sections={'[FILES]':hot3_df,
-                                                '[REPORT]':report_df,
-                                                '[OPTIONS]':options_df})
 
-    subprocess.call([swmm_eng, model3.inp.filePath, rpt_path])
+    model = modify_model(model.inp.filePath, '[FILES]', hot3_df)
+    model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_nodes_links)
+    model = modify_model(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_normal)
+
+    subprocess.call([swmm_eng, model.inp.filePath, rpt_path])

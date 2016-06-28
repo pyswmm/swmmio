@@ -78,9 +78,9 @@ def create_combinations(baseline_dir, genres_dir, combi_dir):
 
                 #create the new model
                 model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
-                create_model(basemodel, newdir=new_combi_dir, parent_models=model_objects)
+                merge_models(basemodel, newdir=new_combi_dir, parent_models=model_objects)
 
-def create_model(basemodel, newdir, parent_models=None, overwrite_sections=None):
+def merge_models(basemodel, newdir, parent_models):
 
     """
     create new model based on a given basemodel and optionally a list of
@@ -91,73 +91,43 @@ def create_model(basemodel, newdir, parent_models=None, overwrite_sections=None)
     overwrite section is not found in the original model, it is inserted at the end.
     """
 
-    if parent_models:
-        newname = '_'.join([x.inp.name for x in parent_models])# + "_" + funcs.random_alphanumeric(3)
-        print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in parent_models]))
-    else:
-        newname = basemodel.inp.name
-        parent_models = []
-        print 'copying {}'.format(basemodel.inp.name)
+    newname = '_'.join([x.inp.name for x in parent_models])# + "_" + funcs.random_alphanumeric(3)
+    print 'Building new model by combining models: {}'.format(', '.join([x.inp.name for x in parent_models]))
 
     #new_branch = copy_model(basemodel, branch_name = newname, newdir=newdir)
-    new_branch_temp = os.path.join(newdir, newname +'.tmp.inp')
-
+    newinpfile = os.path.join(newdir, newname +'.inp')
 
     #ignore certain problematic sections and simply copy it from the basemodel
     blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
     #with open (new_branch.inp.filePath, 'w') as f:
-    with open (new_branch_temp, 'w') as f:
+    with open (newinpfile, 'w') as f:
 
         #create the MS Excel writer object
         xlpath = os.path.join(newdir, newname + '.xlsx')
         excelwriter = pd.ExcelWriter(xlpath)
-
-        #create an info sheet for the Excel file
-        timeofcreation = datetime.now()
-        s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in parent_models] )
-        s.index = ['DateCreated', 'Basemodel']+['ParentModel_' + str(i) for i,x in enumerate(parent_models)]
-        df = pd.DataFrame(s, columns=['FileInfo'])
-        df.to_excel(excelwriter, 'FileInfo')
+        vc_utils.create_info_sheet(excelwriter, basemodel, parent_models)
 
         #compute the changes for each model from the basemodel
-        sections = funcs.complete_inp_headers(basemodel.inp.filePath)
-        for section in sections['order']:
+        allheaders = funcs.complete_inp_headers(basemodel.inp.filePath)
+        for section in allheaders['order']:
 
-            if parent_models and (section not in blindcopies):
-                #if parent models were provided and this section
-                #is not a known problematic section, process as normal
+            if section not in blindcopies:
+                #if this section is not a known problematic section, process as normal
                 changes = [Change(basemodel, m, section) for m in parent_models]
                 new_section = apply_changes(basemodel, changes, section=section)
-
-            elif overwrite_sections and section in overwrite_sections:
-                #if we've passed in optional data to overwrite certain sections,
-                #overwrite the current section if found in that dictionary
-                new_section = overwrite_sections[section]
 
             else:
                 #blindly copy this section from the base model
                 new_section = create_dataframeINP(basemodel.inp, section=section)
 
             #write the section into the inp file and the excel file
-            vc_utils.write_section(f, excelwriter, sections, section, new_section)
+            vc_utils.write_section(f, excelwriter, allheaders, section, new_section)
 
-
-        if overwrite_sections:
-            #check if we've passed in overwrite_sections that were not found in the
-            #original file. if thats the case, append them to the end of the file
-            for sect in [s for s in overwrite_sections if s not in sections['headers']]:
-                write_section(f, excelwriter, sections, sect, overwrite_sections[sect])
 
         excelwriter.save()
 
-    #delete old file and rename temp file
-    if not parent_models and overwrite_sections:
-        os.remove(basemodel.inp.filePath)
-        newfile = os.path.join(newdir, newname + '.inp')
-        os.rename(new_branch_temp, newfile)
-
-        return Model(newfile)
+    return Model(newinpfile)
 
 
 

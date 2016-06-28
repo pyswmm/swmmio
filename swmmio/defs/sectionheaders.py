@@ -23,6 +23,8 @@ inp_header_dict = {
     '[DWF]':'Node Parameter AverageValue TimePatterns',
     '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSourceType DataSourceName',
     '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
+    '[POLYGONS]':'Name X Y',
+    '[REPORT]':'Param Status'
     #'[CURVES]':'Name Type X-Value Y-Value',
     #'[TIMESERIES]':'Name Date Time Value'
 }
