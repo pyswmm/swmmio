@@ -15,13 +15,12 @@ def inline_comments_in_inp(filepath, overwrite=False):
     element (behavoir from saving in GUI) and place them to the right, inline with
     the element. To improve readability
     """
-    newfname = os.path.splitext(os.path.basename(filepath))[0] + '_unGUI.inp'
-    #newf = os.path.join(os.path.dirname(filepath), random_alphanumeric(6) + txt)
-    newf = os.path.join(os.path.dirname(filepath), newfname)
+    newfilename = os.path.splitext(os.path.basename(filepath))[0] + '_unGUI.inp'
+    newfilepath = os.path.join(os.path.dirname(filepath), newfilename)
     allheaders = complete_inp_headers(filepath)
 
     with open(filepath) as oldf:
-        with open(newf, 'w') as new:
+        with open(newfilepath, 'w') as new:
 
             comment_concat = [] #to hold list of comments (handles multiline comments)
             current_section = allheaders['order'][0]
@@ -59,7 +58,7 @@ def inline_comments_in_inp(filepath, overwrite=False):
     #rename files and remove old if we should overwrite
     if overwrite:
         os.remove(filepath)
-        os.rename(newf, filepath)
+        os.rename(newfilepath, filepath)
 
 
 

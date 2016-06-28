@@ -1,7 +1,8 @@
 from datetime import datetime
+import pandas as pd
 
 
-def write_section(file_object, excelwriter, sections, sectionheader, section_data):
+def write_section(file_object, excelwriter, allheaders, sectionheader, section_data, pad_top=True):
 
     """
     given an open file object, excelwriter object, list of header sections, the curent
@@ -12,9 +13,11 @@ def write_section(file_object, excelwriter, sections, sectionheader, section_dat
     f = file_object
     add_str =  ''
 
-    f.write('\n\n' + sectionheader + '\n') #add SWMM-friendly header e.g. [DWF]
-
-    if sections['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
+    if pad_top:
+        f.write('\n\n' + sectionheader + '\n') #add SWMM-friendly header e.g. [DWF]
+    else:
+        f.write(sectionheader + '\n')
+    if allheaders['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
         #to left justify based on the longest string in the blob column
         formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
         add_str = section_data.fillna('').to_string(
@@ -53,3 +56,12 @@ def write_section(file_object, excelwriter, sections, sectionheader, section_dat
 
     #write the dataframe as a string
     f.write(add_str)
+
+def create_info_sheet(excelwriter, basemodel, parent_models=[]):
+
+    #create an info sheet for the Excel file
+    timeofcreation = datetime.now()
+    s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in parent_models] )
+    s.index = ['DateCreated', 'Basemodel']+['ParentModel_' + str(i) for i,x in enumerate(parent_models)]
+    df = pd.DataFrame(s, columns=['FileInfo'])
+    df.to_excel(excelwriter, 'FileInfo')
