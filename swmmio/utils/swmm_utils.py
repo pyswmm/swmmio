@@ -11,7 +11,7 @@ import matplotlib.path as mplPath
 from matplotlib.transforms import BboxBase
 import pickle
 import json
-import arcpy
+#import arcpy
 from swmmio.graphics import draw_utils as du
 
 #contants
@@ -237,7 +237,7 @@ def subsetElements(model, type='node', key='floodDuration', min=0.083, max=99999
 def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68-C1'", shiftRatio=None, targetImgW=1024, bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
 
 	#take data from a geodatabase and organize in a dictionary with coordinates and draw_coordinates
-
+	import arcpy
 	features = os.path.join(gdb, feature)
 	geometryDicts = {}
 	for row in arcpy.da.SearchCursor(features, cols, where_clause=where):

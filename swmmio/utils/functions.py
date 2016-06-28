@@ -7,7 +7,7 @@ def random_alphanumeric(n=6):
 	return ''.join(random.choice(chars) for i in range(n))
 
 
-def complete_inp_headers (inpfilepath, inp_header_dict=inp_header_dict):
+def complete_inp_headers (inpfilepath):
     """
     creates a dictionary with all the headers found in an INP file
     (which varies based on what the user has defined in a given model)
@@ -37,7 +37,7 @@ def complete_inp_headers (inpfilepath, inp_header_dict=inp_header_dict):
 
     return {'headers':foundheaders, 'order':order}
 
-def complete_rpt_headers (rptfilepath, rpt_header_dict=rpt_header_dict):
+def complete_rpt_headers (rptfilepath):
     """
     creates a dictionary with all the headers found in an RPT file
     (which varies based on what the user has defined in a given model)

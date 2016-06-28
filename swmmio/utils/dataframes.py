@@ -27,7 +27,7 @@ def create_dataframeINP (inp, section='[CONDUITS]'):
         #this section header is recognized and will be organized into known columns
         headerlist = headerdefs['headers'][section].split()
         df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                            comment=";", index_col=0, names = headerlist)
+                             index_col=0, names = headerlist, comment=";")
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 
