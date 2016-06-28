@@ -8,6 +8,61 @@ from swmmio.utils.functions import random_alphanumeric, complete_inp_headers, co
 #default file path suffix
 txt = '.txt'
 
+def inline_comments_in_inp(filepath, overwrite=False):
+
+    """
+    with an existing INP file, shift any comments that have been placed above the
+    element (behavoir from saving in GUI) and place them to the right, inline with
+    the element. To improve readability
+    """
+    newfname = os.path.splitext(os.path.basename(filepath))[0] + '_unGUI.inp'
+    #newf = os.path.join(os.path.dirname(filepath), random_alphanumeric(6) + txt)
+    newf = os.path.join(os.path.dirname(filepath), newfname)
+    allheaders = complete_inp_headers(filepath)
+
+    with open(filepath) as oldf:
+        with open(newf, 'w') as new:
+
+            comment_concat = [] #to hold list of comments (handles multiline comments)
+            current_section = allheaders['order'][0]
+            for line in oldf:
+
+                #determine what section we are in by noting when we pass double brackets
+                if '[' and ']' in line:
+                    current_section = line.strip()
+
+
+                #if line.count(';') == 1 and line.strip()[0]==';':
+                if len(line.strip()) > 1:
+                    if line.strip()[0]==';' and ''.join(line.strip()[:2]) != ';;':
+                        #print line.strip()[:2]
+                        #this is a comment bc first char is ; and there
+                        #seconf char is not (which would resember the header section)
+                        words = line.split()
+                        hdrs = allheaders['headers'][current_section].split()#headerrow.split()
+                        perc_match_to_header = float(len([x for x in words if x in hdrs])) / float(len(hdrs))
+                        if perc_match_to_header <= 0.75:
+                            comment_concat.append(line.strip())
+                    else:
+                        #print comment_concat
+                        #this row has data, tack any comment to the line end
+                        comment_string = ''
+                        if len(comment_concat) > 0:
+                            comment_string = r' '.join(comment_concat)
+                        newlinestring = line.strip() + comment_string + '\n'
+                        new.write(newlinestring)
+                        comment_concat = []
+                else:
+                    #write the short line
+                    new.write(line)
+
+    #rename files and remove old if we should overwrite
+    if overwrite:
+        os.remove(filepath)
+        os.rename(newf, filepath)
+
+
+
 def extract_section_from_file(filepath, sectionheader, element_id=None, cleanheaders=True, startfile=False, headerdefs=None):
     f_extension = os.path.splitext(filepath)[1]
     if f_extension == '.inp':
