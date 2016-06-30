@@ -166,7 +166,7 @@ def extract_section_from_rpt(filepath, sectionheader, element_id=None, cleanhead
                     #if we haven't found the start of the section yet, the
                     #sectionheader is in the current line,
                     #then we've found the begining of the section of interest
-                    print 'sectionstartfound found'
+                    print '{} section found'.format(sectionheader)
                     sectionstartfound = True
 
                     #replace line with usable headers

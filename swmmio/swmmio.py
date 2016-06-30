@@ -20,44 +20,45 @@ class Model(object):
 	#Class representing a complete SWMM model incorporating its INP and RPT
 	#files and data
 
-	def __init__(self, file):
+	def __init__(self, in_file_path):
 
 		#can init with a directory containing files, or the specific inp file
-		
-		fileParts = os.path.splitext(file)
-		#check if input file is dir or inp
-		if ".inp" in fileParts[1]:
-			#input is a full path to an inp
-			name = os.path.splitext(os.path.basename(file))[0]
-			inpFile = file
-			rptFile = fileParts[0] + ".rpt"
-		elif ".rpt" in fileParts[1]:
-			#input is a full path to an inp
-			name = os.path.splitext(os.path.basename(file))[0]
-			inpFile = fileParts[0]+ ".inp"
-			rptFile = file
+		"""
+		initialize a swmmio.Model object by pointing it to a directory containing
+		a single INP (and optionally an RPT file with matching filename) or by
+		pointing it directly to an .inp file.
+		"""
 
-		else:
-			#input is a directory
-			#check that there is only one inp/rpt pair, otherwise break
-			inpsInDir = glob.glob1(file, "*.inp")
-			if len(inpsInDir) == 1:
-				name = os.path.splitext(inpsInDir[0])[0]
-				inpFile = os.path.join(file, inpsInDir[0])
-				rptFile = os.path.join(file, name) + ".rpt"
-			else:
-				return None
+		inp_path = None
+		if os.path.isdir(in_file_path):
+			#a directory was passed in
+			inps_in_dir = glob.glob1(in_file_path, "*.inp")
+			if len(inps_in_dir) == 1:
+				#there is only one INP in this directory -> good.
+				inp_path = os.path.join(in_file_path, inps_in_dir[0])
 
-		#file name and path variables
-		self.inp = inp(inpFile)
-		if os.path.exists(rptFile):
-			self.rpt = rpt(rptFile)
-		else:
-			self.rpt=None
-		#slots to hold processed data
-		self.organized_node_data = None
-		self.organized_conduit_data = None
-		self.bbox = None #to remember how the model data was clipped
+		elif os.path.splitext(in_file_path)[1] == '.inp':
+			#an inp was passed in
+			inp_path = in_file_path
+
+		if inp_path:
+			wd = os.path.dirname(inp_path) #working dir
+			name = os.path.splitext(os.path.basename(inp_path))[0] #basename
+			self.inp = inp(inp_path) #inp object
+			self.rpt = None #until we can confirm it initializes properly
+			#slots to hold processed data
+			self.organized_node_data = None
+			self.organized_conduit_data = None
+			self.bbox = None #to remember how the model data was clipped
+
+			#try to initialize a companion RPT object
+			rpt_path = os.path.join(wd, name + '.rpt')
+			if os.path.exists(rpt_path):
+				try:
+					self.rpt = rpt(rpt_path)
+				except:
+					print '{}.rpt failed to initialize'.format(name)
+
 
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
 
@@ -66,6 +67,7 @@ class Model(object):
 
 		#check if this has been done already and return that data accordingly
 		if self.organized_conduit_data and bbox==self.bbox:
+			print 'reusing org conduit data'
 			return self.organized_conduit_data
 
 		#parse out the main objects of this model
@@ -164,8 +166,8 @@ class Model(object):
 			}
 
 		#remember this stuff for later
-		self.organized_conduit_data = output
-		self.bbox = bbox
+		#self.organized_conduit_data = output
+		#self.bbox = bbox
 
 		return output
 
@@ -177,6 +179,7 @@ class Model(object):
 		#check if this has been done already and return that data accordingly
 		if self.organized_node_data and bbox==self.bbox:
 			#print "loaded node objs from " + self.rpt.fName
+			print 'reusing org conduit data'
 			return self.organized_node_data
 
 		#parse out the main objects of this model
@@ -258,8 +261,8 @@ class Model(object):
 
 		#save for later use. save the bbox instance so we refresh this attributed
 		#whenever the bbox is changed (so we don't leave elements out)
-		self.organized_node_data = output
-		self.bbox = bbox
+		#self.organized_node_data = output
+		#self.bbox = bbox
 
 		return output
 
