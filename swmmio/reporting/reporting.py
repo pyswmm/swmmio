@@ -11,7 +11,9 @@ from swmmio.utils.dataframes import create_dataframeRPT
 import os
 import pandas as pd
 
-def generate_figures(model1, model2, bbox=None):
+
+
+def generate_figures(model1, model2, bbox=None, imgDir=None, verbose=False):
 
     #calculate the bounding box of the alternative/option
     #such that figures can be zoomed to the area
@@ -19,31 +21,47 @@ def generate_figures(model1, model2, bbox=None):
 
     #SIMPLE PLAN VIEW OF OPTION (showing new conduits)
     imgname = "00 Proposed Infrastructure"
-    scomp.drawModelComparison(model1, model2, nodeSymb=None,
-                                parcelSymb=None, bbox=bbox, imgName=imgname)
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
+    scomp.drawModelComparison(model1, model2, nodeSymb=None, parcelSymb=None,
+                                bbox=bbox, imgName=imgname, imgDir=imgDir)
 
     #EXISTING CONDITIONS PARCEL FLOOD DURATION
     imgname = "01 Existing Parcel Flood Duration"
-    imgDir=os.path.join(model2.inp.dir, 'img')
-    sg.drawModel(model1, conduitSymb=None, nodeSymb=None, bbox=bbox, imgName=imgname, imgDir=imgDir)
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
+    if not imgDir:
+        imgDir=os.path.join(model2.inp.dir, 'img')
+    sg.drawModel(model1, conduitSymb=None, nodeSymb=None, bbox=bbox,
+                imgName=imgname, imgDir=imgDir)
 
     #PROPOSED CONDITIONS FLOOD DURATION
     imgname = "02 Proposed Parcel Flood Duration"
-    #ops.update({'conduitSymb':du.conduit_options('proposed_simple')})
-    sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox, imgName=imgname)
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
+    sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox,
+                imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE
     imgname = "03 Impact of Option"
-    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=bbox, imgName=imgname)
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
+    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=bbox,
+                                imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE STUDY-AREA-WIDE
     imgname = "04 Impact of Option - Overall"
-    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=su.study_area, imgName=imgname)
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
+    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=su.study_area,
+                                imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE CHANGE OF PEAK FLOW
     imgname = "05 Hydraulic Deltas"
+    if verbose:
+        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
     scomp.drawModelComparison(model1, model2, conduitSymb=du.conduit_options('compare_flow'),
-                                bbox=bbox, imgName=imgname)
+                                bbox=bbox, imgName=imgname, imgDir=imgDir)
 
 
 def timeseries_join(elements, *models):

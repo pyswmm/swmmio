@@ -17,7 +17,7 @@ import pickle
 
 
 
-def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=True, fileExt=".png", verbose=False):
+def saveImage(img, model, imgName=None, imgDir=None, antialias=True, open=False, fileExt=".png", verbose=False):
 
 	#get the size from the Image object
 	imgSize = (img.getbbox()[2], img.getbbox()[3])

@@ -20,44 +20,46 @@ class Model(object):
 	#Class representing a complete SWMM model incorporating its INP and RPT
 	#files and data
 
-	def __init__(self, file):
+	def __init__(self, in_file_path):
 
 		#can init with a directory containing files, or the specific inp file
+		"""
+		initialize a swmmio.Model object by pointing it to a directory containing
+		a single INP (and optionally an RPT file with matching filename) or by
+		pointing it directly to an .inp file.
+		"""
 
-		fileParts = os.path.splitext(file)
-		#check if input file is dir or inp
-		if ".inp" in fileParts[1]:
-			#input is a full path to an inp
-			name = os.path.splitext(os.path.basename(file))[0]
-			inpFile = file
-			rptFile = fileParts[0] + ".rpt"
-		elif ".rpt" in fileParts[1]:
-			#input is a full path to an inp
-			name = os.path.splitext(os.path.basename(file))[0]
-			inpFile = fileParts[0]+ ".inp"
-			rptFile = file
+		inp_path = None
+		if os.path.isdir(in_file_path):
+			#a directory was passed in
+			inps_in_dir = glob.glob1(in_file_path, "*.inp")
+			if len(inps_in_dir) == 1:
+				#there is only one INP in this directory -> good.
+				inp_path = os.path.join(in_file_path, inps_in_dir[0])
 
-		else:
-			#input is a directory
-			#check that there is only one inp/rpt pair, otherwise break
-			inpsInDir = glob.glob1(file, "*.inp")
-			if len(inpsInDir) == 1:
-				name = os.path.splitext(inpsInDir[0])[0]
-				inpFile = os.path.join(file, inpsInDir[0])
-				rptFile = os.path.join(file, name) + ".rpt"
-			else:
-				return None
+		elif os.path.splitext(in_file_path)[1] == '.inp':
+			#an inp was passed in
+			inp_path = in_file_path
 
-		#file name and path variables
-		self.inp = inp(inpFile)
-		if os.path.exists(rptFile):
-			self.rpt = rpt(rptFile)
-		else:
-			self.rpt=None
-		#slots to hold processed data
-		self.organized_node_data = None
-		self.organized_conduit_data = None
-		self.bbox = None #to remember how the model data was clipped
+		if inp_path:
+			wd = os.path.dirname(inp_path) #working dir
+			name = os.path.splitext(os.path.basename(inp_path))[0] #basename
+			self.name = name
+			self.inp = inp(inp_path) #inp object
+			self.rpt = None #until we can confirm it initializes properly
+			#slots to hold processed data
+			self.organized_node_data = None
+			self.organized_conduit_data = None
+			self.bbox = None #to remember how the model data was clipped
+
+			#try to initialize a companion RPT object
+			rpt_path = os.path.join(wd, name + '.rpt')
+			if os.path.exists(rpt_path):
+				try:
+					self.rpt = rpt(rpt_path)
+				except:
+					print '{}.rpt failed to initialize'.format(name)
+
 
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
 
