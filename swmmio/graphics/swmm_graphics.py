@@ -189,7 +189,7 @@ def drawModel (model, **kwargs):
 	rpt = model.rpt
 
 	#organize relavant data from SWMM files, #FIX TO NOT RUN ALL THIS IF NOT NECESSARY
-	conduitData = model.organizeConduitData(bbox) #diction	ary of overall model data, dimension, and the conduit dicts
+	conduitData = model.organizeConduitData(bbox) #dictionary of overall model data, dimension, and the conduit dicts
 	conduits = conduitData['conduit_objects']
 	pixelData = su.convertCoordinatesToPixels(conduits, targetImgW=width, bbox=bbox)
 	shiftRatio = pixelData['shiftRatio']
