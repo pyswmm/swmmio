@@ -20,10 +20,10 @@ class Model(object):
 	#Class representing a complete SWMM model incorporating its INP and RPT
 	#files and data
 
-	def __init__(self, file, modelName=None):
+	def __init__(self, file):
 
 		#can init with a directory containing files, or the specific inp file
-
+		
 		fileParts = os.path.splitext(file)
 		#check if input file is dir or inp
 		if ".inp" in fileParts[1]:
