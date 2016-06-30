@@ -284,6 +284,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	xplier = ops['xplier']
 	bbox = ops['bbox']
 	imgName = ops['imgName'] # for some reason saveImage() won't take the dict reference
+	imgDir = ops['imgDir']
 
 	#joinedConduits = joinModelData(model1, model2, bbox)
 	#joinedNodes = joinModelData(model1, model2, bbox, joinType='node')
@@ -353,7 +354,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	su.annotateMap (draw, model1, model2, options=ops, results = anno_results)
 	del draw
 	#SAVE IMAGE TO DISK
-	sg.saveImage(img, model2, imgName)
+	sg.saveImage(img, model2, imgName, imgDir=imgDir)
 
 
 
