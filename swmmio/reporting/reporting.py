@@ -3,17 +3,67 @@
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
 
-import compare_models as scomp
+from swmmio.reporting import compare_models as scomp
+from swmmio.reporting import functions
 from swmmio.utils import swmm_utils as su
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import draw_utils as du
 from swmmio.utils.dataframes import create_dataframeRPT
+from swmmio import parcels as p
 import os
 import pandas as pd
 
 
 
-def generate_figures(model1, model2, bbox=None, imgDir=None, verbose=False):
+class Report(object):
+
+    def __init__(self, baseline_model, option, existing_parcel_flooding = None):
+
+
+        #parcel calculations
+        anno_results={}
+        #if not existing_parcel_flooding:
+        existing_parcel_flooding = p.parcel_flood_duration(baseline_model, parcel_features='PWD_PARCELS_SHEDS',
+    											bbox=None, anno_results=anno_results)['parcels']
+
+        proposed_parcel_flooding = p.parcel_flood_duration(option, parcel_features='PWD_PARCELS_SHEDS',
+												bbox=None, anno_results=anno_results)['parcels']
+
+        delta_parcels = p.compareParcels(existing_parcel_flooding, proposed_parcel_flooding,
+										bbox=None, floodthreshold=0.0833,
+										delta_threshold=0.25,
+										anno_results=anno_results)
+
+        self.baseline=baseline_model
+        self.option = option
+        self.delta_parcels = delta_parcels['parcels']
+        self.anno_results = anno_results
+        self.sewer_miles_new = functions.length_of_new_and_replaced_conduit(baseline_model, option)  / 5280.0
+        self.sewer_miles_replaced = None
+        self.storage_new = None #some volume measurement
+        self.cost_estimate = None
+        self.parcels_new_flooding = delta_parcels['new_flooding']
+        self.parcels_worse_flooding = delta_parcels['increased_flooding']
+        self.parcels_eliminated_flooding = delta_parcels['eliminated_flooding']
+        self.parcels_flooding_improved = delta_parcels['decreased_flooding'] + delta_parcels['eliminated_flooding']
+
+        print '{} new miles '.format(self.sewer_miles_new)
+        print '{} parcels deltas'.format(len(self.delta_parcels))
+
+    def write (self, report_dir):
+        #generate the figures
+        generate_figures(self.baseline, self.option,
+                        delta_parcels = self.delta_parcels,
+                        anno_results = self.anno_results,
+                        bbox = su.d68d70, imgDir=report_dir)
+
+        #write text report
+        with open(os.path.join(report_dir, 'report.txt'), 'w') as f:
+            f.write('Parcels Improved {}\n'.format(self.parcels_flooding_improved))
+            f.write('New Sewer Miles {}\n'.format(self.sewer_miles_new))
+
+def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
+                    bbox=None, imgDir=None, verbose=False):
 
     #calculate the bounding box of the alternative/option
     #such that figures can be zoomed to the area
@@ -21,15 +71,11 @@ def generate_figures(model1, model2, bbox=None, imgDir=None, verbose=False):
 
     #SIMPLE PLAN VIEW OF OPTION (showing new conduits)
     imgname = "00 Proposed Infrastructure"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
     scomp.drawModelComparison(model1, model2, nodeSymb=None, parcelSymb=None,
                                 bbox=bbox, imgName=imgname, imgDir=imgDir)
 
     #EXISTING CONDITIONS PARCEL FLOOD DURATION
     imgname = "01 Existing Parcel Flood Duration"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
     if not imgDir:
         imgDir=os.path.join(model2.inp.dir, 'img')
     sg.drawModel(model1, conduitSymb=None, nodeSymb=None, bbox=bbox,
@@ -37,30 +83,31 @@ def generate_figures(model1, model2, bbox=None, imgDir=None, verbose=False):
 
     #PROPOSED CONDITIONS FLOOD DURATION
     imgname = "02 Proposed Parcel Flood Duration"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
     sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox,
                 imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE
     imgname = "03 Impact of Option"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
-    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=bbox,
+    scomp.drawModelComparison(model1, model2,
+                                delta_parcels = delta_parcels,
+                                anno_results = anno_results,
+                                nodeSymb=None, bbox=bbox,
                                 imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE STUDY-AREA-WIDE
     imgname = "04 Impact of Option - Overall"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
-    scomp.drawModelComparison(model1, model2, nodeSymb=None, bbox=su.study_area,
+    scomp.drawModelComparison(model1, model2,
+                                delta_parcels = delta_parcels,
+                                anno_results = anno_results,
+                                nodeSymb=None, bbox=su.study_area,
                                 imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE CHANGE OF PEAK FLOW
     imgname = "05 Hydraulic Deltas"
-    if verbose:
-        print 'Drawing {}, saving to {}'.format(imgname, imgDir)
-    scomp.drawModelComparison(model1, model2, conduitSymb=du.conduit_options('compare_flow'),
+    scomp.drawModelComparison(model1, model2,
+                                delta_parcels = delta_parcels,
+                                anno_results = anno_results,
+                                conduitSymb=du.conduit_options('compare_flow'),
                                 bbox=bbox, imgName=imgname, imgDir=imgDir)
 
 

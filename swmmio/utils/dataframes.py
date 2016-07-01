@@ -4,7 +4,7 @@ from swmmio.swmmio import rpt, inp
 import pandas as pd
 import os
 
-def create_dataframeINP (inp, section='[CONDUITS]'):
+def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
     """
     given an inp object, create a dataframe of data in a given section
     """
@@ -12,7 +12,7 @@ def create_dataframeINP (inp, section='[CONDUITS]'):
     #find all the headers and their defs (section title with cleaned one-liner column headers)
     headerdefs = funcs.complete_inp_headers(inp.filePath)
     #create temp file with section isolated from inp file
-    tempfilepath = txt.extract_section_from_inp(inp.filePath, section, headerdefs=headerdefs)
+    tempfilepath = txt.extract_section_from_inp(inp.filePath, section, headerdefs=headerdefs, ignore_comments=ignore_comments)
     if not tempfilepath:
         print 'header "{}" not found in "{}"'.format(section, inp.filePath)
         return None

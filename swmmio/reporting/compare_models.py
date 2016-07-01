@@ -270,7 +270,7 @@ def comparisonReport (model1, model2, bbox=None, threshold=0.083):
 
 	os.startfile(outFile)
 
-def drawModelComparison(model1, model2, **kwargs):
+def drawModelComparison(model1, model2, delta_parcels=None, anno_results = {}, **kwargs):
 
 	#unpack and update the options
 	ops = du.default_draw_options()
@@ -308,7 +308,7 @@ def drawModelComparison(model1, model2, **kwargs):
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
 
-	anno_results = {}
+	#anno_results = {}
 
 	#DRAW THE PARCELS
 	if ops['parcelSymb']:
@@ -317,10 +317,19 @@ def drawModelComparison(model1, model2, **kwargs):
 		floodthresh = ops['parcelSymb']['threshold']
 		delta_thresh = ops['parcelSymb']['delta_threshold']
 
-		delta_parcels = p.compareParcels(model1, model2, bbox=None,
-										floodthreshold=floodthresh,
-										delta_threshold=delta_thresh,
-										anno_results=anno_results)['parcels']
+		if not delta_parcels:
+			print 'calculating existig parcel flooding'
+			existing_parcel_flooding = p.parcel_flood_duration(model1, parcel_features='PWD_PARCELS_SHEDS',
+													bbox=None, anno_results=anno_results)['parcels']
+
+
+			proposed_parcel_flooding = p.parcel_flood_duration(model2, parcel_features='PWD_PARCELS_SHEDS',
+												bbox=None, anno_results=anno_results)['parcels']
+		 	print 'calculating delta  parcel flooding'
+			delta_parcels = p.compareParcels(existing_parcel_flooding, proposed_parcel_flooding,
+											bbox=None, floodthreshold=floodthresh,
+											delta_threshold=delta_thresh,
+											anno_results=anno_results)['parcels']
 
 		sg.drawParcels(draw, delta_parcels, options=ops['parcelSymb'], bbox=bbox,
 						width=width, shiftRatio=shiftRatio)
