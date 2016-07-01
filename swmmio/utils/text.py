@@ -62,14 +62,14 @@ def inline_comments_in_inp(filepath, overwrite=False):
 
 
 
-def extract_section_from_file(filepath, sectionheader, element_id=None, cleanheaders=True, startfile=False, headerdefs=None):
+def extract_section_from_file(filepath, sectionheader, element_id=None, cleanheaders=True, startfile=False, headerdefs=None,  ignore_comments=False):
     f_extension = os.path.splitext(filepath)[1]
     if f_extension == '.inp':
-        return extract_section_from_inp(filepath, sectionheader, cleanheaders, startfile, headerdefs)
+        return extract_section_from_inp(filepath, sectionheader, cleanheaders, startfile, headerdefs, ignore_comments)
     if f_extension == '.rpt':
         return extract_section_from_rpt(filepath, sectionheader, element_id, cleanheaders, startfile, headerdefs)
 
-def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfile=False, headerdefs=None):
+def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfile=False, headerdefs=None, ignore_comments=False):
     """
     INPUT path to text file (inp, rpt, etc) and a text string
     matchig the section header of the to be extracted
@@ -112,7 +112,16 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfi
                             line = sectionheader + '\n'
 
                 if startfound:
-                    newf.write(line)
+                    if ignore_comments:
+                        #ignore anything after a comment
+                        #THIS IS HACK GARBAGE
+                        if ';' in line:
+                            newf.write(line.split(';')[0] + '\n')
+                        else:
+                            newf.write(line)
+                    else:
+                        newf.write(line)
+
     if not startfound:
         #input section header was not found in the file
         os.remove(outfilepath)

@@ -25,15 +25,19 @@ class Parcel(object):
 		self.is_delta = False
 		self.delta_type = 'flooding_unchanged' #whether this object's data represents a change between two parent models
 
-def compareParcels(model1, model2, parcel_features='PWD_PARCELS_SHEDS', bbox=None,
+def compareParcels(existing_elements, proposed_elements, parcel_features='PWD_PARCELS_SHEDS', bbox=None,
 					floodthreshold=0.08333, delta_threshold=0.25, anno_results={}):
 
 	#return a dict of node objects with the delta between models
 
-	existing_elements = parcel_flood_duration(model1, parcel_features=parcel_features,
-											bbox=bbox, anno_results=anno_results)['parcels']
-	proposed_elements = parcel_flood_duration(model2, parcel_features=parcel_features,
-											bbox=bbox, anno_results=anno_results)['parcels']
+	# existing_elements = parcel_flood_duration(model1, parcel_features=parcel_features,
+	# 										bbox=bbox, anno_results=anno_results)['parcels']
+	# proposed_elements = parcel_flood_duration(model2, parcel_features=parcel_features,
+	# 										bbox=bbox, anno_results=anno_results)['parcels']
+
+
+	#WARNING THIS CHANGES THE VALUES IN proposed_elements
+
 
 	newflood = moreflood = floodEliminated = floodlowered = 0 #for documenting how things changed
 	for id, proposed in proposed_elements.iteritems():
