@@ -9,6 +9,8 @@ from swmmio.utils import functions as funcs
 from swmmio.utils.dataframes import create_dataframeINP
 from swmmio.utils import swmm_utils as su
 from swmmio.version_control import utils as vc_utils
+from swmmio.version_control import inp
+
 #from .utils.text import * #functions for processing inp/rpt/txt files
 
 pd.options.display.max_colwidth = 200
@@ -85,10 +87,6 @@ def merge_models(basemodel, newdir, parent_models):
     """
     create new model based on a given basemodel and optionally a list of
     parent models (models to inherit changes from with resprect to the base model).
-
-    overwrite_sections is an option dictionary with keys matching seciton headers and
-    values being a dataframe with data to be substituted into the new model. If the
-    overwrite section is not found in the original model, it is inserted at the end.
     """
 
     newname = '_'.join([x.inp.name for x in parent_models])# + "_" + funcs.random_alphanumeric(3)
@@ -97,10 +95,10 @@ def merge_models(basemodel, newdir, parent_models):
     #new_branch = copy_model(basemodel, branch_name = newname, newdir=newdir)
     newinpfile = os.path.join(newdir, newname +'.inp')
 
-    #ignore certain problematic sections and simply copy it from the basemodel
-    blindcopies = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
+    #ignore certain sections in the INP files that are known
+    #to be difficlt to parse and simply copy it from the basemodel
+    problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
-    #with open (new_branch.inp.filePath, 'w') as f:
     with open (newinpfile, 'w') as f:
 
         #create the MS Excel writer object
@@ -112,9 +110,10 @@ def merge_models(basemodel, newdir, parent_models):
         allheaders = funcs.complete_inp_headers(basemodel.inp.filePath)
         for section in allheaders['order']:
 
-            if section not in blindcopies:
-                #if this section is not a known problematic section, process as normal
-                changes = [Change(basemodel, m, section) for m in parent_models]
+            if section not in problem_sections:
+                #check if a changes from baseline spreadheet exists, and use this
+                #information if available to create the changes array
+                changes = [inp.Change(basemodel, m, section) for m in parent_models]
                 new_section = apply_changes(basemodel, changes, section=section)
 
             else:
@@ -122,7 +121,8 @@ def merge_models(basemodel, newdir, parent_models):
                 new_section = create_dataframeINP(basemodel.inp, section=section)
 
             #write the section into the inp file and the excel file
-            vc_utils.write_section(f, excelwriter, allheaders, section, new_section)
+            vc_utils.write_inp_section(f, allheaders, section, new_section)
+            vc_utils.write_excel_inp_section(excelwriter, section, allheaders, new_section)
 
 
         excelwriter.save()
@@ -150,39 +150,3 @@ def apply_changes(model, changes, section='[JUNCTIONS]'):
     newdf = pd.concat([df2, tobecommented, adds])
 
     return newdf
-
-class Change(object):
-
-    def __init__(self, model1, model2, section='[JUNCTIONS]'):
-
-        df1 = create_dataframeINP(model1.inp, section)
-        df2 = create_dataframeINP(model2.inp, section)
-        added_ids = df2.index.difference(df1.index)
-        removed_ids = df1.index.difference(df2.index)
-
-        #find where elements were changed (but kept with same ID)
-        common_ids = df1.index.difference(removed_ids) #original - removed = in common
-        #both dfs concatenated, with matched indices for each element
-        full_set = pd.concat([df1.ix[common_ids], df2.ix[common_ids]])
-        #drop dupes on the set, all things that did not changed should have 1 row
-        changes_with_dupes = full_set.drop_duplicates()
-        #duplicate indicies are rows that have changes, isolate these
-        changed_ids = changes_with_dupes.index.get_duplicates()
-
-        added = df2.ix[added_ids]
-        added['Comment'] = '; Added from model {}'.format(model2.inp.filePath)
-
-        altered = df2.ix[changed_ids]
-        altered['Comment'] = '; Altered in model {}'.format(model2.inp.filePath)
-
-        removed = df1.ix[removed_ids]
-        #comment out the removed elements
-        #removed.index = ["; " + str(x) for x in removed.index]
-        removed['Comment'] = '; Removed in model {}'.format(model2.inp.filePath)
-
-        self.old = df1
-        self.new = df2
-        self.added = added
-        self.removed = removed
-        self.altered = altered
-        #self.altered['Comments'] == 'Items changed from model {}'.format(model2.inp.filePath)
