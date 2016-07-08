@@ -23,9 +23,9 @@ def modify_model(inp_path, modified_section_header, new_data, overwrite=True):
         with open(tmpfilepath, 'w') as new:
             #create the companion excel file
             #create the MS Excel writer object
-            xlpath = os.path.join(wd, basemodel.inp.name + '_modified.xlsx')
-            excelwriter = pd.ExcelWriter(xlpath)
-            vc_utils.create_info_sheet(excelwriter, basemodel)
+            # xlpath = os.path.join(wd, basemodel.inp.name + '_modified.xlsx')
+            # excelwriter = pd.ExcelWriter(xlpath)
+            # vc_utils.create_info_sheet(excelwriter, basemodel)
 
             #write each line as is from the original model until we find the
             #header of the section we wish to overwrite
@@ -34,8 +34,9 @@ def modify_model(inp_path, modified_section_header, new_data, overwrite=True):
             for line in oldf:
                 if modified_section_header in line:
                     #write the replacement data in the new file now
-                    vc_utils.write_section(new, excelwriter, allheaders,
-                                            modified_section_header, new_data, pad_top=False)
+                    vc_utils.write_inp_section(new, allheaders,
+                                                modified_section_header,
+                                                new_data, pad_top=False)
 
                     found_section = True
 
@@ -59,10 +60,11 @@ def modify_model(inp_path, modified_section_header, new_data, overwrite=True):
             if not found_section:
                 #the header doesn't exist in the old model
                 #so we should append it to the bottom of file
-                vc_utils.write_section(new, excelwriter, allheaders,
-                                        modified_section_header, new_data)
+                vc_utils.write_inp_section(new, allheaders,
+                                            modified_section_header,
+                                            new_data)
 
-    excelwriter.save()
+    # excelwriter.save()
     #rename files and remove old if we should overwrite
     if overwrite:
         os.remove(inp_path)

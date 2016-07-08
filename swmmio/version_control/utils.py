@@ -1,8 +1,9 @@
 from datetime import datetime
 import pandas as pd
+from swmmio.utils import functions
 
 
-def write_section(file_object, excelwriter, allheaders, sectionheader, section_data, pad_top=True):
+def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True):
 
     """
     given an open file object, excelwriter object, list of header sections, the curent
@@ -27,9 +28,9 @@ def write_section(file_object, excelwriter, allheaders, sectionheader, section_d
                                                     justify='left',
                                                     formatters={sectionheader:formatter}
                                                     )
-        #write section to excel sheet
-        sheetname = sectionheader.replace('[', "").replace(']', "")
-        section_data.to_excel(excelwriter, sheetname, index=False)
+        # #write section to excel sheet
+        # sheetname = sectionheader.replace('[', "").replace(']', "")
+        # section_data.to_excel(excelwriter, sheetname, index=False)
 
     elif not section_data.empty:
         #naming the columns to the index name so the it prints in-line with col headers
@@ -49,13 +50,45 @@ def write_section(file_object, excelwriter, allheaders, sectionheader, section_d
                                                     formatters=objectformatter#{'Comment':formatter}
                                                     )
 
-        #write section to excel sheet
-        sheetname = sectionheader.replace('[', "").replace(']', "")
-        section_data.to_excel(excelwriter, sheetname)
+        # #write section to excel sheet
+        # sheetname = sectionheader.replace('[', "").replace(']', "")
+        # section_data.to_excel(excelwriter, sheetname)
 
 
     #write the dataframe as a string
     f.write(add_str)
+
+def write_excel_inp_section(excelwriter, sectionheader, allheaders, section_data):
+
+    if not section_data.empty:
+        sheetname = sectionheader.replace('[', "").replace(']', "")
+
+        if allheaders['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
+            #write section to excel sheet
+            section_data.to_excel(excelwriter, sheetname, index=False)
+        else:
+            #clean up the format a bit
+            # workbook = excelwriter.book
+            # elem_fmt = workbook.add_format({'align': 'left'})
+            # worksheet = excelwriter.sheets[sheetname]
+            # worksheet.set_column('A:A', 20)
+
+            section_data.to_excel(excelwriter, sheetname)
+
+def create_change_info_sheet(excelwriter, model1, model2, name='', message=''):
+
+    ix =  ['Date', 'BaselineModel', 'TargetModel', 'Commit', 'Name', 'Comment']
+    vals =  [
+            datetime.now().strftime("%y-%m-%d %H:%M"),
+            model1.inp.filePath,
+            model2.inp.filePath,
+            functions.random_alphanumeric(12),
+            name,
+            message
+            ]
+    df = pd.DataFrame(data=vals, index=ix,columns=['FileInfo'])
+    df.to_excel(excelwriter, 'FileInfo')
+
 
 def create_info_sheet(excelwriter, basemodel, parent_models=[]):
 
