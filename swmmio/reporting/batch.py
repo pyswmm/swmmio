@@ -3,6 +3,7 @@ from swmmio.reporting import reporting
 from swmmio.utils import swmm_utils as su
 from datetime import datetime
 import os
+import shutil
 
 REPORT_DIR_NAME = 'Report'
 
@@ -46,3 +47,34 @@ def batch_post_process(options_dir, baseline_dir, log_dir, bbox=None, overwrite=
                                                     report.parcels_new_flooding
                                                     )
                                                 )
+
+def gather_files_in_dirs(rootdir, targetdir, searchfilename, newfilesuffix='_Impact.png'):
+
+    """
+    scan through a directory and copy files having a given file name into a
+    taget directory. This is useful when wanting to collect the same report image
+    within a SWMM model's Report directory (when there are many models).
+
+    This expects the Parent<Parent directory of a file to be called the unique
+    model ID. For example, the png in the following dir:
+
+        rootdir > ... > M01_R01_W02 > Report > '03 Impact of Option.png'
+
+    would be copied as follows:
+
+        targetdir > 'M01_R01_W02_Impact.png'
+
+    """
+
+
+    for root, dirs, files in os.walk(rootdir):
+
+        for f in files:
+            #if the file name = the searched file name, copy it to the target dirs
+            #for example searchfilename = '03 Impact of Option.png'
+            if os.path.basename(f) == searchfilename:
+                current_dir = os.path.dirname(os.path.join(root, f))
+                model_id = os.path.basename(os.path.dirname(current_dir))
+
+                newf = os.path.join(targetdir, model_id + newfilesuffix)
+                shutil.copyfile(os.path.join(root, f), newf)

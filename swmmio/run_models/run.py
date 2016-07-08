@@ -43,7 +43,7 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
         hot3_df = pd.DataFrame(s, columns=['[FILES]'])
 
         model = modify_model(model.inp.filePath, '[FILES]', hot3_df)
-        model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_nodes_links)
+        model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_none)# defs.REPORT_nodes_links)
         model = modify_model(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_normal)
 
         subprocess.call([swmm_eng, model.inp.filePath, rpt_path])
