@@ -25,15 +25,15 @@ class Change(object):
         changed_ids = changes_with_dupes.index.get_duplicates()
 
         added = df2.ix[added_ids]
-        added['Comment'] = '; Added from model {}'.format(model2.inp.filePath)
+        added['Comment'] = 'Added from model {}'.format(model2.inp.filePath)
 
         altered = df2.ix[changed_ids]
-        altered['Comment'] = '; Altered in model {}'.format(model2.inp.filePath)
+        altered['Comment'] = 'Altered in model {}'.format(model2.inp.filePath)
 
         removed = df1.ix[removed_ids]
         #comment out the removed elements
         #removed.index = ["; " + str(x) for x in removed.index]
-        removed['Comment'] = '; Removed in model {}'.format(model2.inp.filePath)
+        removed['Comment'] = 'Removed in model {}'.format(model2.inp.filePath)
 
         self.old = df1
         self.new = df2
@@ -42,13 +42,24 @@ class Change(object):
         self.altered = altered
 
 
+def generate_inp_from_diffs(basemodel, inpdiffs):
+    """
+    create a new inp with respect to a baseline inp and changes instructed
+    with a list of inp diff files (build instructions). This saves having to
+    recalculate the differences of each model from the baseline whenever we want
+    to combine versions.
+    """
+
+    #step 1 --> combine the diff/build instructions
+
 
 
 def inp_diff(inpA, inpB):
 
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
-    found in each of the INP sections
+    found in each of the INP sections. These differences should then be used
+    whenever we need to rebuild this model from the baseline reference model.
     """
 
     allsections_a = funcs.complete_inp_headers(inpA)
@@ -56,16 +67,19 @@ def inp_diff(inpA, inpB):
     modelb = swmmio.Model(inpB)
 
     #create the MS Excel writer object and start with an info sheet
-    xlpath = os.path.join(os.path.dirname(inpB), 'change' + '.xlsx')
+    xlpath = os.path.join(os.path.dirname(inpB), 'build_instructions' + '.xlsx')
+    filepath = os.path.join(os.path.dirname(inpB), 'build_instructions.txt')
     excelwriter = pd.ExcelWriter(xlpath)
     vc_utils.create_change_info_sheet(excelwriter, modela, modelb)
 
     problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
-    for section in allsections_a['order']:
-        if section not in problem_sections:
-            #calculate the changes in the current section
-            changes = Change(modela, modelb, section)
-            data = pd.concat([changes.removed, changes.added, changes.altered])
-            vc_utils.write_excel_inp_section(excelwriter, section, allsections_a, data)
+    with open (filepath, 'w') as newf:
+        for section in allsections_a['order']:
+            if section not in problem_sections:
+                #calculate the changes in the current section
+                changes = Change(modela, modelb, section)
+                data = pd.concat([changes.removed, changes.added, changes.altered])
+                vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
+                vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False)
 
     excelwriter.save()

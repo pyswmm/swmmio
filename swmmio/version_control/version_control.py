@@ -122,7 +122,7 @@ def merge_models(basemodel, newdir, parent_models):
 
             #write the section into the inp file and the excel file
             vc_utils.write_inp_section(f, allheaders, section, new_section)
-            vc_utils.write_excel_inp_section(excelwriter, section, allheaders, new_section)
+            vc_utils.write_excel_inp_section(excelwriter, allheaders, section, new_section)
 
 
         excelwriter.save()

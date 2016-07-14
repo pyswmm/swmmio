@@ -69,7 +69,9 @@ def extract_section_from_file(filepath, sectionheader, element_id=None, cleanhea
     if f_extension == '.rpt':
         return extract_section_from_rpt(filepath, sectionheader, element_id, cleanheaders, startfile, headerdefs)
 
-def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfile=False, headerdefs=None, ignore_comments=False):
+def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
+                            startfile=False, headerdefs=None, ignore_comments=False,
+                            return_string=False, skiprows=0):
     """
     INPUT path to text file (inp, rpt, etc) and a text string
     matchig the section header of the to be extracted
@@ -94,6 +96,8 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfi
         wd = os.path.dirname(filepath)
         newfname = sectionheader + '_' + random_alphanumeric(6)
         outfilepath = os.path.join(wd, newfname + txt)
+        out_string = '' #populate if we only want a string returned
+        line_count = 0
         with open(outfilepath, 'w') as newf:
 
             for line in f:
@@ -116,16 +120,27 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True, startfi
                         #ignore anything after a comment
                         #THIS IS HACK GARBAGE
                         if ';' in line:
-                            newf.write(line.split(';')[0] + '\n')
+                            s = line.split(';')[0] + '\n'
+                            out_string += s #build the overall out string (optional use)
+                            newf.write(s)
                         else:
                             newf.write(line)
-                    else:
+                            out_string += line
+                    elif line_count >= skiprows:
                         newf.write(line)
+                        out_string += line
+
+                    line_count += 1
 
     if not startfound:
         #input section header was not found in the file
         os.remove(outfilepath)
         return None
+    if return_string:
+        #return a string rep of the extracted section
+        os.remove(outfilepath) #not needed so delete (maybe wasteful to make in 1st place)
+        return out_string
+
     if startfile:
         os.startfile(outfilepath)
 

@@ -13,52 +13,52 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
 
     f = file_object
     add_str =  ''
+    if not section_data.empty:
+        if pad_top:
+            f.write('\n\n' + sectionheader + '\n') #add SWMM-friendly header e.g. [DWF]
+        else:
+            f.write(sectionheader + '\n')
+        if allheaders['headers'].get(sectionheader, 'blob') == 'blob':
+            #to left justify based on the longest string in the blob column
+            formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
+            add_str = section_data.fillna('').to_string(
+                                                        index_names=False,
+                                                        header=False,
+                                                        index=False,
+                                                        justify='left',
+                                                        formatters={sectionheader:formatter}
+                                                        )
+            # #write section to excel sheet
+            # sheetname = sectionheader.replace('[', "").replace(']', "")
+            # section_data.to_excel(excelwriter, sheetname, index=False)
 
-    if pad_top:
-        f.write('\n\n' + sectionheader + '\n') #add SWMM-friendly header e.g. [DWF]
-    else:
-        f.write(sectionheader + '\n')
-    if allheaders['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
-        #to left justify based on the longest string in the blob column
-        formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
-        add_str = section_data.fillna('').to_string(
-                                                    index_names=False,
-                                                    header=False,
-                                                    index=False,
-                                                    justify='left',
-                                                    formatters={sectionheader:formatter}
-                                                    )
-        # #write section to excel sheet
-        # sheetname = sectionheader.replace('[', "").replace(']', "")
-        # section_data.to_excel(excelwriter, sheetname, index=False)
+        else:
+            #naming the columns to the index name so the it prints in-line with col headers
+            f.write(';')
+            #to left justify on longest string in the Comment column
+            #this is overly annoying, to deal with 'Objects' vs numbers to removed
+            #one byte added from the semicolon (to keep things lined up)
+            objectformatter =   {hedr:'{{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+                                    for hedr in section_data.columns}
+            numformatter =      {hedr:' {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+                                    for hedr in section_data.columns if section_data[hedr].dtype!="O"}
+            objectformatter.update(numformatter)
+            add_str = section_data.fillna('').to_string(
+                                                        index_names=False,
+                                                        header=True,
+                                                        justify='left',
+                                                        formatters=objectformatter#{'Comment':formatter}
+                                                        )
 
-    elif not section_data.empty:
-        #naming the columns to the index name so the it prints in-line with col headers
-        f.write(';')
-        #to left justify on longest string in the Comment column
-        #this is overly annoying, to deal with 'Objects' vs numbers to removed
-        #one byte added from the semicolon (to keep things lined up)
-        objectformatter =   {hedr:'{{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
-                                for hedr in section_data.columns}
-        numformatter =      {hedr:' {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
-                                for hedr in section_data.columns if section_data[hedr].dtype!="O"}
-        objectformatter.update(numformatter)
-        add_str = section_data.fillna('').to_string(
-                                                    index_names=False,
-                                                    header=True,
-                                                    justify='left',
-                                                    formatters=objectformatter#{'Comment':formatter}
-                                                    )
-
-        # #write section to excel sheet
-        # sheetname = sectionheader.replace('[', "").replace(']', "")
-        # section_data.to_excel(excelwriter, sheetname)
+            # #write section to excel sheet
+            # sheetname = sectionheader.replace('[', "").replace(']', "")
+            # section_data.to_excel(excelwriter, sheetname)
 
 
-    #write the dataframe as a string
-    f.write(add_str)
+        #write the dataframe as a string
+        f.write(add_str + '\n\n')
 
-def write_excel_inp_section(excelwriter, sectionheader, allheaders, section_data):
+def write_excel_inp_section(excelwriter, allheaders, sectionheader, section_data):
 
     if not section_data.empty:
         sheetname = sectionheader.replace('[', "").replace(']', "")

@@ -31,7 +31,8 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 
-    #add new blank comment column
+    #add new blank comment column after a semicolon column
+    df[';'] = ';'
     df['Comment'] = ''
 
 
