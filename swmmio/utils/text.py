@@ -71,7 +71,7 @@ def extract_section_from_file(filepath, sectionheader, element_id=None, cleanhea
 
 def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                             startfile=False, headerdefs=None, ignore_comments=False,
-                            return_string=False, skiprows=0):
+                            return_string=False, skiprows=0, skipheaders=False):
     """
     INPUT path to text file (inp, rpt, etc) and a text string
     matchig the section header of the to be extracted
@@ -124,6 +124,12 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                             out_string += s #build the overall out string (optional use)
                             newf.write(s)
                         else:
+                            newf.write(line)
+                            out_string += line
+                    elif skipheaders:
+                        #check if we're at a inp header row with ';;' or the section
+                        #header e.g. [XSECTIONS]. If so, skip the row bc skipheader = True
+                        if line.strip()[:2] != ";;" and line.strip() != sectionheader:
                             newf.write(line)
                             out_string += line
                     elif line_count >= skiprows:
