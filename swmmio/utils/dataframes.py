@@ -9,31 +9,38 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
     given an inp object, create a dataframe of data in a given section
     """
 
+    #handle an inp object or a path to an INP file
+    if type(inp) is not str:
+        inp_path = inp.filePath
+    else:
+        inp_path = inp
+
     #find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_inp_headers(inp.filePath)
+    headerdefs = funcs.complete_inp_headers(inp_path)
     #create temp file with section isolated from inp file
-    tempfilepath = txt.extract_section_from_inp(inp.filePath, section, headerdefs=headerdefs, ignore_comments=ignore_comments)
+    tempfilepath = txt.extract_section_from_inp(inp_path, section, headerdefs=headerdefs, ignore_comments=ignore_comments)
     if not tempfilepath:
-        print 'header "{}" not found in "{}"'.format(section, inp.filePath)
+        print 'header "{}" not found in "{}"'.format(section, inp_path)
         return None
 
     if headerdefs['headers'][section] == 'blob':
         #return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
+        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=';')
     elif section == '[CURVES]' or section =='[TIMESERIES]':
         #return the whole row, without specifc col headers
         df = pd.read_table(tempfilepath, delim_whitespace=False)#, index_col=0)#, skiprows=[0])
     else:
         #this section header is recognized and will be organized into known columns
-        headerlist = headerdefs['headers'][section].split()
+        headerlist = headerdefs['headers'][section].split() + [';', 'Comment', 'Origin']
         df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                             index_col=0, names = headerlist, comment=";")
+                             index_col=0, names = headerlist, comment=';')
+        df[';'] = ';'
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 
     #add new blank comment column after a semicolon column
-    df[';'] = ';'
-    df['Comment'] = ''
+    # df[';'] = ';'
+    # df['Comment'] = ''
 
 
     return df

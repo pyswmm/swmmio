@@ -38,6 +38,20 @@ def copy_model(basemodel, branch_name, newdir=None):
 
     return new_branch
 
+def create_parent_build_instructions(baseline_dir, genres_dir):
+    """
+    create the build instructions files for each parent (genre) model such that
+    they can be used quickly to create new models and model combinatins
+    """
+    base_inp = Model(baseline_dir).inp
+    for root, dirs, files in os.walk(genres_dir):
+        for file in files:
+            if file.endswith('.inp') and 'bk' not in root:
+                genre_inp = os.path.join(root, file)
+                #create the build instructions file (and excel companion)
+                inp.create_inp_build_instructions(base_inp.filePath, genre_inp)
+
+
 def create_combinations(baseline_dir, genres_dir, combi_dir):
 
     """
@@ -81,12 +95,13 @@ def create_combinations(baseline_dir, genres_dir, combi_dir):
                 #create the new model
                 model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
                 merge_models(basemodel, newdir=new_combi_dir, parent_models=model_objects)
+                inp.create_inp_build_instructions()
 
 def merge_models(basemodel, newdir, parent_models):
 
     """
-    create new model based on a given basemodel and optionally a list of
-    parent models (models to inherit changes from with resprect to the base model).
+    create new model based on a given basemodel and a list of parent models
+    (models to inherit changes from with resprect to the base model).
     """
 
     newname = '_'.join([x.inp.name for x in parent_models])# + "_" + funcs.random_alphanumeric(3)
@@ -111,7 +126,7 @@ def merge_models(basemodel, newdir, parent_models):
         for section in allheaders['order']:
 
             if section not in problem_sections:
-                #check if a changes from baseline spreadheet exists, and use this
+                #check if a build instructions file exists, and use this
                 #information if available to create the changes array
                 changes = [inp.Change(basemodel, m, section) for m in parent_models]
                 new_section = apply_changes(basemodel, changes, section=section)
