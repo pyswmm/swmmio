@@ -59,43 +59,58 @@ def create_combinations(baseline_dir, genres_dir, combi_dir):
     models in all logical combinations.
     """
 
-
+    basemodel = Model(baseline_dir)
     genres = os.listdir(genres_dir)
     flavors = []
+    newmodels = []
+
     for gen in genres:
         for flav in os.listdir(os.path.join(genres_dir, gen)):
             #print os.path.join(gen, flav)
             flavors.append(os.path.join(gen, flav))
 
-    newmodels = []
-    basemodel = Model(baseline_dir)
+            #create the build instructions file
+            #this + '.inp' HACK prevents the os.path.dirname(inpB) from saving this in the parent dir
+            flavor_path = os.path.join(genres_dir, gen, flav, flav) + '.inp'
+            print flavor_path
+            #inp.create_inp_build_instructions(basemodel.inp.filePath, flavor_path, id='990904540')
+
+
     #creat directories for new model combinations
     for L in range(1, len(flavors)+1):
-      for subset in itertools.combinations(flavors, L):
+        #break
+        for subset in itertools.combinations(flavors, L):
 
+            #newcombi = '_'.join(subset)
+            newcombi = '_'.join([os.path.split(s)[1] for s in subset])
+            new_combi_dir = os.path.join(combi_dir, newcombi)
 
-        #newcombi = '_'.join(subset)
-        newcombi = '_'.join([os.path.split(s)[1] for s in subset])
-        new_combi_dir = os.path.join(combi_dir, newcombi)
+            #create a list of the parent directories, use that to prevent
+            #two or more from same genre
+            genredirs = [os.path.split(s)[0] for s in subset]
+            if len(genredirs) == len(set(genredirs)) and len(subset) > 1:
+                    #confirming the list length is equal to the set length (hashable)
+                    #confirms that there are not duplicates in the items list
 
-        #create a list of the parent directories, use that to prevent
-        #two or more from same genre
-        genredirs = [os.path.split(s)[0] for s in subset]
-        if len(genredirs) == len(set(genredirs)) and len(subset) > 1:
-                #confirming the list length is equal to the set length (hashable)
-                #confirms that there are not duplicates in the items list
+                if not os.path.exists(new_combi_dir):#and newcombi not in flavors:
+                    #check to make sure new model doesn't repeat two or more from
+                    #a particular genre.
+                    #print new_combi_dir
+                    os.mkdir(new_combi_dir)
+                    newmodels.append(new_combi_dir)
 
-            if not os.path.exists(new_combi_dir):#and newcombi not in flavors:
-                #check to make sure new model doesn't repeat two or more from
-                #a particular genre.
-                print new_combi_dir
-                os.mkdir(new_combi_dir)
-                newmodels.append(new_combi_dir)
+                    #create the new model
+                    #model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
+                    build_instrcts = [inp.BuildInstructions(os.path.join(genres_dir,
+                                                                         f,
+                                                                         'build_instructions.txt')
+                                                            ) for f in subset]
 
-                #create the new model
-                model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
-                merge_models(basemodel, newdir=new_combi_dir, parent_models=model_objects)
-                inp.create_inp_build_instructions()
+                    new_build_instructions = sum(build_instrcts)
+                    new_build_instructions.save(new_combi_dir)
+                    new_build_instructions.build(baseline_dir, new_combi_dir)
+                    # merge_models(basemodel, newdir=new_combi_dir, parent_models=model_objects)
+                    # inp.create_inp_build_instructions()
 
 def merge_models(basemodel, newdir, parent_models):
 

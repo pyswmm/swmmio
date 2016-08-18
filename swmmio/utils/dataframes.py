@@ -4,7 +4,24 @@ from swmmio.swmmio import rpt, inp
 import pandas as pd
 import os
 
-def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
+def create_dataframeBI(bi_path, section='[CONDUITS]'):
+    """
+    given a path to a biuld instructions file, create a dataframe of data in a
+    given section
+    """
+    headerdefs = funcs.complete_inp_headers(bi_path)
+    headerlist = headerdefs['headers'][section].split() + [';', 'Comment', 'Origin']
+    tempfilepath = txt.extract_section_from_inp(bi_path, section,
+                                                headerdefs=headerdefs,
+                                                skipheaders=True)
+    df = pd.read_table(tempfilepath, header=None, delim_whitespace=True,
+                       skiprows=[0], index_col=0, names = headerlist, comment=None)
+
+    os.remove(tempfilepath) #clean up
+
+    return df
+
+def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True, comment_str=';'):
     """
     given an inp object, create a dataframe of data in a given section
     """
@@ -18,14 +35,18 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
     #find all the headers and their defs (section title with cleaned one-liner column headers)
     headerdefs = funcs.complete_inp_headers(inp_path)
     #create temp file with section isolated from inp file
-    tempfilepath = txt.extract_section_from_inp(inp_path, section, headerdefs=headerdefs, ignore_comments=ignore_comments)
+    tempfilepath = txt.extract_section_from_inp(inp_path, section,
+                                                headerdefs=headerdefs,
+                                                ignore_comments=ignore_comments)
+    if ignore_comments:
+        comment_str = None
     if not tempfilepath:
         print 'header "{}" not found in "{}"'.format(section, inp_path)
         return None
 
     if headerdefs['headers'][section] == 'blob':
         #return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=';')
+        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=comment_str)
     elif section == '[CURVES]' or section =='[TIMESERIES]':
         #return the whole row, without specifc col headers
         df = pd.read_table(tempfilepath, delim_whitespace=False)#, index_col=0)#, skiprows=[0])
@@ -33,7 +54,7 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True):
         #this section header is recognized and will be organized into known columns
         headerlist = headerdefs['headers'][section].split() + [';', 'Comment', 'Origin']
         df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                             index_col=0, names = headerlist, comment=';')
+                             index_col=0, names = headerlist, comment=comment_str)
         df[';'] = ';'
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
