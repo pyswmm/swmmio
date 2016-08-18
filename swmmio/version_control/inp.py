@@ -1,7 +1,7 @@
 from swmmio.utils import functions as funcs
 from swmmio import swmmio
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.dataframes import create_dataframeINP
+from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
 from swmmio.utils import text
 import pandas as pd
 from datetime import datetime
@@ -21,14 +21,16 @@ class BuildInstructions(object):
     build instructions files. This object is meant to neatly encapsulate things.
 
     self.instructions attribute contains a dictionary with keys of the headers
-    that have change i.e. build instructions w.r.t baseline model
+    that have changes i.e. build instructions w.r.t baseline model
     """
 
     def __init__(self, build_instr_file=None):
 
         #create a change object for each section that is different from baseline
         self.instructions = {}
+        self.metadata = []
         if build_instr_file:
+            #read the instructions and create a dictionary of Change objects
             allheaders = funcs.complete_inp_headers(build_instr_file)
             instructions = {}
             for section in allheaders['order']:
@@ -36,6 +38,10 @@ class BuildInstructions(object):
                 instructions.update({section:change})
 
             self.instructions = instructions
+
+            #read the meta data
+            with open(build_instr_file) as f:
+                self.metadata = vc_utils.read_meta_data(f)
 
     def __add__(self, other):
         bi = BuildInstructions()
@@ -53,15 +59,24 @@ class BuildInstructions(object):
 
         return bi
 
+    def __radd__(self, other):
+        #this is so we can call sum() on a list of build_instructions
+        if other == 0:
+            return self
+        else:
+            return self.__add__(other)
+
     def save(self, dir):
         """
         save the current BuildInstructions instance to file (human readable)
         """
         filename = os.path.join(dir, 'build_instructions.txt')
         with open (filename, 'w') as f:
+            vc_utils.write_meta_data(f, self.metadata)
             for section, change_obj in self.instructions.iteritems():
                 section_df = pd.concat([change_obj.removed, change_obj.altered, change_obj.added])
-                vc_utils.write_inp_section(f, allheaders=None, sectionheader=section, section_data=section_df)
+                vc_utils.write_inp_section(f, allheaders=None, sectionheader=section,
+                                           section_data=section_df, pad_top=False, na_fill='NaN')
 
     def build(self, baseline_dir, target_dir):
         """
@@ -151,17 +166,21 @@ class Change(object):
 
             #extract the section from file as a string
 
-            s = text.extract_section_from_inp(build_instr_file, sectionheader=section,
-                                                return_string=True, skipheaders=True,
-                                                cleanheaders=False)
-
-            #stringIO thing so pandas can deal
-            stringIO = StringIO(s)
+            # s = text.extract_section_from_inp(build_instr_file, sectionheader=section,
+            #                                     return_string=True, skipheaders=True,
+            #                                     cleanheaders=False)
+            #
+            # #stringIO thing so pandas can deal
+            # stringIO = StringIO(s)
 
             #populate the column names
-            allheaders = funcs.complete_inp_headers(build_instr_file)
-            names = allheaders['headers'][section].split() + [";", 'Comment', 'Origin']
-            df = pd.read_table(stringIO, names=names, delim_whitespace=True, index_col=0)
+            # allheaders = funcs.complete_inp_headers(build_instr_file)
+            # names = allheaders['headers'][section].split() + [";", 'Comment', 'Origin']
+            # if allheaders['headers'][section] == 'blob':
+            #     df = pd.read_table(stringIO, delim_whitespace=False, comment=';')
+            # else:
+            #     df = pd.read_table(stringIO, names=names, delim_whitespace=True, index_col=0)
+            df = create_dataframeBI(build_instr_file, section = section)
 
             self.added = df.loc[df['Comment'] == 'Added']
             self.removed = df.loc[df['Comment'] == 'Removed']
@@ -196,13 +215,17 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
             for inp in inpdiffs:
                 sect_s = None
                 if not section_header_written:
-                    sect_s = text.extract_section_from_inp(inp, header, cleanheaders=False,
-                                                            return_string=True, skipheaders=False)
+                    sect_s = text.extract_section_from_inp(inp, header,
+                                                           cleanheaders=False,
+                                                           return_string=True,
+                                                           skipheaders=False)
                     section_header_written = True
 
                 else:
-                    sect_s = text.extract_section_from_inp(inp, header, cleanheaders=False,
-                                                            return_string=True, skipheaders=True)
+                    sect_s = text.extract_section_from_inp(inp, header,
+                                                           cleanheaders=False,
+                                                           return_string=True,
+                                                           skipheaders=True)
 
                 if sect_s:
                     #remove the extra space between data in the same table
@@ -274,7 +297,7 @@ def clean_inp_diff_formatting(inpdiff, overwrite=True):
         os.rename(cleanedf, inpdiff)
     return df_dict
 
-def create_inp_build_instructions(inpA, inpB):
+def create_inp_build_instructions(inpA, inpB, id=None):
 
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
@@ -292,14 +315,22 @@ def create_inp_build_instructions(inpA, inpB):
     excelwriter = pd.ExcelWriter(xlpath)
     vc_utils.create_change_info_sheet(excelwriter, modela, modelb)
 
-    problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
+    problem_sections = ['[TITLE]', '[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
     with open (filepath, 'w') as newf:
+
+        #write meta data
+        metadata = [{'Baseline Model':modela.inp.filePath}, {'ID':id}, {'Comments':'cool comments in here'}]
+        #print metadata
+        vc_utils.write_meta_data(newf, metadata)
         for section in allsections_a['order']:
             if section not in problem_sections:
                 #calculate the changes in the current section
                 changes = Change(modela, modelb, section)
                 data = pd.concat([changes.removed, changes.added, changes.altered])
                 vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
-                vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False)
+                vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False, na_fill='NaN') #na fill fixes SNOWPACK blanks spaces issue
+                # if section == '[SUBCATCHMENTS]':
+                #     data.to_csv(os.path.join(os.path.dirname(inpB), 'subcats.csv'))
+                #     data.to_json(os.path.join(os.path.dirname(inpB), 'subcats.json'))
 
     excelwriter.save()

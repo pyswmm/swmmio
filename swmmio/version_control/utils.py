@@ -3,7 +3,7 @@ import pandas as pd
 from swmmio.utils import functions
 
 
-def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True):
+def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True, na_fill = ''):
 
     """
     given an open file object, excelwriter object, list of header sections, the curent
@@ -43,7 +43,7 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
             numformatter =      {hedr:'  {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
                                     for hedr in section_data.columns if section_data[hedr].dtype!="O"}
             objectformatter.update(numformatter)
-            add_str = section_data.fillna('').to_string(
+            add_str = section_data.fillna(na_fill).to_string(
                                                         index_names=False,
                                                         header=True,
                                                         justify='left',
@@ -57,6 +57,23 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
 
         #write the dataframe as a string
         f.write(add_str + '\n\n')
+def write_meta_data(file_object, metadicts): #basemodel, id=None, branch=None, m=None):
+
+    s = 'Date of Build: {}\n'.format(datetime.now().strftime("%y-%m-%d %H:%M"))
+    s += '\n'.join(['{}: {}'.format(k, v) for d in metadicts for k,v in d.iteritems()])
+    s += '\n' + '='*100 + '\n\n' #put a neat bar under the meta data
+    file_object.write(s)
+
+def read_meta_data(file_object):
+    metadicts = []
+    for line in file_object:
+        if '================' in line:
+            break
+        k = line.split(':')[0].strip()
+        v = line.split(':')[1].strip()
+        metadicts.append({k:v})
+        
+    return metadicts
 
 def write_excel_inp_section(excelwriter, allheaders, sectionheader, section_data):
 
