@@ -17,7 +17,7 @@ import sys
 
 #CREATE LOG FILE
 now = datetime.now().strftime("%y%m%d_%H%M")
-logfile = os.path.join(r'P:\06_Tools\v_control\vctest', 'log_'+now+'.txt')
+logfile = os.path.join(r'P:\06_Tools\v_control\Build_Instructs', 'log_'+now+'.txt')
 #logfile = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\log.txt'
 #folders = os.listdir(combi_folder)
 
@@ -70,6 +70,6 @@ if __name__ == '__main__':
         res = pool.map(run_swmm_engine, dirs_containing_inps)
 
         print "hi im done running"
-        baseline_dir = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\BaselineModel'
-        log_dir = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations'
+        baseline_dir = r'P:\06_Tools\v_control'
+        log_dir = r'P:\06_Tools\v_control\Build_Instructs'
         batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
