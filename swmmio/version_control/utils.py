@@ -1,4 +1,6 @@
 from datetime import datetime
+import os
+import json
 import pandas as pd
 from swmmio.utils import functions
 
@@ -57,23 +59,71 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
 
         #write the dataframe as a string
         f.write(add_str + '\n\n')
-def write_meta_data(file_object, metadicts): #basemodel, id=None, branch=None, m=None):
+def write_meta_data(file_object, metadicts):
 
-    s = 'Date of Build: {}\n'.format(datetime.now().strftime("%y-%m-%d %H:%M"))
-    s += '\n'.join(['{}: {}'.format(k, v) for d in metadicts for k,v in d.iteritems()])
-    s += '\n' + '='*100 + '\n\n' #put a neat bar under the meta data
-    file_object.write(s)
+    file_object.write(json.dumps(metadicts, indent=4))
+    file_object.write('\n' + '='*100 + '\n\n')
 
-def read_meta_data(file_object):
-    metadicts = []
-    for line in file_object:
-        if '================' in line:
-            break
-        k = line.split(':')[0].strip()
-        v = line.split(':')[1].strip()
-        metadicts.append({k:v})
-        
-    return metadicts
+def read_meta_data(filepath):
+
+    s = ''
+    with open(filepath) as file_object:
+        for line in file_object:
+            if '================' in line:
+                break
+            s += line.strip()
+
+    return json.loads(s)
+
+def bi_is_current(build_instr_file):
+    """
+    check if a given build instruction file has any parent models whose
+    date modified does not match the date modified of the parent INP file
+    """
+
+    meta = read_meta_data(build_instr_file)
+    parents = meta['Parent Models']
+    for inp, revisiondate in parents.iteritems():
+
+        if modification_date(inp) != revisiondate:
+            return False
+
+    return True
+
+def bi_latest_parent_date_modified(vc_dir, parentname):
+    """
+    given a path to a version control directory of build instructions and the
+    name of the parent model, return the parent model's revision date
+    """
+    newest_bi = newest_file(vc_dir)
+    meta = read_meta_data(newest_bi)
+    # with open (newest_bi) as f:
+
+
+    return meta['Parent Models'][parentname]
+
+
+def newest_file(directory):
+    """
+    return the newest file (most recent) in a given directory. Beware that
+    people report the min / max to do different things per OS...
+    """
+    files = os.listdir(directory)
+    return max([os.path.join(directory, f) for f in files], key=os.path.getctime)
+
+def modification_date(filename, string=True):
+    """
+    get modification datetime of a file
+    credit: Christian Oudard
+    'stackoverflow.com/questions/237079/how-to-get-file-creation-modification-
+    date-times-in-python'
+    """
+    t = os.path.getmtime(filename)
+    dt = datetime.fromtimestamp(t)
+    if string:
+        return dt.strftime("%y-%m-%d %H:%M")
+    else:
+        return dt#datetime.fromtimestamp(t)
 
 def write_excel_inp_section(excelwriter, allheaders, sectionheader, section_data):
 
