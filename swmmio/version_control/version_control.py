@@ -52,65 +52,134 @@ def create_parent_build_instructions(baseline_dir, genres_dir):
                 inp.create_inp_build_instructions(base_inp.filePath, genre_inp)
 
 
-def create_combinations(baseline_dir, genres_dir, combi_dir):
+def create_combinations(baseline_dir, alternatives_dir, combi_dir):
 
     """
-    given a set of segmented models (model genres), this function combines
-    models in all logical combinations.
+    given a set of main alternatives split into models varying levels of
+    implementation, this function combines all implementation levels of all
+    alternatives into all logical combinations.
     """
 
     basemodel = Model(baseline_dir)
-    genres = os.listdir(genres_dir)
-    flavors = []
+    baseinp = basemodel.inp.filePath
+    alt_directories = os.listdir(alternatives_dir) #list of dirs holding alt models
+    implementation_levels = []
     newmodels = []
+    version_id = datetime.now().strftime("%y%m%d%H%M%S")
 
-    for gen in genres:
-        for flav in os.listdir(os.path.join(genres_dir, gen)):
-            #print os.path.join(gen, flav)
-            flavors.append(os.path.join(gen, flav))
+    for alt in alt_directories:
 
-            #create the build instructions file
-            #this + '.inp' HACK prevents the os.path.dirname(inpB) from saving this in the parent dir
-            flavor_path = os.path.join(genres_dir, gen, flav, flav) + '.inp'
-            print flavor_path
-            #inp.create_inp_build_instructions(basemodel.inp.filePath, flavor_path, id='990904540')
+        #iterate through each implementation level of each alternative
+        for imp_level in os.listdir(os.path.join(alternatives_dir, alt)):
+
+            implementation_levels.append(os.path.join(alt, imp_level))
+
+            #create or refresh the build instructions file for the alternatives
+            alt_imp_level_dir = os.path.join(alternatives_dir, alt, imp_level)
+            alt_imp_inp = Model(alt_imp_level_dir).inp.filePath
+            vc_directory = os.path.join(alt_imp_level_dir, 'vc')
+
+            if not os.path.exists(vc_directory):
+                print 'creating new build instructions for {}'.format(imp_level)
+                inp.create_inp_build_instructions(baseinp, alt_imp_inp, vc_directory, version_id)
+
+            else:
+                #check if the alternative model was changed since last run of this tool
+                #--> compare the modification date to the BI's modification date meta data
+                # alt_date_modified = vc_utils.modification_date(alt_imp_inp)
+                # bi_date_modified = vc_utils.bi_latest_parent_date_modified(vc_directory, alt_imp_inp)
+                # #print '{} -> {} || {}'.format(imp_level, alt_date_modified, bi_date_modified)
+                # if alt_date_modified != bi_date_modified:
+                latest_bi = vc_utils.newest_file(vc_directory)
+                if not vc_utils.bi_is_current(latest_bi):
+                    #revision date of the alt doesn't match the newest build
+                    #instructions for this 'imp_level', so we should refresh it
+                    print 'updating build instructions for {}'.format(imp_level)
+                    inp.create_inp_build_instructions(baseinp, alt_imp_inp, vc_directory, version_id)
 
 
-    #creat directories for new model combinations
-    for L in range(1, len(flavors)+1):
+
+
+
+    #creat directories for new model combination
+    for L in range(1, len(implementation_levels)+1):
+
         #break
-        for subset in itertools.combinations(flavors, L):
+        for subset in itertools.combinations(implementation_levels, L):
+            #subset e.g. = 'A\A01'
 
             #newcombi = '_'.join(subset)
             newcombi = '_'.join([os.path.split(s)[1] for s in subset])
             new_combi_dir = os.path.join(combi_dir, newcombi)
+            vc_directory = os.path.join(new_combi_dir, 'vc')
 
             #create a list of the parent directories, use that to prevent
-            #two or more from same genre
-            genredirs = [os.path.split(s)[0] for s in subset]
-            if len(genredirs) == len(set(genredirs)) and len(subset) > 1:
-                    #confirming the list length is equal to the set length (hashable)
-                    #confirms that there are not duplicates in the items list
+            #two or more from same alternative
+            alternative_dirs = [os.path.split(s)[0] for s in subset]
+
+            if len(alternative_dirs) == len(set(alternative_dirs)) and len(subset) > 1:
+                #confirming the list length is equal to the set length (hashable)
+                #confirms that there are not duplicates in the items list
+                #print new_combi_dir
+                parent_vc_dirs = [os.path.join(alternatives_dir, f, 'vc') for f in subset]
+                latest_parent_bis = [vc_utils.newest_file(d) for d in parent_vc_dirs]
+                build_instrcts = [inp.BuildInstructions(bi) for bi in latest_parent_bis]
 
                 if not os.path.exists(new_combi_dir):#and newcombi not in flavors:
                     #check to make sure new model doesn't repeat two or more from
                     #a particular genre.
                     #print new_combi_dir
-                    os.mkdir(new_combi_dir)
-                    newmodels.append(new_combi_dir)
 
-                    #create the new model
+                    os.mkdir(new_combi_dir)
+                    newinppath = os.path.join(new_combi_dir, newcombi + '.inp')
+
+
                     #model_objects = [Model(os.path.join(genres_dir, f)) for f in subset]
-                    build_instrcts = [inp.BuildInstructions(os.path.join(genres_dir,
-                                                                         f,
-                                                                         'build_instructions.txt')
-                                                            ) for f in subset]
+
+                    #collect build instructions from each alt's implementation
+                    #level for this combination. Select those with the current
+                    #version id, or the latest version.
+                    # vc_dirs = [os.path.join(alternatives_dir, f, 'vc') for f in subset]
+                    # latest_bis = [vc_utils.newest_file(d) for d in vc_dirs]
+                    # build_instrcts = [inp.BuildInstructions(bi) for bi in latest_bis]
+                    # build_instrcts = [inp.BuildInstructions(os.path.join(alternatives_dir,
+                    #                                                      f, 'vc',
+                    #                                                      version_id + '.txt')
+                    #                                         ) for f in subset]
+
 
                     new_build_instructions = sum(build_instrcts)
-                    new_build_instructions.save(new_combi_dir)
-                    new_build_instructions.build(baseline_dir, new_combi_dir)
+                    new_build_instructions.save(vc_directory, version_id+'.txt')
+                    new_build_instructions.build(baseline_dir, newinppath)
                     # merge_models(basemodel, newdir=new_combi_dir, parent_models=model_objects)
-                    # inp.create_inp_build_instructions()
+                else:
+                    #check if the alternative model was changed since last run of this tool
+                    #--> compare the modification date to the BI's modification date meta data
+                    latest_bi = vc_utils.newest_file(os.path.join(new_combi_dir,'vc'))
+                    if not vc_utils.bi_is_current(latest_bi):
+                        #revision date of the alt doesn't match the newest build
+                        #instructions for this 'imp_level', so we should refresh it
+                        print 'updating child build instructions for {}'.format(newcombi)
+                        newinppath = os.path.join(new_combi_dir, newcombi + '.inp')
+                        new_build_instructions = sum(build_instrcts)
+                        new_build_instructions.save(vc_directory, version_id+'.txt')
+                        new_build_instructions.build(baseline_dir, newinppath)
+                    # for parent in latest_parent_bis:
+                    #     #if any parent model revsion date does not match the revision
+                    #     #date in the build instructions, it needs to be replaced
+                    #
+                    #     print '{} checking -> {}'.format(newcombi, parent[40:])
+                    #     if not vc_utils.bi_is_current(parent):
+                    #         print '{} not current'.format(parent)
+                        # for k,revdate in vc_utils.read_meta_data(parent)['Parent Models'].iteritems():
+                        #     print k, revdate
+                        #parent_imp_level = os.path.split(subset)[1]
+                        #parent_inp_date_modified =
+                        #bi_date_modified = vc_utils.bi_latest_parent_date_modified(vc_directory,
+                        #                                                           parent_imp_level)
+
+
+
 
 def merge_models(basemodel, newdir, parent_models):
 

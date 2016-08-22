@@ -28,7 +28,7 @@ class BuildInstructions(object):
 
         #create a change object for each section that is different from baseline
         self.instructions = {}
-        self.metadata = []
+        self.metadata = {}
         if build_instr_file:
             #read the instructions and create a dictionary of Change objects
             allheaders = funcs.complete_inp_headers(build_instr_file)
@@ -40,8 +40,7 @@ class BuildInstructions(object):
             self.instructions = instructions
 
             #read the meta data
-            with open(build_instr_file) as f:
-                self.metadata = vc_utils.read_meta_data(f)
+            self.metadata = vc_utils.read_meta_data(build_instr_file)
 
     def __add__(self, other):
         bi = BuildInstructions()
@@ -57,6 +56,12 @@ class BuildInstructions(object):
             if section not in self.instructions:
                 bi.instructions[section] = change_obj
 
+
+        #combine the metadata
+        bi.metadata = self.metadata
+        bi.metadata['Parent Models'].update(other.metadata['Parent Models'])
+        bi.metadata['Comments'] += ' | {}'.format(other.metadata['Comments'])
+
         return bi
 
     def __radd__(self, other):
@@ -66,27 +71,29 @@ class BuildInstructions(object):
         else:
             return self.__add__(other)
 
-    def save(self, dir):
+    def save(self, dir, filename):
         """
         save the current BuildInstructions instance to file (human readable)
         """
-        filename = os.path.join(dir, 'build_instructions.txt')
-        with open (filename, 'w') as f:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        filepath = os.path.join(dir, filename)
+        with open (filepath, 'w') as f:
             vc_utils.write_meta_data(f, self.metadata)
             for section, change_obj in self.instructions.iteritems():
                 section_df = pd.concat([change_obj.removed, change_obj.altered, change_obj.added])
                 vc_utils.write_inp_section(f, allheaders=None, sectionheader=section,
                                            section_data=section_df, pad_top=False, na_fill='NaN')
 
-    def build(self, baseline_dir, target_dir):
+    def build(self, baseline_dir, target_path):
         """
         build a complete INP file with the build instructions committed to a
         baseline model.
         """
         basemodel = swmmio.Model(baseline_dir)
         allheaders = funcs.complete_inp_headers(basemodel.inp.filePath)
-        new_inp = os.path.join(target_dir, 'model.inp')
-        with open (new_inp, 'w') as f:
+        #new_inp = os.path.join(target_dir, 'model.inp')
+        with open (target_path, 'w') as f:
             for section in allheaders['order']:
 
                 #check if the section is not in problem_sections and there are changes
@@ -297,7 +304,7 @@ def clean_inp_diff_formatting(inpdiff, overwrite=True):
         os.rename(cleanedf, inpdiff)
     return df_dict
 
-def create_inp_build_instructions(inpA, inpB, id=None):
+def create_inp_build_instructions(inpA, inpB, path, filename):
 
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
@@ -309,17 +316,24 @@ def create_inp_build_instructions(inpA, inpB, id=None):
     modela = swmmio.Model(inpA)
     modelb = swmmio.Model(inpB)
 
-    #create the MS Excel writer object and start with an info sheet
-    xlpath = os.path.join(os.path.dirname(inpB), 'build_instructions' + '.xlsx')
-    filepath = os.path.join(os.path.dirname(inpB), 'build_instructions.txt')
-    excelwriter = pd.ExcelWriter(xlpath)
-    vc_utils.create_change_info_sheet(excelwriter, modela, modelb)
+    #create build insructions folder
+    if not os.path.exists(path):
+        os.makedirs(path)
+    filepath = os.path.join(path, filename) + '.txt'
+    # xlpath = os.path.join(path, filename) + '.xlsx'
+    # excelwriter = pd.ExcelWriter(xlpath)
+    # vc_utils.create_change_info_sheet(excelwriter, modela, modelb)
 
     problem_sections = ['[TITLE]', '[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
     with open (filepath, 'w') as newf:
 
         #write meta data
-        metadata = [{'Baseline Model':modela.inp.filePath}, {'ID':id}, {'Comments':'cool comments in here'}]
+        metadata = {
+            'Baseline Model':modela.inp.filePath,
+            'ID':filename,
+            'Parent Models':{inpB:vc_utils.modification_date(inpB)},
+            'Comments':'cool comments in here'
+            }
         #print metadata
         vc_utils.write_meta_data(newf, metadata)
         for section in allsections_a['order']:
@@ -327,10 +341,8 @@ def create_inp_build_instructions(inpA, inpB, id=None):
                 #calculate the changes in the current section
                 changes = Change(modela, modelb, section)
                 data = pd.concat([changes.removed, changes.added, changes.altered])
-                vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
+                #vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False, na_fill='NaN') #na fill fixes SNOWPACK blanks spaces issue
-                # if section == '[SUBCATCHMENTS]':
-                #     data.to_csv(os.path.join(os.path.dirname(inpB), 'subcats.csv'))
-                #     data.to_json(os.path.join(os.path.dirname(inpB), 'subcats.json'))
 
-    excelwriter.save()
+
+    # excelwriter.save()
