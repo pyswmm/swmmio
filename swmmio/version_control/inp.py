@@ -170,23 +170,6 @@ class Change(object):
 
         if build_instr_file:
             #if generating from a build instructions file, do this (more efficient)
-
-            #extract the section from file as a string
-
-            # s = text.extract_section_from_inp(build_instr_file, sectionheader=section,
-            #                                     return_string=True, skipheaders=True,
-            #                                     cleanheaders=False)
-            #
-            # #stringIO thing so pandas can deal
-            # stringIO = StringIO(s)
-
-            #populate the column names
-            # allheaders = funcs.complete_inp_headers(build_instr_file)
-            # names = allheaders['headers'][section].split() + [";", 'Comment', 'Origin']
-            # if allheaders['headers'][section] == 'blob':
-            #     df = pd.read_table(stringIO, delim_whitespace=False, comment=';')
-            # else:
-            #     df = pd.read_table(stringIO, names=names, delim_whitespace=True, index_col=0)
             df = create_dataframeBI(build_instr_file, section = section)
 
             self.added = df.loc[df['Comment'] == 'Added']
