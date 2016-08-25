@@ -10,6 +10,14 @@ from swmmio.run_models import defs
 #path to the SWMM5 Engine
 SWMM_ENGINE_PATH = r'\\PWDHQR\Data\Planning & Research\Flood Risk Management\07_Software\swmm5_22.exe'
 
+def run_simple(inp_path, swmm_eng=SWMM_ENGINE_PATH):
+    """
+    run a model once as is.
+    """
+    #inp_path = model.inp.filePath
+    rpt_path = os.path.splitext(inp_path)[0] + '.rpt'
+
+    subprocess.call([swmm_eng, inp_path, rpt_path])
 
 def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
 

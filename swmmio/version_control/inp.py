@@ -60,7 +60,7 @@ class BuildInstructions(object):
         #combine the metadata
         bi.metadata = self.metadata
         bi.metadata['Parent Models'].update(other.metadata['Parent Models'])
-        bi.metadata['Comments'] += ' | {}'.format(other.metadata['Comments'])
+        bi.metadata['Comments'].update(other.metadata['Comments'])
 
         return bi
 
@@ -129,13 +129,15 @@ class Change(object):
         removed --> elements that do not exist in model2, that were found to model1
         altered --> elements whose attributes have changes from model1 to model2
 
-    This object can be applied via the vc.apply_changes() method
+
     """
     def __init__(self, model1=None, model2=None, section='[JUNCTIONS]', build_instr_file=None):
 
         if model1 and model2:
             df1 = create_dataframeINP(model1.inp, section)
             df2 = create_dataframeINP(model2.inp, section)
+
+            #BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
             added_ids = df2.index.difference(df1.index)
             removed_ids = df1.index.difference(df2.index)
 
@@ -255,39 +257,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
 
 
 
-
-def clean_inp_diff_formatting(inpdiff, overwrite=True):
-    """
-    takes a inp diff file and aligns the columns for friendlier reading.
-    This FAILS on regular inp files, which is okay for now.
-    """
-
-    allheaders = funcs.complete_inp_headers(inpdiff)
-    cleanedf = os.path.splitext(inpdiff)[0] + '_cleanessssd.txt'
-    df_dict = {}
-    with open (cleanedf, 'w') as f:
-        for header in allheaders['order']:
-
-            if allheaders['headers'][header] != 'blob':
-                s = text.extract_section_from_inp(inpdiff, header, cleanheaders=True,
-                                                  return_string=True, skipheaders=False, skiprows=1)
-                sio = StringIO(s)
-                df = pd.read_table(sio, delim_whitespace=True, index_col=0)
-            else:
-                s = text.extract_section_from_inp(inpdiff, header, cleanheaders=True,
-                                                  return_string=True, skipheaders=False)
-                sio = StringIO(s)
-                df = pd.read_table(sio)
-            df_dict.update({header:df})
-            vc_utils.write_inp_section(f, allheaders, header, df, pad_top=False)
-
-    #replace original
-    if overwrite:
-        os.remove(inpdiff)
-        os.rename(cleanedf, inpdiff)
-    return df_dict
-
-def create_inp_build_instructions(inpA, inpB, path, filename):
+def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
 
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
@@ -315,7 +285,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename):
             'Baseline Model':modela.inp.filePath,
             'ID':filename,
             'Parent Models':{inpB:vc_utils.modification_date(inpB)},
-            'Comments':'cool comments in here'
+            'Comments':{filename:comments}
             }
         #print metadata
         vc_utils.write_meta_data(newf, metadata)

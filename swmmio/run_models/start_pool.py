@@ -3,7 +3,7 @@ from swmmio.swmmio import Model
 from swmmio.reporting import reporting
 from swmmio.utils import swmm_utils as su
 from swmmio.reporting import batch
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from datetime import datetime
 import os
 import sys
@@ -17,7 +17,7 @@ import sys
 
 #CREATE LOG FILE
 now = datetime.now().strftime("%y%m%d_%H%M")
-logfile = os.path.join(r'P:\06_Tools\v_control\Build_Instructs', 'log_'+now+'.txt')
+logfile = os.path.join(r'P:\06_Tools\v_control\Testing\cleaned\run', 'log_'+now+'.txt')
 #logfile = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\log.txt'
 #folders = os.listdir(combi_folder)
 
@@ -26,8 +26,9 @@ def run_swmm_engine(inp_folder):
 
 
     try:
-        #wd = os.path.join(combi_folder, inp_folder)
+        wd = os.path.join(combi_folder, inp_folder)
         m = Model(inp_folder)
+    # run.run_simple(inp_folder)
         if not m.rpt:
 
             # print 'completed {} at {}'.format(m.inp.name, datetime.now())
@@ -61,15 +62,16 @@ if __name__ == '__main__':
             for file in files:
                 if file.endswith('.inp') and 'bk' not in root:
                     #we've found a directory containing an inp
-                    #print root
+                    print file
                     dirs_containing_inps.append(root)
+                    #dirs_containing_inps.append(os.path.join(root, file))
 
 
-        pool = Pool()              # process per core
+        pool = Pool(cpu_count() - 1) # use all but 1 available cores
         # proces data_inputs iterable with pool
         res = pool.map(run_swmm_engine, dirs_containing_inps)
 
         print "hi im done running"
-        baseline_dir = r'P:\06_Tools\v_control'
-        log_dir = r'P:\06_Tools\v_control\Build_Instructs'
+        baseline_dir = r'P:\06_Tools\v_control\BIG\Baseline'
+        log_dir = r'P:\06_Tools\v_control\Testing\cleaned\run'
         batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
