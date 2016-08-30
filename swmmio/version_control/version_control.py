@@ -53,6 +53,7 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
         bi.metadata['Parent Models']['Baseline'] = {baseinp:vc_utils.modification_date(baseinp)}
         bi.metadata['Log'].update({version_id:comments})
         bi.save(vc_directory, version_id+'.txt')
+        print 'rebuilding {} with changes to baseline'.format(model.name)
         bi.build(baseline_dir, model.inp.filePath) #overwrite old inp
 
 
@@ -148,7 +149,6 @@ def create_combinations(baseline_dir, alternatives_dir, combi_dir, version_id=''
                     #of this tool --> compare the modification date to the BI's
                     #modification date meta data
                     latest_bi = vc_utils.newest_file(os.path.join(new_combi_dir,'vc'))
-                    print 'latest child bi {}'.format(latest_bi)
                     if not vc_utils.bi_is_current(latest_bi):
                         #revision date of the alt doesn't match the newest build
                         #instructions for this 'imp_level', so we should refresh it
