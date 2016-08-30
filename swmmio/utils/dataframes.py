@@ -41,8 +41,13 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True, commen
     if ignore_comments:
         comment_str = None
     if not tempfilepath:
+        #if this head (section) was not found in the textfile, return a
+        #blank dataframe with the appropriate schema
         print 'header "{}" not found in "{}"'.format(section, inp_path)
-        return None
+        print 'returning empty dataframe'
+        headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
+        blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
+        return blank_df
 
     if headerdefs['headers'][section] == 'blob':
         #return the whole row, without specifc col headers

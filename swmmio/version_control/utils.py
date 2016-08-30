@@ -82,9 +82,16 @@ def bi_is_current(build_instr_file):
     """
 
     meta = read_meta_data(build_instr_file)
-    parents = meta['Parent Models']
-    for inp, revisiondate in parents.iteritems():
+    baseline = meta['Parent Models']['Baseline']
+    alternatives = meta['Parent Models']['Alternatives']
+    #parents = baseline.update(alternatives)
+    # print meta['Parent Models']['Baseline']
+    # print alternatives
+    for inp, revisiondate in baseline.iteritems():
+        if modification_date(inp) != revisiondate:
+            return False
 
+    for inp, revisiondate in alternatives.iteritems():
         if modification_date(inp) != revisiondate:
             return False
 

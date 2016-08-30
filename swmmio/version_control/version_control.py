@@ -16,6 +16,48 @@ from swmmio.version_control import inp
 pd.options.display.max_colwidth = 200
 
 
+def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
+                                    version_id='', comments=''):
+
+    #stuff
+    """
+    if the baseline model has changes that need to be propogated to all models,
+    iterate through each model and rebuild the INPs with the new baseline and
+    existing build instructions. update the build instructions to reflect the
+    revision date of the baseline.
+    """
+    version_id += '_' + datetime.now().strftime("%y%m%d%H%M%S")
+
+    #collect the directories of all models
+    #model_dirs = [os.listdir(os.path.join(alternatives_dir, x)) for x in os.listdir(alternatives_dir)]
+    model_dirs = []#[os.path.join(alternatives_dir, alt, imp_level) for imp_level in os.listdir(os.path.join(alternatives_dir, alt)) for alt in os.listdir(alternatives_dir)]
+    for alt in os.listdir(alternatives_dir):
+        #print alt
+        #iterate through each implementation level of each alternative
+        for imp_level in os.listdir(os.path.join(alternatives_dir, alt)):
+            #create or refresh the build instructions file for the alternatives
+            model_dirs.append(os.path.join(alternatives_dir, alt, imp_level))
+
+    model_dirs += [os.path.join(combi_dir, x) for x in os.listdir(combi_dir)]
+    #print model_dirs
+    baseline = Model(baseline_dir)
+    baseinp = baseline.inp.filePath
+
+    for model_dir in model_dirs:
+        model = Model(model_dir)
+        vc_directory = os.path.join(model_dir, 'vc')
+        latest_bi = vc_utils.newest_file(vc_directory)
+
+        #update build instructions metdata and build the new inp
+        bi = inp.BuildInstructions(latest_bi)
+        bi.metadata['Parent Models']['Baseline'] = {baseinp:vc_utils.modification_date(baseinp)}
+        bi.metadata['Log'].update({version_id:comments})
+        bi.save(vc_directory, version_id+'.txt')
+        bi.build(baseline_dir, model.inp.filePath) #overwrite old inp
+
+
+
+
 def create_combinations(baseline_dir, alternatives_dir, combi_dir, version_id='',
                         comments=''):
 
@@ -106,6 +148,7 @@ def create_combinations(baseline_dir, alternatives_dir, combi_dir, version_id=''
                     #of this tool --> compare the modification date to the BI's
                     #modification date meta data
                     latest_bi = vc_utils.newest_file(os.path.join(new_combi_dir,'vc'))
+                    print 'latest child bi {}'.format(latest_bi)
                     if not vc_utils.bi_is_current(latest_bi):
                         #revision date of the alt doesn't match the newest build
                         #instructions for this 'imp_level', so we should refresh it
