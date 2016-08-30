@@ -7,6 +7,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import sys
+from copy import deepcopy
 if sys.version_info[0] < 3:
     from StringIO import StringIO
 else:
@@ -58,9 +59,15 @@ class BuildInstructions(object):
 
 
         #combine the metadata
-        bi.metadata = self.metadata
-        bi.metadata['Parent Models'].update(other.metadata['Parent Models'])
-        bi.metadata['Comments'].update(other.metadata['Comments'])
+        #deepcopy so child structures aren't linked to original
+        bi.metadata = deepcopy(self.metadata)
+        #bi.metadata['Parent Models'].update(other.metadata['Parent Models'])
+        #bi.metadata['Comments'].update(other.metadata['Comments'])
+        otherbaseline = other.metadata['Parent Models']['Baseline']
+        otheralternatives = other.metadata['Parent Models']['Alternatives']
+        bi.metadata['Parent Models']['Baseline'].update(otherbaseline)
+        bi.metadata['Parent Models']['Alternatives'].update(otheralternatives)
+        bi.metadata['Log'].update(other.metadata['Log'])
 
         return bi
 
@@ -222,7 +229,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
                 if sect_s:
                     #remove the extra space between data in the same table
                     #coming from diffrent models.
-                    if sect_s[-2:] == '\n\n':
+                    if sect_s[-2:] == '\n\n':   #NOTE Check this section...
                         s += sect_s[:-1]
                     else:
                         s += sect_s
@@ -282,10 +289,13 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
 
         #write meta data
         metadata = {
-            'Baseline Model':modela.inp.filePath,
-            'ID':filename,
-            'Parent Models':{inpB:vc_utils.modification_date(inpB)},
-            'Comments':{filename:comments}
+            #'Baseline Model':modela.inp.filePath,
+            #'ID':filename,
+            'Parent Models':{
+                            'Baseline':{inpA:vc_utils.modification_date(inpA)},
+                            'Alternatives':{inpB:vc_utils.modification_date(inpB)}
+                            },
+            'Log':{filename:comments}
             }
         #print metadata
         vc_utils.write_meta_data(newf, metadata)
