@@ -289,12 +289,11 @@ class Model(object):
 		n.runoff_upstream_cf = n.runoff_upstream_mg*1000000/7.48
 		return n
 
-
-	#def exportData(self, fname=None, type='node', bbox=None, openfile=True):
-	def export_elements(self,  element_type='node', filename=None, bbox=None, openfile=True):
-
-		#exports the organized SWMM data into a csv table
-
+	def list_objects(self,element_type='node', bbox=None):
+		"""
+		return a dictionary of element obects of the type specified, with
+		keys equal to the element ID.
+		"""
 		#organize the data -> dictionary of objects
 		if element_type == 'node':
 			data = self.organizeNodeData(bbox)
@@ -307,6 +306,58 @@ class Model(object):
 			dicts =data['parcels']
 		else:
 			return "incorrect data type specified"
+
+		return dicts
+
+	def export_to_shapefile(self, element_type='node', filename=None, bbox=None):
+		"""
+		export the model data into a shapefile. element_type dictates which type
+		of data will be included.
+		"""
+		import shapefile
+
+		#organize the data -> dictionary of objects
+		dicts = self.list_objects(element_type, bbox)
+
+		#grab first object in list to structure the dataframe
+		ref_object = dicts[dicts.keys()[0]]
+		fields = ref_object.__slots__
+		print fields
+		data = [[getattr(v,j) for j in fields] for k,v in dicts.items()]
+
+		#create a shp file writer object of geom type 'point'
+		w = shapefile.Writer(shapefile.POINT)
+
+		#use the helper mode to ensure the # of records equals the # of shapes
+		#(shapefile are made up of shapes and records, and need both to be valid)
+		w.autoBalance = 1
+
+		#add the fields
+		for fieldname in fields:
+			w.field(fieldname, "C")
+
+		#add the data
+		for k, v in dicts.items():
+
+			#add the coordinates
+			xy = v.coordinates
+
+			w.point(xy[0], xy[1])
+
+			#add the record, by accessing each object attribute's data
+			w.record(*[getattr(v,j) for j in fields])
+			#print [getattr(v,j) for j in fields]
+			#print '{}:  {} - {}'.format(v.id, xy[0], xy[1])
+		w.save(filename)
+
+	def export_to_csv(self,  element_type='node', filename=None, bbox=None, openfile=True):
+
+		"""
+		exports the organized SWMM data into a csv table
+		"""
+
+		#organize the data -> dictionary of objects
+		dicts = self.list_objects(element_type, bbox)
 
 		#grab first object in list to structure the dataframe
 		ref_object = dicts[dicts.keys()[0]]

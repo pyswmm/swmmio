@@ -1,3 +1,4 @@
 *.pyc
 private.py
 *.ipynb*
+private/
