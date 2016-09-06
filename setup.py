@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 
-VERSION = '0.0.1'  # also update __init__.py
+VERSION = '0.1.0'  # also update __init__.py
 AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
@@ -10,16 +10,18 @@ install_requires = [
     'pillow',
     'matplotlib',
     'numpy',
-    'pickle'
+    'pickle',
+    'pandas',
     ]
 
 setup(name='swmmio',
       version=VERSION,
-      description='A Python library for reading and visualizing EPA SWMM5 files.',
+      description='Tools for reading, writing, visualizing, and versioning EPA SWMM5 models.',
       author=AUTHOR_NAME,
       url='https://github.com/aerispaha/swmmio',
       author_email=AUTHOR_EMAIL,
-      packages=['swmmio', 'swmm_utils', 'swmm_headers', 'swmm_graphics', 'swmm_compare'],
+      packages=['swmmio', 'version_control', 'utils', 'run_models',
+                'reporting', 'graphics', 'defs', 'vendor'],
       install_requires=install_requires,
       long_description=read('README.md'),
       platforms="OS Independent",
