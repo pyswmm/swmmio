@@ -14,7 +14,6 @@ install_requires = [
     'pillow',
     'matplotlib',
     'numpy',
-    'pickle',
     'pandas',
     ]
 
