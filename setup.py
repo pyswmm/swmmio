@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.1.1'  # also update __init__.py
+VERSION = '0.1.3'  # also update __init__.py
 AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
@@ -15,7 +15,8 @@ install_requires = [
     'matplotlib',
     'numpy',
     'pandas',
-    
+    'shapefile'
+
     ]
 
 setup(name='swmmio',
@@ -24,7 +25,7 @@ setup(name='swmmio',
       author=AUTHOR_NAME,
       url='https://github.com/aerispaha/swmmio',
       author_email=AUTHOR_EMAIL,
-      packages=['swmmio'],
+      packages=find_packages(exclude=('tests')),
       install_requires=install_requires,
       long_description=read('README.rst'),
       platforms="OS Independent",
