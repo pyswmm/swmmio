@@ -15,8 +15,7 @@ install_requires = [
     'matplotlib',
     'numpy',
     'pandas',
-    'shapefile'
-
+    'pyshp'
     ]
 
 setup(name='swmmio',
