@@ -10,7 +10,7 @@ inp_header_dict = {
     '[COORDINATES]': 'Name X Y-coord',
     '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
     '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
-    '[OUTFALLS]': 'Name InvertElev OutfallType Timeseries TideGate',
+    '[OUTFALLS]': 'Name InvertElev OutfallType StageOrTimeseries TideGate',
     '[STORAGE]': 'Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit',
     '[VERTICES]': 'Name X Y',
     '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff',
