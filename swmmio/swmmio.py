@@ -32,17 +32,17 @@ class Model(object):
 		inp_path = None
 		if os.path.isdir(in_file_path):
 			#a directory was passed in
-			print 'is dir = {}'.format(in_file_path)
+			#print 'is dir = {}'.format(in_file_path)
 			inps_in_dir = glob.glob1(in_file_path, "*.inp")
 			if len(inps_in_dir) == 1:
 				#there is only one INP in this directory -> good.
 				inp_path = os.path.join(in_file_path, inps_in_dir[0])
-				print 'only 1 inp found = {}'.format(inp_path)
+				#print 'only 1 inp found = {}'.format(inp_path)
 
 		elif os.path.splitext(in_file_path)[1] == '.inp':
 			#an inp was passed in
 			inp_path = in_file_path
-			print 'is inp path = {}'.format(in_file_path)
+			#print 'is inp path = {}'.format(in_file_path)
 
 		if inp_path:
 			wd = os.path.dirname(inp_path) #working dir
@@ -309,19 +309,19 @@ class Model(object):
 		export model as a geojson object
 		"""
 		import geojson
-		from geojson import Point, LineString, Feature, FeatureCollection
+		from geojson import Point, LineString, Feature, GeometryCollection
 
 		if crs is None:
 			#default coordinate system (http://spatialreference.org/ref/epsg/2272/):
 			#NAD_1983_StatePlane_Pennsylvania_South_FIPS_3702_Feet
 			crs =  {"type": "name","properties": {"name": "EPSG:2272"}}
 
-		features = [] #array of features
+		geometries = [] #array of features
 		#collect the nodes
 		for k,v in self.list_objects('node', bbox).items():
 			props = {'flood_duration':v.flood_duration, 'id':v.id}
-			feature = Feature(geometry=Point(v.coordinates, properties=props))
-			features.append(feature)
+			geometry = Point(v.coordinates, properties=props)
+			geometries.append(geometry)
 
 		#collect the links
 		for k,v in self.list_objects('conduit', bbox).items():
@@ -329,18 +329,18 @@ class Model(object):
 			        'id':v.id,
 			        'lifecycle':v.lifecycle,
 			        'geom1':v.geom1}
-			feature = Feature(geometry=LineString(v.coordinates, properties=props))
-			features.append(feature)
+			geometry = LineString(v.coordinates, properties=props)
+			geometries.append(geometry)
 
 		# points = []
 		# for k, v in node_dicts.items():
 		# 	xy = v.coordinates
 		# 	points.append((xy[0], xy[1]))
 		if filename is None:
-			return FeatureCollection(features, crs=crs)
+			return GeometryCollection(geometries, crs=crs)
 		else:
 			with open(filename, 'wb') as f:
-				f.write(geojson.dumps(FeatureCollection(features, crs=crs)))
+				f.write(geojson.dumps(GeometryCollection(geometries, crs=crs)))
 				#f.write(geojson.dumps(FeatureCollection(nodefeatures, crs=crs)))
 
 

@@ -51,13 +51,96 @@ sg.drawModel(mymodel)
 ```
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.
-```
+```python
 sg.animateModel(mymodel, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
 ```
 
-### SWMM Model Version Control  
+### Flood Model Options Generation
+swmmio can take a set of independent storm flood relief (SFR) alternatives and combine them into every combination of potential infrastructure changes. This lays the ground work for identifying the most-efficient implementation sequence and investment level.
 
-TO BE CONTINUED... 
+Consider the simplified situaiton where a city is interested in solving a flooding issue by installing new relief sewers along Street A and/or Street B. Further, the city wants to decide whether they should be 1 or 2 blocks long. Engineers then decide to build SWMM models for 4 potential relief sewer options:
+*  A1 -> One block of relief sewer on Street A
+*  A2 -> Two blocks of relief sewer on Street A
+*  B1 -> One block of relief sewer on Street B
+*  B2 -> Two blocks of relief sewer on Street B
+
+To be comprehensive, implementation scenarios should be modeled for combinations of these options; it may be more cost-effective, for example, to build releif sewers on one block of Street A and Street B in combination, rather than two blocks on either street independently.
+
+swmmio aciheves this within the version_control module. The `create_combinations()` function builds models for every logical combinations of the segmented flood mitigation models. In the example above, models for the following scenarios will be created:
+*  A1 with B1
+*  A1 with B2
+*  A2 with B1
+*  A2 with B2
+
+For the `create_combinations()` function to work, the model directory needs to be set up as follows:
+```
+├───Baseline
+        baseline.inp
+├───Combinations
+└───Segments
+    ├───A
+    │   ├───A1
+    │   │   A1.inp
+    │   └───A2
+    │       A2.inp
+    └───B
+        ├───B1
+        │   B1.inp
+        └───B2
+            B2.inp
+```
+The new models will be built and saved within the Combinations directory. `create_combinations()` needs to know where these directories are and optionally takes version_id and comments data:
+
+```python
+#load the version_control module
+from swmmio.version_control import version_control as vc
+
+#organize the folder structure
+baseline_dir = r'path/to/Baseline/'
+segments_dir = r'path/to/Segments/'
+target_dir = r'path/to/Combinations/'
+
+#generate flood mitigation options
+vc.create_combinations(
+    baseline_dir,
+    segments_dir,
+    target_dir,
+    version_id='initial',
+    comments='example flood model generation comments')
+```
+
+The new models will be saved in subdirectories within the `target_dir`. New models (and their containing directory) will be named based on a concatenation of their parent models' names. It is recommended to keep parent model names as concise as possible such that child model names are manageable. After running `create_combinations()`, your project directory will look like this:
+```
+├───Baseline
+├───Combinations
+│   ├───A1_B1
+│   ├───A1_B2
+│   ├───A2_B1
+│   └───A2_B2
+└───Segments
+    ├───A
+    │   ├───A1
+    │   └───A2
+    └───B
+        ├───B1
+        └───B2
+
+```
+
+### SWMM Model Version Control
+To add more segments to the model space, create a new segment directory and rerun the `create_combinations()` function. Optionally include a comment summarizing how the model space is changing:
+```python
+vc.create_combinations(
+    baseline_dir,
+    alternatives_dir,
+    target_dir,
+    version_id='addA3',
+    comments='added model A3 to the scope')
+```
+The `create_combinations()` function can also be used to in the same way to propogate a change in an existing segment (parent) model to all of the children. Version information for each model is stored within a subdirectory called `vc` within each model directory. Each time a model is modified from the `create_combinations()` function, a new "BuildInstructions" file is generated summarizing the changes. BuildInstructions files outline how to recreate the model with respect to the baseline model.
+
+
+TO BE CONTINUED...
 
 ### Acknowledgments
 For use in generating animations of SWMM models, thanks to [images2gif.py](https://gist.github.com/jonschoning/7216290)
