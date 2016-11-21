@@ -29,8 +29,7 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
     version_id += '_' + datetime.now().strftime("%y%m%d%H%M%S")
 
     #collect the directories of all models
-    #model_dirs = [os.listdir(os.path.join(alternatives_dir, x)) for x in os.listdir(alternatives_dir)]
-    model_dirs = []#[os.path.join(alternatives_dir, alt, imp_level) for imp_level in os.listdir(os.path.join(alternatives_dir, alt)) for alt in os.listdir(alternatives_dir)]
+    model_dirs = []
     for alt in os.listdir(alternatives_dir):
         #print alt
         #iterate through each implementation level of each alternative
