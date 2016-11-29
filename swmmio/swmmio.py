@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #coding:utf-8
-#sys.path.append(r"P:\Tools")
 
 import random
 from time import gmtime, strftime
@@ -190,10 +189,11 @@ class Model(object):
 		if subset:
 			allNodesDict = { key:value for key,value in allNodesDict.items() if key in subset }
 
-		#create a dictionary holding data from an rpt file
-		nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
-		nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-		#print "created node summary dicts from " + rpt.fName
+		if rpt:
+			#create a dictionary holding data from an rpt file, if provided
+			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
+			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
+			#print "created node summary dicts from " + rpt.fName
 
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
@@ -221,7 +221,7 @@ class Model(object):
 			    pass #not a float, probably a 'FIXED' tag at that index on a outfall node
 
 
-			if (node in nodesDepthSummaryDict):
+			if rpt and (node in nodesDepthSummaryDict):
 				#if the up and downstream nodes are also found in the node depth summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NDA = nodesDepthSummaryDict[node] #upstream node depth array
@@ -230,7 +230,7 @@ class Model(object):
 				#n.maxDepth = float(NDA[2])
 				maxEl = max(n.maxHGL, maxEl) #increase the max elevation observed with the HGL
 
-			if (node in nodesFloodSummaryDict):
+			if rpt and (node in nodesFloodSummaryDict):
 				#if the up and downstream nodes are also found in the node flooding summary dictionary,
 				#grab the relevant data and store a little dictionary
 				NFA = nodesFloodSummaryDict[node] #upstream node flooding array

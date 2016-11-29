@@ -2,7 +2,7 @@ import subprocess
 import os
 import pandas as pd
 from swmmio.version_control import version_control as vc
-from swmmio.version_control.modify_model import modify_model
+from swmmio.utils.modify_model import replace_inp_section
 from swmmio.utils import dataframes
 from swmmio.run_models import defs
 
@@ -31,9 +31,9 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
         print 'create new model inp with params to save hotstart1'
         s = pd.Series(['SAVE HOTSTART "{}"'.format(hotstart1)])
         hot1_df = pd.DataFrame(s, columns=['[FILES]'])
-        model = modify_model(model.inp.filePath, '[FILES]', hot1_df)
-        model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_none)
-        model = modify_model(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_no_rain)
+        model = replace_inp_section(model.inp.filePath, '[FILES]', hot1_df)
+        model = replace_inp_section(model.inp.filePath, '[REPORT]', defs.REPORT_none)
+        model = replace_inp_section(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_no_rain)
         subprocess.call([swmm_eng, model.inp.filePath, rpt_path])
 
     if os.path.exists(hotstart1) and not os.path.exists(hotstart2):
@@ -41,7 +41,7 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
         print 'with params to use hotstart1 and save hotstart2'
         s = pd.Series(['USE HOTSTART "{}"'.format(hotstart1), 'SAVE HOTSTART "{}"'.format(hotstart2)])
         hot2_df = pd.DataFrame(s, columns=['[FILES]'])
-        model = modify_model(model.inp.filePath, '[FILES]', hot2_df)
+        model = replace_inp_section(model.inp.filePath, '[FILES]', hot2_df)
         subprocess.call([swmm_eng, model.inp.filePath, rpt_path])
 
     if os.path.exists(hotstart2):
@@ -50,8 +50,8 @@ def run_hot_start_sequence(model, swmm_eng=SWMM_ENGINE_PATH):
         s = pd.Series(['USE HOTSTART "{}"'.format(hotstart2)])
         hot3_df = pd.DataFrame(s, columns=['[FILES]'])
 
-        model = modify_model(model.inp.filePath, '[FILES]', hot3_df)
-        model = modify_model(model.inp.filePath, '[REPORT]', defs.REPORT_none)# defs.REPORT_nodes_links)
-        model = modify_model(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_normal)
+        model = replace_inp_section(model.inp.filePath, '[FILES]', hot3_df)
+        model = replace_inp_section(model.inp.filePath, '[REPORT]', defs.REPORT_none)# defs.REPORT_nodes_links)
+        model = replace_inp_section(model.inp.filePath, '[OPTIONS]', defs.OPTIONS_normal)
 
         subprocess.call([swmm_eng, model.inp.filePath, rpt_path])

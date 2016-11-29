@@ -5,7 +5,7 @@ from swmmio import swmmio
 import pandas as pd
 import os
 
-def modify_model(inp_path, modified_section_header, new_data, overwrite=True):
+def replace_inp_section(inp_path, modified_section_header, new_data, overwrite=True):
 
     """
     modify an existing model by passing in new data (Pandas Dataframe)

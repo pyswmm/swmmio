@@ -99,7 +99,7 @@ def create_dataframeRPT(rpt, section='Link Flow Summary', element_id=None):
         else:
             #this section header is recognized and will be organized into known columns
             #headerlist = headerdefs['headers'][section].split()
-            df = pd.read_table(tempfilepath, delim_whitespace=True)
+            df = pd.read_table(tempfilepath, delim_whitespace=True, index_col=0)
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 

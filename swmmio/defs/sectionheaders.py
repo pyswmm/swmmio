@@ -7,7 +7,7 @@ inp_header_dict = {
     '[TITLE]':'blob',
     '[OPTIONS]':'Name Value',
     '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
-    '[COORDINATES]': 'Name X Y-coord',
+    '[COORDINATES]': 'Name X Y',
     '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
     '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
     '[OUTFALLS]': 'Name InvertElev OutfallType StageOrTimeseries TideGate',
@@ -24,7 +24,7 @@ inp_header_dict = {
     '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSourceType DataSourceName',
     '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
     '[POLYGONS]':'Name X Y',
-    '[REPORT]':'Param Status'
+    '[REPORT]':'Param Status',
     #'[CURVES]':'Name Type X-Value Y-Value',
     #'[TIMESERIES]':'Name Date Time Value'
 }
