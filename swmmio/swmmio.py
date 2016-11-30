@@ -284,17 +284,17 @@ class Model(object):
 		n.runoff_upstream_cf = n.runoff_upstream_mg*1000000/7.48
 		return n
 
-	def list_objects(self,element_type='node', bbox=None):
+	def list_objects(self,element_type='node', bbox=None, subset=None):
 		"""
 		return a dictionary of element obects of the type specified, with
 		keys equal to the element ID.
 		"""
 		#organize the data -> dictionary of objects
 		if element_type == 'node':
-			data = self.organizeNodeData(bbox)
+			data = self.organizeNodeData(bbox, subset=subset)
 			dicts = data['node_objects']
 		elif element_type == 'conduit':
-			data = self.organizeConduitData(bbox)
+			data = self.organizeConduitData(bbox, subset=subset)
 			dicts = data['conduit_objects']
 		elif element_type =='parcel':
 			data = parcels.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
@@ -344,24 +344,27 @@ class Model(object):
 				#f.write(geojson.dumps(FeatureCollection(nodefeatures, crs=crs)))
 
 
-	def export_to_shapefile(self, element_type='node', filename=None, bbox=None):
+	def export_to_shapefile(self, element_type='node', filename=None, bbox=None, subset=None):
 		"""
 		export the model data into a shapefile. element_type dictates which type
 		of data will be included.
 		"""
 		import shapefile
+		import shutil
 
 		#organize the data -> dictionary of objects
-		dicts = self.list_objects(element_type, bbox)
+		dicts = self.list_objects(element_type, bbox, subset=subset)
 
 		#grab first object in list to structure the dataframe
 		ref_object = dicts[dicts.keys()[0]]
 		fields = ref_object.__slots__
-		print fields
 		data = [[getattr(v,j) for j in fields] for k,v in dicts.items()]
 
 		#create a shp file writer object of geom type 'point'
-		w = shapefile.Writer(shapefile.POINT)
+		if element_type == 'node':
+			w = shapefile.Writer(shapefile.POINT)
+		elif element_type == 'conduit':
+			w = shapefile.Writer(shapefile.POLYLINE)
 
 		#use the helper mode to ensure the # of records equals the # of shapes
 		#(shapefile are made up of shapes and records, and need both to be valid)
@@ -377,13 +380,23 @@ class Model(object):
 			#add the coordinates
 			xy = v.coordinates
 
-			w.point(xy[0], xy[1])
+			if element_type == 'node':
+				w.point(xy[0], xy[1])
+			elif element_type == 'conduit':
+				w.line(parts = [xy])
+
 
 			#add the record, by accessing each object attribute's data
 			w.record(*[getattr(v,j) for j in fields])
 			#print [getattr(v,j) for j in fields]
 			#print '{}:  {} - {}'.format(v.id, xy[0], xy[1])
+
 		w.save(filename)
+
+		#save the projection data
+		currentdir = os.path.dirname(__file__)
+		prj_filepath = os.path.splitext(filename)[0] + '.prj'
+		shutil.copy(os.path.join(currentdir, 'defs/default.prj'), prj_filepath)
 
 	def export_to_csv(self,  element_type='node', filename=None, bbox=None, openfile=True):
 
