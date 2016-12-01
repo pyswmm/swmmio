@@ -318,7 +318,7 @@ def drawModelComparison(model1, model2, delta_parcels=None, anno_results = {}, *
 		delta_thresh = ops['parcelSymb']['delta_threshold']
 
 		if not delta_parcels:
-			print 'calculating existig parcel flooding'
+			print 'calculating existing parcel flooding'
 			existing_parcel_flooding = p.parcel_flood_duration(model1, parcel_features='PWD_PARCELS_SHEDS',
 													bbox=None, anno_results=anno_results)['parcels']
 

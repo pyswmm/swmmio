@@ -1,11 +1,42 @@
 from swmmio.swmmio import Model
 from swmmio.reporting import reporting
+from swmmio.reporting import functions
 from swmmio.utils import swmm_utils as su
 from datetime import datetime
 import os
 import shutil
+import math
+from itertools import chain
 
 REPORT_DIR_NAME = 'Report'
+
+def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
+                         supplemental_cost_data=None):
+    """
+    compute the cost estimate of each model/option in the segments and
+    combinations directories. Resulsts will be printed in the results text file.
+    """
+    #combine the segments and options (combinations) into one iterable
+    paths = (segments_dir, options_dir)
+    baseline = Model(baseline_dir)
+
+    for path, dirs, files in chain.from_iterable(os.walk(path) for path in paths):
+
+        for f in files:
+            if '.inp' in f:
+                inp_path = os.path.join(path,f)
+                alt = Model(inp_path)
+
+                #calculate the cost
+                costsdf = functions.estimate_cost_of_new_conduits(baseline, alt,
+                                                                  supplemental_cost_data)
+                cost_estimate = costsdf.TotalCostEstimate.sum() / math.pow(10, 6)
+                print cost_estimate
+
+                model_id = os.path.splitext(f)[0]
+                with open(results_file, 'a') as res:
+                    res.write('{}, {}\n'.format(model_id, cost_estimate))
+
 
 def batch_post_process(options_dir, baseline_dir, log_dir, bbox=None, overwrite=False):
     """

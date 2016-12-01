@@ -5,6 +5,7 @@
 #import swmmio
 from swmmio.utils import swmm_utils as su
 from swmmio.graphics import draw_utils as du
+from swmmio.graphics import config
 from swmmio import parcels
 import re
 import os

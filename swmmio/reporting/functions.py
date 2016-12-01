@@ -93,5 +93,9 @@ def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
         newconduits['TotalCostEstimate'] = newconduits.apply (lambda row:
                                                               added_cost(row),
                                                               axis=1)
+    else:
+        # NOTE this lingo here is weak... 
+        #additional_costs not provided, rename the CostEstimate to TotalCostEstimate
+        newconduits = newconduits.rename(columns={"CostEstimate": "TotalCostEstimate"})
 
     return newconduits

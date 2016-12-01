@@ -1,7 +1,7 @@
 #module to contain general function pertaining to graphics, (colors, PIL stuff, constants, and options)
 #drawing options
 import math
-
+from swmmio.graphics import config
 #COLOR DEFS
 red = 		(250, 5, 5)
 blue = 		(5, 5, 250)
@@ -220,6 +220,16 @@ def parcel_options(type='flood', **kwargs):
 	return selected_ops
 def default_draw_options():
 
+	if config.include_basemap:
+		basemap_symbology = basemap_options()
+	else:
+		basemap_symbology = None
+
+	if config.include_parcels:
+		parcels_symbology = parcel_options('flood')
+	else:
+		parcels_symbology = None
+
 	default_options = {
 		'width': 2048,
 		'bbox':None,
@@ -227,8 +237,8 @@ def default_draw_options():
 		'imgDir':None,
 		'nodeSymb': node_options('flood'),
 		'conduitSymb': conduit_options('stress'),
-		'basemap': None, #basemap_options(),
-		'parcelSymb': None, #parcel_options('flood'),
+		'basemap': basemap_symbology,
+		'parcelSymb': parcels_symbology,
 		'bg': white,
 		'xplier': 1,
 		'traceUpNodes': [],
