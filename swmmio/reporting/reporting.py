@@ -11,13 +11,15 @@ from swmmio.graphics import draw_utils as du
 from swmmio.utils.dataframes import create_dataframeRPT
 from swmmio import parcels as p
 import os
+import math
 import pandas as pd
 
 
 
 class Report(object):
 
-    def __init__(self, baseline_model, option, existing_parcel_flooding = None):
+    def __init__(self, baseline_model, option, existing_parcel_flooding = None,
+                 additional_costs=None):
 
 
         #parcel calculations
@@ -41,7 +43,8 @@ class Report(object):
         self.sewer_miles_new = functions.length_of_new_and_replaced_conduit(baseline_model, option)  / 5280.0
         self.sewer_miles_replaced = None
         self.storage_new = None #some volume measurement
-        self.cost_estimate = None
+        self.cost_estimate_data = functions.estimate_cost_of_new_conduits(baseline_model, option, additional_costs)
+        self.cost_estimate = self.cost_estimate_data.TotalCostEstimate.sum() / math.pow(10, 6)
         self.parcels_new_flooding = delta_parcels['new_flooding']
         self.parcels_worse_flooding = delta_parcels['increased_flooding']
         self.parcels_eliminated_flooding = delta_parcels['eliminated_flooding']
@@ -57,10 +60,17 @@ class Report(object):
                         anno_results = self.anno_results,
                         bbox = su.d68d70, imgDir=report_dir)
 
+        #write the cost estimate file
+        costsdf  = self.cost_estimate_data[['Length', 'Shape', 'Geom1', 'Geom2',
+                                            'Geom3', 'XArea', 'Volume',
+                                            'CostEstimate', 'AdditionalCost',
+                                            'AddCostNotes', 'TotalCostEstimate']]
+        costsdf.to_csv(os.path.join(report_dir, self.option.inp.name + '_cost_data.csv'))
         #write text report
         with open(os.path.join(report_dir, 'report.txt'), 'w') as f:
             f.write('Parcels Improved {}\n'.format(self.parcels_flooding_improved))
             f.write('New Sewer Miles {}\n'.format(self.sewer_miles_new))
+            f.write('Cost Estimate {}\n'.format(self.cost_estimate))
 
 def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
                     bbox=None, imgDir=None, verbose=False):
@@ -79,12 +89,12 @@ def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
     if not imgDir:
         imgDir=os.path.join(model2.inp.dir, 'img')
     sg.drawModel(model1, conduitSymb=None, nodeSymb=None, bbox=bbox,
-                imgName=imgname, imgDir=imgDir)
+                 imgName=imgname, imgDir=imgDir)
 
     #PROPOSED CONDITIONS FLOOD DURATION
     imgname = "02 Proposed Parcel Flood Duration"
     sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox,
-                imgName=imgname, imgDir=imgDir)
+                  imgName=imgname, imgDir=imgDir)
 
     #IMPACT OF INFRASTRUCTURE
     imgname = "03 Impact of Option"
