@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.1.6'  # also update __init__.py
+VERSION = '0.1.7'  # also update __init__.py
 AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
@@ -26,6 +26,9 @@ setup(name='swmmio',
       url='https://github.com/aerispaha/swmmio',
       author_email=AUTHOR_EMAIL,
       packages=find_packages(exclude=('tests')),
+      entry_points = {
+        "console_scripts": ['swmmio_run = swmmio.run_models.run:run_simple']
+        },
       install_requires=install_requires,
       long_description=read('README.rst'),
       platforms="OS Independent",
