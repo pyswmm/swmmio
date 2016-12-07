@@ -118,13 +118,14 @@ class Model(object):
 			downstreamXY = coordsDict[downstreamNodeID]
 			downstreamXY = [float(i) for i in downstreamXY] #convert to floats
 			geom1 = float(xsectionsDict[conduit_id][1]) #conduit diameter / height
+			geom2 = xsectionsDict[conduit_id][2] #conduit width (sometimes a curve ref)
 
 			if bbox and (not su.pointIsInBox(bbox, upstreamXY) and not su.pointIsInBox(bbox, downstreamXY)):
 				#skip conduits who are not within a given boudning box. This includes conduits who are partially in the box.
 				continue
 
 			#downstream pipe id: the pipe whose upstream id equals downstreamNodeID
-			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1, inletoffset, outletoffset)
+			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1, geom2, inletoffset, outletoffset)
 			conduit.length = length
 			conduit.upNodeID = upstreamNodeID
 			conduit.downNodeID = downstreamNodeID
@@ -328,7 +329,8 @@ class Model(object):
 			props = {'MaxQPercent':v.maxQpercent,
 			        'id':v.id,
 			        'lifecycle':v.lifecycle,
-			        'geom1':v.geom1}
+			        'geom1':v.geom1,
+					'geom2':v.geom2,}
 			geometry = LineString(v.coordinates, properties=props)
 			geometries.append(geometry)
 
@@ -702,11 +704,11 @@ class Link(object):
 	#object representing a swmm Link (conduit) object
 
 	__slots__ = ('id', 'coordinates', 'maxflow', 'maxQpercent', 'upNodeID', 'downNodeID',
-				'maxHGLDownstream', 'maxHGLUpstream', 'geom1', 'length','inletoffset', 'outletoffset',
+				'maxHGLDownstream', 'maxHGLUpstream', 'geom1', 'geom2', 'length','inletoffset', 'outletoffset',
 				'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
 
 
-	def __init__(self, id, coordinates=[], geom1=None, inletoffset=0, outletoffset=0):
+	def __init__(self, id, coordinates=[], geom1=None, geom2=None, inletoffset=0, outletoffset=0):
 
 		#assign the header list
 		self.id = id
@@ -720,6 +722,7 @@ class Link(object):
 		self.upNodeID = None
 		self.downNodeID = None
 		self.geom1 = geom1 #faster to use zero as default?
+		self.geom2 = geom2 #faster to use zero as default?
 		self.length = None
 		self.draw_coordinates = None
 		self.lifecycle = 'existing'
