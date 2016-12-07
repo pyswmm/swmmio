@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.1.7'  # also update __init__.py
+VERSION = '0.1.8'  # also update __init__.py
 AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
@@ -31,6 +31,7 @@ setup(name='swmmio',
         },
       install_requires=install_requires,
       long_description=read('README.rst'),
+      include_package_data=True,
       platforms="OS Independent",
       license="MIT License",
       classifiers=[
