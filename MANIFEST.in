@@ -1,1 +1,2 @@
 include swmmio/run_models/inp_settings/*.txt
+include swmm5_engines/swmm5_22.exe
