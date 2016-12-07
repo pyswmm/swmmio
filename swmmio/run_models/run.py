@@ -5,15 +5,17 @@ from swmmio.version_control import version_control as vc
 from swmmio.utils.modify_model import replace_inp_section
 from swmmio.utils import dataframes
 from swmmio.run_models import defs
+from definitions import SWMM_ENGINE_PATH
 
 
 #path to the SWMM5 Engine
-SWMM_ENGINE_PATH = r'\\PWDHQR\Data\Planning & Research\Flood Risk Management\07_Software\swmm5_22.exe'
+# SWMM_ENGINE_PATH = r'\\PWDHQR\Data\Planning & Research\Flood Risk Management\07_Software\swmm5_22.exe'
 
 def run_simple(inp_path, swmm_eng=SWMM_ENGINE_PATH):
     """
     run a model once as is.
     """
+    print 'running {} with {}'.format(inp_path, swmm_eng)
     #inp_path = model.inp.filePath
     rpt_path = os.path.splitext(inp_path)[0] + '.rpt'
 
