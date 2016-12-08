@@ -13,6 +13,7 @@ from .utils import swmm_utils as su
 import glob
 import csv
 from .utils import text as txt
+from .utils.dataframes import create_dataframeINP, create_dataframeRPT
 
 class Model(object):
 
@@ -62,6 +63,7 @@ class Model(object):
 				except:
 					print '{}.rpt failed to initialize'.format(name)
 
+			self.nodes = self._create_nodes_dataframe()
 
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
 
@@ -165,6 +167,48 @@ class Model(object):
 		self.bbox = bbox
 
 		return output
+
+	def _create_nodes_dataframe(self, bbox=None, subset=None):
+
+		"""
+		collect all useful and available data related model nodes and organize
+		in one dataframe.
+		"""
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		juncs_df = create_dataframeINP(inp, "[JUNCTIONS]")
+		outfalls_df = create_dataframeINP(inp, "[OUTFALLS]")
+		storage_df = create_dataframeINP(inp, "[STORAGE]")
+		coords_df = create_dataframeINP(inp, "[COORDINATES]")
+
+		#concatenate the DFs and keep only relevant cols
+		all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
+		cols =['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
+		all_nodes = all_nodes[cols]
+
+		if rpt:
+			#add results data if a rpt file was found
+			depth_summ = create_dataframeRPT(rpt, "Node Depth Summary")
+			flood_summ = create_dataframeRPT(rpt, "Node Flooding Summary")
+
+			#join the rpt data (index on depth df, suffixes for common cols)
+			rpt_df = depth_summ.join(flood_summ,lsuffix='_depth',rsuffix='_flood')
+			all_nodes = all_nodes.join(rpt_df) #join to the all_nodes df
+
+		all_nodes = all_nodes.join(coords_df[['X', 'Y']])
+
+		#lookup the subcatchment data directly draining to each node
+		subcats_df = create_dataframeINP(inp, "[SUBCATCHMENTS]")[['Outlet', 'Area']]
+		subcats_df['subcat_id'] = subcats_df.index
+		subcats_df = subcats_df.set_index('Outlet')
+		all_nodes = all_nodes.join(subcats_df)
+
+		return all_nodes
+
 
 	def organizeNodeData (self, bbox=None, subset=None):
 
@@ -698,6 +742,8 @@ class Node(object):
 		self.lifecycle = 'existing'
 		self.is_delta = None
 		self.delta_type = None #whether this object's data represents a change between two parent models
+
+
 
 class Link(object):
 
