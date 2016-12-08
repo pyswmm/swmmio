@@ -204,6 +204,8 @@ def drawModel (model, **kwargs):
 	nodes = nodeData['node_objects']
 	su.convertCoordinatesToPixels(nodes, targetImgW=width, bbox=bbox)
 
+	# nodes = su.pixel_coords_from_irl_coords(model.nodes)
+
 	img = Image.new('RGB', imgSize, ops['bg'])
 	draw = ImageDraw.Draw(img)
 
@@ -236,6 +238,12 @@ def drawModel (model, **kwargs):
 
 	#DRAW THE NODES
 	if ops['nodeSymb']:
+		print 'node symb = {}'.format(ops['nodeSymb'])
+
+		# nodes.apply(lambda node: su.drawNode(node, draw, rpt=rpt,
+		# 									options=ops['nodeSymb'],
+		# 									dTime=None,
+		# 									xplier=xplier), axis = 1)
 		for id, node in nodes.iteritems():
 			if node.coordinates: #this prevents draws if no flow is supplied (RDII and such)
 				#drawNode(node, draw, options, rpt=None, dTime=None, xplier=1):
