@@ -16,7 +16,7 @@ install_requires = [
     'numpy',
     'pandas',
     'pyshp',
-    'geojson'
+    'geojson',
     ]
 
 setup(name='swmmio',
