@@ -7,8 +7,8 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 from time import strftime
 import os
 import numpy as np
-import matplotlib.path as mplPath
-from matplotlib.transforms import BboxBase
+# import matplotlib.path as mplPath
+# from matplotlib.transforms import BboxBase
 import pickle
 import json
 #import arcpy

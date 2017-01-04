@@ -13,6 +13,7 @@ from swmmio import parcels as p
 import os
 import math
 import pandas as pd
+from definitions import *
 
 
 
@@ -21,14 +22,14 @@ class Report(object):
     def __init__(self, baseline_model, option, existing_parcel_flooding = None,
                  additional_costs=None):
 
-
+        #parcel_features = 'PWD_PARCELS_SHEDS_PPORT' #'PWD_PARCELS_SHEDS'
         #parcel calculations
         anno_results={}
         #if not existing_parcel_flooding:
-        existing_parcel_flooding = p.parcel_flood_duration(baseline_model, parcel_features='PWD_PARCELS_SHEDS',
+        existing_parcel_flooding = p.parcel_flood_duration(baseline_model, parcel_features=PARCEL_FEATURES,
     											bbox=None, anno_results=anno_results)['parcels']
 
-        proposed_parcel_flooding = p.parcel_flood_duration(option, parcel_features='PWD_PARCELS_SHEDS',
+        proposed_parcel_flooding = p.parcel_flood_duration(option, parcel_features=PARCEL_FEATURES,
 												bbox=None, anno_results=anno_results)['parcels']
 
         delta_parcels = p.compareParcels(existing_parcel_flooding, proposed_parcel_flooding,
