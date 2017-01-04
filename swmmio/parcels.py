@@ -6,6 +6,7 @@ from .utils import swmm_utils as su
 import os
 import pickle
 import json
+from definitions import *
 
 class Parcel(object):
 
@@ -25,7 +26,7 @@ class Parcel(object):
 		self.is_delta = False
 		self.delta_type = 'flooding_unchanged' #whether this object's data represents a change between two parent models
 
-def compareParcels(existing_elements, proposed_elements, parcel_features='PWD_PARCELS_SHEDS', bbox=None,
+def compareParcels(existing_elements, proposed_elements, parcel_features=PARCEL_FEATURES, bbox=None,
 					floodthreshold=0.08333, delta_threshold=0.25, anno_results={}):
 
 	#return a dict of node objects with the delta between models
@@ -101,12 +102,12 @@ def compareParcels(existing_elements, proposed_elements, parcel_features='PWD_PA
 	return results
 
 def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
-							gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
+							gdb=GEODATABASE,
 							export_table=False,anno_results={}):
 	"""
-	this method includes the logic for calculating a flood duration (and avg duration)
-	on the given parcels. Return is a dictionary with each parcel ID and a Parcel object
-	with the flooding data populated
+	this method includes the logic for calculating a flood duration (and avg
+	duration) on the given parcels. Returned is a dictionary with each parcel ID
+	and a Parcel object with the flooding data populated.
 	"""
 
 	#collect the parcels in a dictionary of Parcel objects
@@ -182,15 +183,20 @@ def parcel_flood_duration(model, parcel_features, threshold=0.083,  bbox=None,
 
 	return results
 
-def associate_parcels(model, feature='PWD_PARCELS_SHEDS', cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"], bbox=None, gdb=r'C:\Data\ArcGIS\GDBs\LocalData.gdb'):
+def associate_parcels(model, feature=PARCEL_FEATURES,
+						cols = ["PARCELID", "OUTLET", "SUBCATCH", "SHAPE@"],
+						bbox=None, gdb=GEODATABASE):
 
 	"""
-	create dictionary with keys for each parcel, and sub array containing associated nodes
-	this method expects a shapefile that results from a spatial join
-	(one to many) between the given model and the parcels in the study area. Where parcels
-	spatially fall within multiple sheds, they will be represented in multiple rows
-	in this shapefile (one to many), with one row for each associated shed.
-	given this, this function creates a list of unique parcels and arrays with their associated sheds
+	create dictionary with keys for each parcel, and sub array containing
+	associated nodes. This method expects a shapefile that results from a spatial
+	join (one to many) between the given model drainage areas and a parcels
+	spatial dataset in the study area.
+
+	Where parcels spatially fall within multiple sheds, they will be
+	represented in multiple rows in this shapefile (one to many), with one row
+	for each associated shed. given this, this function creates a list of unique
+	parcels and arrays with their associated sheds
 	"""
 
 	#check if a parcel to node association dicitonary exists, load if possible

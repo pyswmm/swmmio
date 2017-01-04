@@ -7,50 +7,45 @@ from multiprocessing import Pool, cpu_count
 from datetime import datetime
 import os
 import sys
-
-#combi_folder = r'P:\06_Tools\v_control\vctest\Combinationsp'
-#combi_folder = r'P:\06_Tools\v_control\Models\COMbis_sansC'
-#combi_folder = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\Combinations'
-#combi_folder =  r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\Segments\M'
-#logfile = r'P:\06_Tools\v_control\vctest\log.txt'
-#logfile = r'P:\06_Tools\v_control\Models\log.txt'
-
-#CREATE LOG FILE
-now = datetime.now().strftime("%y%m%d_%H%M")
-logfile = os.path.join(r'C:\Data\SouthPhillySFR\ClimateChange', 'log_'+now+'.txt')
-#logfile = r'P:\02_Projects\SouthPhila\SE_SFR\Models - ASE\ModelCombinations\log.txt'
-#folders = os.listdir(combi_folder)
+wd = os.getcwd()
 
 def run_swmm_engine(inp_folder):
+    now = datetime.now().strftime("%y%m%d_%H%M")
+    logfile = os.path.join(wd, 'log_'+now+'.txt')
 
-
-
-    # try:
-    #wd = os.path.join(combi_folder, inp_folder)
     m = Model(inp_folder)
-    # run.run_simple(inp_folder)
+    print 'inp_folder = {}'.format(inp_folder)
     if not m.rpt:
-
         # print 'completed {} at {}'.format(m.inp.name, datetime.now())
         with open (logfile, 'a') as f:
-            f.write('{} -- {} started... '.format(datetime.now().strftime("%y-%m-%d %H:%M"), m.inp.name))
+            now = datetime.now().strftime("%y-%m-%d %H:%M")
+            f.write('{} -- {} started... '.format(now, m.inp.name))
             run.run_hot_start_sequence(m)
-            f.write('completed at {}\n'.format(datetime.now().strftime("%y-%m-%d %H:%M")))
-
-
+            now = datetime.now().strftime("%y-%m-%d %H:%M")
+            f.write('completed at {}\n'.format(now))
     else:
-        # print '{} -- RPT already exist: {}'.format(datetime.now(), m.rpt.filePath)
         with open (logfile, 'a') as f:
             f.write('RPT already exist: {}\n'.format(m.rpt.filePath))
 
+def main(dirs_containing_inps, cores_left):
 
-    # except:
+    """
+    called from the cli:
+    swmmio -sp DIR1, DIR2, ... -cores_left=4
+    """
 
-        # with open (logfile, 'a') as f:
-        #     f.write(' FAILED at  {}\n'.format(datetime.now().strftime("%y-%m-%d %H:%M")))
+    # create multiprocessing Pool object using all cores less the -cores_left
+    #beware of setting -cores_left=0, CPU usage will max the F out
+    pool = Pool(cpu_count() - cores_left)
+
+    #create a process pool with the run_swmm_engine() func on each directory
+    res = pool.map(run_swmm_engine, dirs_containing_inps)
+
 
 if __name__ == '__main__':
-
+    """
+    the old way
+    """
     for arg in sys.argv[1:]:
         print arg
     args = sys.argv[1:]
@@ -68,11 +63,11 @@ if __name__ == '__main__':
 
         print 'dirs_containing_inps = {}'.format(dirs_containing_inps)
 
-        pool = Pool(cpu_count() - 4) # use all but 4 available cores
+        pool = Pool(cpu_count() - 6) # use all but 6 available cores
         # proces data_inputs iterable with pool
         res = pool.map(run_swmm_engine, dirs_containing_inps)
 
         print "hi im done running"
-        baseline_dir = r'C:\Data\SouthPhillySFR\ClimateChange\Scenarios\Baseline' #r'P:\06_Tools\v_control\BIG\Baseline'
-        log_dir = r'C:\Data\SouthPhillySFR\ClimateChange'
-        batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
+        baseline_dir = r'F:\models\SPhila\MasterModels_170104\Baseline' #r'P:\06_Tools\v_control\BIG\Baseline'
+        log_dir = r'F:\models\SPhila\MasterModels_170104\ProjectAdmin'
+        # batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
