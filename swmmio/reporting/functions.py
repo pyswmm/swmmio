@@ -24,7 +24,7 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
     new_conduit_ids = df.index.tolist()
 
     if filename is None:
-        filename = os.path.join(os.path.dirname(model2.inp.filePath),
+        filename = os.path.join(os.path.dirname(model2.inp.path),
                                 'shapefiles',
                                 model2.inp.name + '_new_conduits.shp')
 
@@ -45,7 +45,7 @@ def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
     newconduits = pd.concat([changes.added, changes.altered])
     newconduits.drop([';', 'Comment', 'Origin'], axis=1, inplace=True)
 
-    xsections = create_dataframeINP(newmodel.inp, section='[XSECTIONS]')
+    xsections = create_dataframeINP(newmodel.inp.path, section='[XSECTIONS]')
     xsections.drop([';', 'Comment', 'Origin'], axis=1, inplace=True)
 
     #join the xsection data to the newconduits df. convert geoms to numbers

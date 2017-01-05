@@ -17,9 +17,6 @@ parser.add_argument('-cores_left', '--cores_left', dest='cores_left', default=4,
 args = parser.parse_args()
 wd = os.getcwd() #current directory script is being called from
 
-
-
-
 if args.model_to_run is not None:
 
     models_paths = [os.path.join(wd, f) for f in args.model_to_run]
@@ -30,40 +27,30 @@ if args.model_to_run is not None:
     # run_simple(args.model_to_run)
 
 elif args.hotstart_model_to_run is not None:
+    models_paths = [os.path.join(wd, f) for f in args.hotstart_model_to_run]
     print 'hotstart_model_to_run the model: {}'.format(args.hotstart_model_to_run)
-    m = Model(args.hotstart_model_to_run)
-    run_hot_start_sequence(m)#args.hotstart_model_to_run)
+    # m = Model(args.hotstart_model_to_run)
+    # run_hot_start_sequence(m)#args.hotstart_model_to_run)
+    map(run_hot_start_sequence, models_paths)
 
 elif args.start_pool is not None:
 
     models_dirs = [os.path.join(wd, f) for f in args.start_pool]
     print 'looking for models to queue in:\n\t{}'.format('\n\t'.join(models_dirs))
     #combine the segments and options (combinations) into one iterable
-    # paths = (segments_dir, options_dir)
-    # baseline = Model(baseline_dir)
     dirs_containing_inps = []
     for root, dirs, files in chain.from_iterable(os.walk(path) for path in models_dirs):
-        for file in files:
-            if file.endswith('.inp') and 'bk' not in root:
+        for f in files:
+            if f.endswith('.inp') and 'bk' not in root:
                 #we've found a directory containing an inp
-                print file
-                dirs_containing_inps.append(root)
+                print f
+                inp_paths.append(os.path.join(root, f))
 
 
-    start_pool.main(dirs_containing_inps, args.cores_left)
-    # pool = Pool(cpu_count() - args.cores_left) # use all but 6 available cores
-    # proces data_inputs iterable with pool
-    # print pool
-    # res = pool.map(run_swmm_engine, dirs_containing_inps)
-    # map(run_swmm_engine, dirs_containing_inps[0:2])
-    print "hi im done running"
-    # baseline_dir = r'F:\models\SPhila\MasterModels_170104\Baseline' #r'P:\06_Tools\v_control\BIG\Baseline'
-    # log_dir = r'F:\models\SPhila\MasterModels_170104\ProjectAdmin'
-    # batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
+    #call the main() function in start_pool.py
+    start_pool.main(inp_paths, args.cores_left)
 
-
-    print 'start_pool: {}\n{} cores left'.format(args.start_pool,
-                                                 args.cores_left)
+    print "swmmio has completed running {} models".format(len(inp_paths))
 
 
 else:

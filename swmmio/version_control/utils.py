@@ -154,8 +154,8 @@ def create_change_info_sheet(excelwriter, model1, model2, name='', message=''):
     ix =  ['Date', 'BaselineModel', 'TargetModel', 'Commit', 'Name', 'Comment']
     vals =  [
             datetime.now().strftime("%y-%m-%d %H:%M"),
-            model1.inp.filePath,
-            model2.inp.filePath,
+            model1.inp.path,
+            model2.inp.path,
             functions.random_alphanumeric(12),
             name,
             message
@@ -168,7 +168,7 @@ def create_info_sheet(excelwriter, basemodel, parent_models=[]):
 
     #create an info sheet for the Excel file
     timeofcreation = datetime.now()
-    s = pd.Series([datetime.now(), basemodel.inp.filePath] + [x.inp.filePath for x in parent_models] )
+    s = pd.Series([datetime.now(), basemodel.inp.path] + [x.inp.path for x in parent_models] )
     s.index = ['DateCreated', 'Basemodel']+['ParentModel_' + str(i) for i,x in enumerate(parent_models)]
     df = pd.DataFrame(s, columns=['FileInfo'])
     df.to_excel(excelwriter, 'FileInfo')

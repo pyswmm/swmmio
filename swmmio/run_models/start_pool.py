@@ -26,9 +26,9 @@ def run_swmm_engine(inp_folder):
             f.write('completed at {}\n'.format(now))
     else:
         with open (logfile, 'a') as f:
-            f.write('RPT already exist: {}\n'.format(m.rpt.filePath))
+            f.write('RPT already exist: {}\n'.format(m.rpt.path))
 
-def main(dirs_containing_inps, cores_left):
+def main(inp_paths, cores_left):
 
     """
     called from the cli:
@@ -40,7 +40,7 @@ def main(dirs_containing_inps, cores_left):
     pool = Pool(cpu_count() - cores_left)
 
     #create a process pool with the run_swmm_engine() func on each directory
-    res = pool.map(run_swmm_engine, dirs_containing_inps)
+    res = pool.map(run_swmm_engine, inp_paths)
 
 
 if __name__ == '__main__':
