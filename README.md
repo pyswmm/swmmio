@@ -60,7 +60,7 @@ Using the command line tool, individual SWMM5 models can be run by invoking the 
 ```
 $ python -m swmmio --run path/to/mymodel.inp
 ```
-If you have many models to run and would like to take advantage of your machine's cores, you can start a pool of simulations with the `--start_pool` (or `-sp`) command. After pointing `-sp` to one or more directories, swmmio will search for SWMM .inp files and all them to a multiprocessing pool. By default, `-sp` leaves 4 of your machine's cores unused. This can changed via the `-cores_left` argument.  
+If you have many models to run and would like to take advantage of your machine's cores, you can start a pool of simulations with the `--start_pool` (or `-sp`) command. After pointing `-sp` to one or more directories, swmmio will search for SWMM .inp files and add all them to a multiprocessing pool. By default, `-sp` leaves 4 of your machine's cores unused. This can be changed via the `-cores_left` argument.
 ```
 $ #run all models in models in directories Model_Dir1 Model_Dir2
 $ python -m swmmio -sp Model_Dir1 Model_Dir2  
@@ -68,7 +68,11 @@ $ python -m swmmio -sp Model_Dir1 Model_Dir2
 $ #leave 1 core unused
 $ python -m swmmio -sp Model_Dir1 Model_Dir2  -cores_left=1
 ```
-Warning: using all cores for simultaneous model runs can put your machine's CPU usahe at 100% for extended periods of time. This probably puts stress on your hardware. Use at your own risk.
+<div class="warning">
+    <p class="first admonition-title">Warning</p>
+    <p class="last">Using all cores for simultaneous model runs can put your machine's CPU usage at 100% for extended periods of time. This probably puts stress on your hardware. Use at your own risk.</p>
+</div>
+
 
 
 ### Flood Model Options Generation
