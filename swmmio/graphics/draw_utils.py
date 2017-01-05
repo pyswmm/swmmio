@@ -2,6 +2,7 @@
 #drawing options
 import math
 from swmmio.graphics import config
+from definitions import PARCEL_FEATURES, GEODATABASE
 #COLOR DEFS
 red = 		(250, 5, 5)
 blue = 		(5, 5, 250)
@@ -22,7 +23,7 @@ purple = (250, 0, 250)
 
 def basemap_options(**kwargs):
 	basemap_options = {
-    'gdb': r'C:\Data\ArcGIS\GDBs\LocalData.gdb',
+    'gdb': GEODATABASE,
     'features': [
 		#this is an array so we can control the order of basemap layers
         # {
@@ -197,8 +198,8 @@ def parcel_options(type='flood', **kwargs):
 				'fill': red,
 				'outline': None,
 				'type': 'flood',
-				'feature':'PWD_PARCELS_SHEDS',
-				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
+				'feature':PARCEL_FEATURES,
+				'gdb':GEODATABASE
 				},
 		'compare_flood': {
 				'title': 'Parcel Flood Change',
@@ -208,8 +209,8 @@ def parcel_options(type='flood', **kwargs):
 				'fill': red,
 				'outline': None,
 				'type': 'compare_flood',
-				'feature':'PWD_PARCELS_SHEDS',
-				'gdb':r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
+				'feature':PARCEL_FEATURES,
+				'gdb':GEODATABASE
 				}
 			}
 
