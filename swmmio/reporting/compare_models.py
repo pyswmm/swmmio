@@ -260,7 +260,7 @@ def comparisonReport (model1, model2, bbox=None, threshold=0.083):
 	with open (outFile, 'wb') as file:
 
 		file.write("Model Comparison Report\n=======================\n\n")
-		file.write("Associated Files:\n\t" + '\n'.join([model1.inp.filePath, model1.rpt.filePath, model2.inp.filePath, model2.rpt.filePath]) )
+		file.write("Associated Files:\n\t" + '\n'.join([model1.inp.path, model1.rpt.path, model2.inp.path, model2.rpt.path]) )
 		file.write("\nAggregate Node Flooding Change\n============================\n\n")
 		file.write("Nodes with flooding eliminated, {}\n".format(nodesFloodEliminated))
 		file.write("Nodes with flooding decreased, {}\n".format(nodesFloodDDecrease))

@@ -40,7 +40,7 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
     model_dirs += [os.path.join(combi_dir, x) for x in os.listdir(combi_dir)]
     #print model_dirs
     baseline = Model(baseline_dir)
-    baseinp = baseline.inp.filePath
+    baseinp = baseline.inp.path
 
     for model_dir in model_dirs:
         model = Model(model_dir)
@@ -53,7 +53,7 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
         bi.metadata['Log'].update({version_id:comments})
         bi.save(vc_directory, version_id+'.txt')
         print 'rebuilding {} with changes to baseline'.format(model.name)
-        bi.build(baseline_dir, model.inp.filePath) #overwrite old inp
+        bi.build(baseline_dir, model.inp.path) #overwrite old inp
 
 
 
@@ -68,7 +68,7 @@ def create_combinations(baseline_dir, alternatives_dir, combi_dir, version_id=''
     """
 
     basemodel = Model(baseline_dir)
-    baseinp = basemodel.inp.filePath
+    baseinp = basemodel.inp.path
     alt_directories = os.listdir(alternatives_dir) #list of dirs holding alt models
     implementation_levels = []
     newmodels = []
@@ -83,7 +83,7 @@ def create_combinations(baseline_dir, alternatives_dir, combi_dir, version_id=''
 
             #create or refresh the build instructions file for the alternatives
             alt_imp_level_dir = os.path.join(alternatives_dir, alt, imp_level)
-            alt_imp_inp = Model(alt_imp_level_dir).inp.filePath
+            alt_imp_inp = Model(alt_imp_level_dir).inp.path
             vc_directory = os.path.join(alt_imp_level_dir, 'vc')
 
             if not os.path.exists(vc_directory):

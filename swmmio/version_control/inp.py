@@ -98,7 +98,7 @@ class BuildInstructions(object):
         baseline model.
         """
         basemodel = swmmio.Model(baseline_dir)
-        allheaders = funcs.complete_inp_headers(basemodel.inp.filePath)
+        allheaders = funcs.complete_inp_headers(basemodel.inp.path)
         #new_inp = os.path.join(target_dir, 'model.inp')
         with open (target_path, 'w') as f:
             for section in allheaders['order']:
@@ -110,7 +110,7 @@ class BuildInstructions(object):
                     and section in self.instructions):
 
                     #df of baseline model section
-                    basedf = create_dataframeINP(basemodel.inp, section)
+                    basedf = create_dataframeINP(basemodel.inp.path, section)
 
                     #grab the changes to
                     changes = self.instructions[section]
@@ -123,7 +123,7 @@ class BuildInstructions(object):
                     new_section = pd.concat([new_section, changes.altered, changes.added])
                 else:
                     #section is not well understood or is problematic, just blindly copy
-                    new_section = create_dataframeINP(basemodel.inp, section=section)
+                    new_section = create_dataframeINP(basemodel.inp.path, section=section)
 
                 #write the section
                 vc_utils.write_inp_section(f, allheaders, section, new_section)
@@ -141,8 +141,8 @@ class Change(object):
     def __init__(self, model1=None, model2=None, section='[JUNCTIONS]', build_instr_file=None):
 
         if model1 and model2:
-            df1 = create_dataframeINP(model1.inp, section)
-            df2 = create_dataframeINP(model2.inp, section)
+            df1 = create_dataframeINP(model1.inp.path, section)
+            df2 = create_dataframeINP(model2.inp.path, section)
 
             #BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
             added_ids = df2.index.difference(df1.index)
@@ -158,18 +158,18 @@ class Change(object):
             changed_ids = changes_with_dupes.index.get_duplicates()
 
             added = df2.ix[added_ids]
-            added['Comment'] = 'Added'# from model {}'.format(model2.inp.filePath)
-            added['Origin'] = model2.inp.filePath
+            added['Comment'] = 'Added'# from model {}'.format(model2.inp.path)
+            added['Origin'] = model2.inp.path
 
             altered = df2.ix[changed_ids]
-            altered['Comment'] = 'Altered'# in model {}'.format(model2.inp.filePath)
-            altered['Origin'] = model2.inp.filePath
+            altered['Comment'] = 'Altered'# in model {}'.format(model2.inp.path)
+            altered['Origin'] = model2.inp.path
 
             removed = df1.ix[removed_ids]
             #comment out the removed elements
             #removed.index = ["; " + str(x) for x in removed.index]
-            removed['Comment'] = 'Removed'# in model {}'.format(model2.inp.filePath)
-            removed['Origin'] = model2.inp.filePath
+            removed['Comment'] = 'Removed'# in model {}'.format(model2.inp.path)
+            removed['Origin'] = model2.inp.path
 
             self.old = df1
             self.new = df2
@@ -204,7 +204,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
     """
 
     #step 1 --> combine the diff/build instructions
-    allheaders = funcs.complete_inp_headers(basemodel.inp.filePath)
+    allheaders = funcs.complete_inp_headers(basemodel.inp.path)
     combi_build_instr_file = os.path.join(target_dir, 'build_instructions.txt')
     newinp = os.path.join(target_dir, 'new.inp')
     with open (combi_build_instr_file, 'w') as f:
@@ -247,7 +247,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
             if section not in problem_sections and allheaders['headers'][section] != 'blob':
                 #check if a changes from baseline spreadheet exists, and use this
                 #information if available to create the changes array
-                df = create_dataframeINP(basemodel.inp, section)
+                df = create_dataframeINP(basemodel.inp.path, section)
                 df['Origin'] = '' #add the origin column if not there
                 if section in df_dict:
                     df_change = df_dict[section]
@@ -257,7 +257,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
                 new_section = df
             else:
                 #blindly copy this section from the base model
-                new_section = create_dataframeINP(basemodel.inp, section=section)
+                new_section = create_dataframeINP(basemodel.inp.path, section=section)
 
             #write the section into the inp file and the excel file
             vc_utils.write_inp_section(f, allheaders, section, new_section)
@@ -289,7 +289,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
 
         #write meta data
         metadata = {
-            #'Baseline Model':modela.inp.filePath,
+            #'Baseline Model':modela.inp.path,
             #'ID':filename,
             'Parent Models':{
                             'Baseline':{inpA:vc_utils.modification_date(inpA)},

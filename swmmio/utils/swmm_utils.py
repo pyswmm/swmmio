@@ -687,7 +687,7 @@ def annotateMap (canvas, model, model2=None, currentTstr = None, options=None, r
 	#Buid the title and files list (handle 1 or two input models)
 	#this is hideous, or elegant?
 	files = title = results_string = symbology_string = annotationTxt = ""
-	files = '\n'.join([m.rpt.filePath for m in filter(None, [model, model2])])
+	files = '\n'.join([m.rpt.path for m in filter(None, [model, model2])])
 	title = ' to '.join([m.inp.name for m in filter(None, [model, model2])])
 	symbology_string = ', '.join([s['title'] for s in filter(None, [nodeSymb, conduitSymb, parcelSymb])])
 	title += "\n" + symbology_string

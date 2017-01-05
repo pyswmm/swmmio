@@ -65,7 +65,7 @@ class Model(object):
 
 			self.nodes = self._create_nodes_dataframe()
 
-	def organizeConduitData (self, bbox=None, subset=None, extraData=None, findOrder=False):
+	def organizeConduitData (self, bbox=None, subset=None, extraData=None):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#for conduits within a SWMM model. Upstream and downstream node data is attributed to the
@@ -100,7 +100,6 @@ class Model(object):
 			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
 			allLinksSummaryDict = rpt.createDictionary("Link Flow Summary")
 			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-			#print "created node and link summary dicts from " + rpt.fName
 
 		reachLength = 0.00 #used for tranform
 		maxEl = 0.00 #used for tranform
@@ -180,10 +179,10 @@ class Model(object):
 		rpt = self.rpt
 
 		#create dataframes of relevant sections from the INP
-		juncs_df = create_dataframeINP(inp, "[JUNCTIONS]")
-		outfalls_df = create_dataframeINP(inp, "[OUTFALLS]")
-		storage_df = create_dataframeINP(inp, "[STORAGE]")
-		coords_df = create_dataframeINP(inp, "[COORDINATES]")
+		juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
+		outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
+		storage_df = create_dataframeINP(inp.path, "[STORAGE]")
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
 
 		#concatenate the DFs and keep only relevant cols
 		all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
@@ -192,8 +191,8 @@ class Model(object):
 
 		if rpt:
 			#add results data if a rpt file was found
-			depth_summ = create_dataframeRPT(rpt, "Node Depth Summary")
-			flood_summ = create_dataframeRPT(rpt, "Node Flooding Summary")
+			depth_summ = create_dataframeRPT(rpt.path, "Node Depth Summary")
+			flood_summ = create_dataframeRPT(rpt.path, "Node Flooding Summary")
 
 			#join the rpt data (index on depth df, suffixes for common cols)
 			rpt_df = depth_summ.join(flood_summ,lsuffix='_depth',rsuffix='_flood')
@@ -202,7 +201,7 @@ class Model(object):
 		all_nodes = all_nodes.join(coords_df[['X', 'Y']])
 
 		#lookup the subcatchment data directly draining to each node
-		subcats_df = create_dataframeINP(inp, "[SUBCATCHMENTS]")[['Outlet', 'Area']]
+		subcats_df = create_dataframeINP(inp.path, "[SUBCATCHMENTS]")[['Outlet', 'Area']]
 		subcats_df['subcat_id'] = subcats_df.index
 		subcats_df = subcats_df.set_index('Outlet')
 		all_nodes = all_nodes.join(subcats_df)
@@ -210,14 +209,13 @@ class Model(object):
 		return all_nodes
 
 
-	def organizeNodeData (self, bbox=None, subset=None):
+	def organizeNodeData(self, bbox=None, subset=None):
 
 		#creates a dictionary of dictionaries containing relevant data
 		#per node within a SWMM model.
 
 		#check if this has been done already and return that data accordingly
 		if self.organized_node_data and bbox==self.bbox:
-			#print "loaded node objs from " + self.rpt.fName
 			return self.organized_node_data
 
 		#parse out the main objects of this model
@@ -238,7 +236,7 @@ class Model(object):
 			#create a dictionary holding data from an rpt file, if provided
 			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
 			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-			#print "created node summary dicts from " + rpt.fName
+
 
 		maxEl = 0.00 #used for tranform
 		minEl = 999999 #used for transform
@@ -470,21 +468,20 @@ class SWMMIOFile(object):
 
 	defaultSection = "Link Flow Summary"
 
-	def __init__(self, filePath):
+	def __init__(self, file_path):
 
 		#file name and path variables
-		self.filePath = filePath
-		self.fName = os.path.basename(filePath)
-		self.name = os.path.splitext(self.fName)[0]
-		self.dir = os.path.dirname(filePath)
-		self.fileSize = os.path.getsize(filePath)
+		self.path = file_path
+		self.name = os.path.splitext(os.path.basename(file_path))[0]
+		self.dir = os.path.dirname(file_path)
+		self.file_size = os.path.getsize(file_path)
 
 
 	def findByteRangeOfSection(self, startStr):
 
 		#returns the start and end "byte" location of substrings in a text file
 
-		with open(self.filePath) as f:
+		with open(self.path) as f:
 			start = None
 			end = None
 			l = 0 #line bytes index
@@ -510,7 +507,7 @@ class SWMMIOFile(object):
 
 		outFilePath = self.dir + "\\" + self.name + "_" + sectionTitle.replace(" ", "") + ".csv"
 		outFile = open(outFilePath, 'w') #create outfile
-		preppedTempFilePath = txt.extract_section_from_file(self.filePath, sectionTitle)
+		preppedTempFilePath = txt.extract_section_from_file(self.path, sectionTitle)
 		if not preppedTempFilePath:
 			return None #if nothing was found, do nothing
 
@@ -536,7 +533,7 @@ class SWMMIOFile(object):
 		"""
 
 		#preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
-		preppedTempFilePath = txt.extract_section_from_file(self.filePath, sectionTitle)
+		preppedTempFilePath = txt.extract_section_from_file(self.path, sectionTitle)
 		if not preppedTempFilePath:
 			return None #if nothing was found, do nothing
 
@@ -571,7 +568,7 @@ class SWMMIOFile(object):
 	def printSectionOfFile(self, lookUpStr=None, startByte=0, printLength = 500):
 
 		l = startByte #line byte location
-		with open(self.filePath) as f:
+		with open(self.path) as f:
 
 			f.seek(startByte) #jump to section at byte
 			#return f.read(printLength)
@@ -610,7 +607,7 @@ class rpt(SWMMIOFile):
 
 		#grab the date of analysis
 		with open (filePath) as f:
-			f.seek(self.fileSize - 500) #jump to 500 bytes before the end of file
+			f.seek(self.file_size - 500) #jump to 500 bytes before the end of file
 			for line in f:
 				if "Analysis begun on" in line:
 					date = line.split("Analysis begun on:  ")[1].replace("\n", "")
@@ -636,7 +633,7 @@ class rpt(SWMMIOFile):
 		startByte = self.findByteRangeOfSection(sectionTitle)[0] #+ len('\n  ************') #move past the first asterisks
 
 		id_byteDict = {}
-		with open(self.filePath) as f:
+		with open(self.path) as f:
 
 			f.seek(startByte) #jump to general area of file if we know it
 			l = startByte
@@ -673,7 +670,7 @@ class rpt(SWMMIOFile):
 			startByte = self.findByteRangeOfSection(sectionTitle)[0]
 			print 'startByte ' + str(startByte)
 
-		with open(self.filePath) as f:
+		with open(self.path) as f:
 
 			f.seek(startByte) #jump to general area of file if we know it
 			subsectionFound = False

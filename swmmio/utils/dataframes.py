@@ -1,6 +1,6 @@
 from swmmio.utils import text as txt
 from swmmio.utils import functions as funcs
-from swmmio.swmmio import rpt, inp
+# from swmmio.swmmio import inp #, rpt
 import pandas as pd
 import os
 
@@ -21,16 +21,12 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
 
     return df
 
-def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True, comment_str=';'):
+def create_dataframeINP (inp_path, section='[CONDUITS]', ignore_comments=True,
+                         comment_str=';'):
     """
-    given an inp object, create a dataframe of data in a given section
+    given a path to an INP file, create a dataframe of data in the given
+    section.
     """
-
-    #handle an inp object or a path to an INP file
-    if type(inp) is not str:
-        inp_path = inp.filePath
-    else:
-        inp_path = inp
 
     #find all the headers and their defs (section title with cleaned one-liner column headers)
     headerdefs = funcs.complete_inp_headers(inp_path)
@@ -65,24 +61,24 @@ def create_dataframeINP (inp, section='[CONDUITS]', ignore_comments=True, commen
     os.remove(tempfilepath)
 
     #add new blank comment column after a semicolon column
-    # df[';'] = ';'
-    # df['Comment'] = ''
-
 
     return df
 
-def create_dataframeRPT(rpt, section='Link Flow Summary', element_id=None):
+def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
     """
-    given an rpt object, create a dataframe of data in a given section
+    given a path to an RPT file, create a dataframe of data in the given
+    section.
     """
 
     #find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_rpt_headers(rpt.filePath)
+    headerdefs = funcs.complete_rpt_headers(rpt_path)
     #create temp file with section isolated from rpt file
-    tempfilepath = txt.extract_section_from_rpt(rpt.filePath, section, headerdefs=headerdefs, element_id=element_id)
+    tempfilepath = txt.extract_section_from_rpt(rpt_path, section,
+                                                headerdefs=headerdefs,
+                                                element_id=element_id)
 
     if not tempfilepath:
-        print 'header "{}" not found in "{}"'.format(section, rpt.filePath)
+        print 'header "{}" not found in "{}"'.format(section, rpt_path)
         return None
 
     if headerdefs['headers'][section] == 'blob':
@@ -97,14 +93,11 @@ def create_dataframeRPT(rpt, section='Link Flow Summary', element_id=None):
             df.index=pd.to_datetime(df0['Date'] + ' ' + df0['Time'])
             df.index.name = "".join(df0.columns[:2])
         else:
-            #this section header is recognized and will be organized into known columns
-            #headerlist = headerdefs['headers'][section].split()
+            #this section header is recognized, will be organized into known cols
             df = pd.read_table(tempfilepath, delim_whitespace=True, index_col=0)
-        #df.columns.names=[headerlist]
+
     os.remove(tempfilepath)
 
-    #add new blank comment column
-    #df['Comment'] = ''
 
 
     return df

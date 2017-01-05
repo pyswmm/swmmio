@@ -131,11 +131,11 @@ def timeseries_join(elements, *models):
         returns df with index = DateTime and cols = [model1_P1_FlowCFS, model1_P2_FlowCFS,
                                                     model2_P1_FlowCFS, model2_P2_FlowCFS]
     """
-    # dfs = [[dataframes.create_dataframeRPT(m.rpt, 'Link Results', el)[['FlowCFS']]
+    # dfs = [[dataframes.create_dataframeRPT(m.rpt.path, 'Link Results', el)[['FlowCFS']]
     #         for el in elements] for m in models]
     param_name = 'FlowCFS' #as named by our dataframe method
     section_name = 'Link Results' #in the rpt
-    dfs = [create_dataframeRPT(m.rpt, section_name, elem)[[param_name]].rename(
+    dfs = [create_dataframeRPT(m.rpt.path, section_name, elem)[[param_name]].rename(
                 columns={param_name:'{}_{}_{}'.format(m.inp.name, elem, param_name)}
                 )
                 for m in models for elem in elements]
