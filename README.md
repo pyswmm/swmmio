@@ -1,6 +1,6 @@
 # SWMMIO
 
-SWMMIO is a set of python tools aiming to provide efficient means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). These tools are being developed specifically for the application of flood risk management.
+SWMMIO is a set of python tools aiming to provide efficient means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
 
 ### Prerequisites
@@ -54,6 +54,26 @@ Create an animated gif of a model's response to a storm. Again many options can 
 ```python
 sg.animateModel(mymodel, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
 ```
+
+### Running Models
+Using the command line tool, individual SWMM5 models can be run by invoking the swmmio module in your shell as such:
+```
+$ python -m swmmio --run path/to/mymodel.inp
+```
+If you have many models to run and would like to take advantage of your machine's cores, you can start a pool of simulations with the `--start_pool` (or `-sp`) command. After pointing `-sp` to one or more directories, swmmio will search for SWMM .inp files and add all them to a multiprocessing pool. By default, `-sp` leaves 4 of your machine's cores unused. This can be changed via the `-cores_left` argument.
+```
+$ #run all models in models in directories Model_Dir1 Model_Dir2
+$ python -m swmmio -sp Model_Dir1 Model_Dir2  
+
+$ #leave 1 core unused
+$ python -m swmmio -sp Model_Dir1 Model_Dir2  -cores_left=1
+```
+<div class="warning">
+    <p class="first admonition-title">Warning</p>
+    <p class="last">Using all cores for simultaneous model runs can put your machine's CPU usage at 100% for extended periods of time. This probably puts stress on your hardware. Use at your own risk.</p>
+</div>
+
+
 
 ### Flood Model Options Generation
 swmmio can take a set of independent storm flood relief (SFR) alternatives and combine them into every combination of potential infrastructure changes. This lays the ground work for identifying the most-efficient implementation sequence and investment level.

@@ -36,6 +36,9 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
                                filename=filename,
                                subset=new_conduit_ids)
 
+
+
+
 def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
 
     changes = inp.Change(baseline, newmodel, section ='[CONDUITS]')
@@ -51,26 +54,72 @@ def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
     newconduits[geoms] = newconduits[geoms].apply(pd.to_numeric)
 
     def calc_area(row):
-        """
-        calculate the cross-sectional area of a sewer segment in the
-        passed dataframe
-        """
+        """calculate the cross-sectional area of a sewer segment"""
+
         if row.Shape == 'CIRCULAR':
             d = row.Geom1
             area = 3.1415 * (d * d) / 4
-            return area * row.Barrels
+            return round((area * row.Barrels),2)
 
+        if 'RECT' in row.Shape:
+            #assume triangular bottom sections (geom3) deepens the excavated box
+            return (row.Geom1 + row.Geom3) * row.Geom2
+        if row.Shape =='EGG':
+            #assume geom1 is the span
+            return row.Geom1*1.5
+
+    def get_unit_cost(row):
+        cost_dict = {1.0:570,
+                    1.5:570,
+                    1.75:610,
+                    2.0:680,
+                    2.25:760,
+                    2.5:860,
+                    3.0:1020,
+                    3.5:1200,
+                    4.0:1400,
+                    4.5:1550,
+                    5.0:1700,
+                    5.5:1960,
+                    6.0:2260,
+                    7.0:2600,
+                    7.5:3000,
+                    }
+
+        def round_to(n, precision):
+            correction = 0.5 if n >= 0 else -0.5
+            return int( n/precision+correction ) * precision
+
+        def round_to_05(n):
+            return round_to(n, 0.05)
+
+        cleaned_geom = round_to_05(row.Geom1)
+        # print '{}: Raw Geom1 = {} is rounded  to {}'.format(row.InletNode, row.Geom1, cleaned_geom)
+
+        RectBox_UnitCost = 80
+        if row.Shape == 'CIRCULAR':
+            try:
+                val = cost_dict[cleaned_geom]
+            except:
+                val = 0
+            return val
         if 'RECT' in row.Shape:
             """
             assume any triangular bottom section adds to
             overall excavation box section
             """
-            return (row.Geom1 + row.Geom3) * row.Geom2
+            val = round(RectBox_UnitCost*row.XArea,2)
+            return val
+        if row.Shape == 'EGG':
+            """
+            We're going to treat this like a box"
+            """
+            val = round(RectBox_UnitCost*row.XArea,2)
+            return val
 
 
-    def compute_conduit_cost(row, unitcost=80):
-
-        return row.XArea * row.Length * unitcost
+    def compute_conduit_cost(row):
+        return row.UnitCostLF * row.Length
 
     def compute_volume(row):
         return row.XArea * row.Length
@@ -80,6 +129,7 @@ def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
         return row.CostEstimate + row.AdditionalCost
 
     newconduits['XArea'] = newconduits.apply (lambda row: calc_area (row), axis=1)
+    newconduits['UnitCostLF'] = newconduits.apply(lambda row: get_unit_cost(row), axis=1)
     newconduits['Volume'] = newconduits.apply (lambda row:
                                                compute_volume (row), axis=1)
     newconduits['CostEstimate'] = newconduits.apply (lambda row:
@@ -94,7 +144,7 @@ def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
                                                               added_cost(row),
                                                               axis=1)
     else:
-        # NOTE this lingo here is weak... 
+        # NOTE this lingo here is weak...
         #additional_costs not provided, rename the CostEstimate to TotalCostEstimate
         newconduits = newconduits.rename(columns={"CostEstimate": "TotalCostEstimate"})
 

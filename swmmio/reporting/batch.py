@@ -2,7 +2,7 @@ from swmmio.swmmio import Model
 from swmmio.reporting import reporting
 from swmmio.reporting import functions
 from swmmio.utils import swmm_utils as su
-from datetime import datetime
+from time import strftime
 import os
 import shutil
 import math
@@ -11,7 +11,7 @@ from itertools import chain
 REPORT_DIR_NAME = 'Report'
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
-                         supplemental_cost_data=None):
+                         supplemental_cost_data=None, create_proj_reports=True):
     """
     compute the cost estimate of each model/option in the segments and
     combinations directories. Resulsts will be printed in the results text file.
@@ -31,11 +31,19 @@ def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
                 costsdf = functions.estimate_cost_of_new_conduits(baseline, alt,
                                                                   supplemental_cost_data)
                 cost_estimate = costsdf.TotalCostEstimate.sum() / math.pow(10, 6)
-                print cost_estimate
+                print '{}: ${}M'.format(alt.name, round(cost_estimate,1))
 
                 model_id = os.path.splitext(f)[0]
                 with open(results_file, 'a') as res:
                     res.write('{}, {}\n'.format(model_id, cost_estimate))
+
+                if create_proj_reports:
+                    #create a option-specific per segment costing csv file
+                    report_dir = os.path.join(alt.inp.dir, REPORT_DIR_NAME)
+                    fname = '{}_CostEstimate_{}.csv'.format(alt.name, strftime("%y%m%d"))
+                    cost_report_path = os.path.join(report_dir, fname)
+                    if not os.path.exists(report_dir):os.mkdir(report_dir)
+                    costsdf.to_csv(cost_report_path)
 
 
 def batch_post_process(options_dir, baseline_dir, log_dir, bbox=None, overwrite=False):
