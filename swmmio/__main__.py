@@ -9,8 +9,8 @@ from datetime import datetime
 
 #parse the arguments
 parser = argparse.ArgumentParser(description='Process some stuff')
-parser.add_argument('-r', '--run', dest='model_to_run')
-parser.add_argument('-rhs', '--run_hotstart', dest='hotstart_model_to_run')
+parser.add_argument('-r', '--run', dest='model_to_run', nargs="+")
+parser.add_argument('-rhs', '--run_hotstart', dest='hotstart_model_to_run', nargs="+")
 parser.add_argument('-sp', '--start_pool', dest='start_pool', nargs="+")
 parser.add_argument('-cores_left', '--cores_left', dest='cores_left', default=4, type=int)
 
@@ -21,8 +21,13 @@ wd = os.getcwd() #current directory script is being called from
 
 
 if args.model_to_run is not None:
-    print 'run the model: {}'.format(args.model_to_run)
-    run_simple(args.model_to_run)
+
+    models_paths = [os.path.join(wd, f) for f in args.model_to_run]
+    print 'Adding models to queue:\n\t{}'.format('\n\t'.join(models_paths))
+
+    #run the models in series (one after the other)
+    map(run_simple, models_paths)
+    # run_simple(args.model_to_run)
 
 elif args.hotstart_model_to_run is not None:
     print 'hotstart_model_to_run the model: {}'.format(args.hotstart_model_to_run)

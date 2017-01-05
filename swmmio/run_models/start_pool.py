@@ -9,9 +9,10 @@ import os
 import sys
 wd = os.getcwd()
 
+log_start_time = datetime.now().strftime("%y%m%d_%H%M")
 def run_swmm_engine(inp_folder):
-    now = datetime.now().strftime("%y%m%d_%H%M")
-    logfile = os.path.join(wd, 'log_'+now+'.txt')
+
+    logfile = os.path.join(wd, 'log_'+log_start_time+'.txt')
 
     m = Model(inp_folder)
     print 'inp_folder = {}'.format(inp_folder)
