@@ -1,0 +1,85 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>South Philly GSI Explore</title>
+
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <!-- <link rel="stylesheet" href="style.css" /> -->
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <style media="screen">
+      #mapid { height: 100%; }
+      #mapid {
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+      }
+
+      html, body {
+        height: 100%;
+      }
+
+      .fill {
+        min-height: 100%;
+        height: 100%;
+      }
+    </style>
+    <div class="container-fluid fill">
+
+      <div id="mapid">
+
+      </div>
+
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.15/proj4.js"></script>
+    <!-- <script src="plugins/proj4-compressed.js"></script>
+    <script src="plugins/proj4leaflet.js"></script> -->
+    <!-- <script src="random_sheds.js"></script> -->
+    <script type="text/javascript">
+
+    // data = [SWMMIO DUMP JSON DATA HERE]
+
+    // Set up the map
+    var mymap = L.map('mapid').setView([39.921685, -75.148946], 15);
+    var tile_url = 'https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw'
+    L.tileLayer(tile_url).addTo(mymap);
+
+
+    // POPUPS
+    function onEachFeature(feature, layer) {
+    // does this feature have a property named popupContent?
+    console.log(feature.properties.geom1)
+    // console.log(layer)
+        if (feature.properties && feature.properties.geom1) {
+            content = feature.properties.geom1 + 'ft x ' + feature.properties.geom2 + 'ft'
+            // layer.bindPopup('Geom1 % ' + feature.properties.MaxQPercent);
+            layer.bindPopup(content);
+        };
+
+    }
+    // ADD THE DATA TO MAP
+    // convert_coords(data)
+    L.geoJSON(data, {onEachFeature:onEachFeature}).addTo(mymap);
+
+    </script>
+  </body>
+</html>

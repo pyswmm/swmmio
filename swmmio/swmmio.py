@@ -352,6 +352,12 @@ class Model(object):
 		export model as a geojson object
 		"""
 		import geojson
+		try:
+			import pyproj
+		except ImportError:
+			raise ImportError('pyproj module needed. get this package here: ',
+							'https://pypi.python.org/pypi/pyproj')
+
 		from geojson import Point, LineString, Feature, GeometryCollection
 
 		if crs is None:
@@ -359,11 +365,16 @@ class Model(object):
 			#NAD_1983_StatePlane_Pennsylvania_South_FIPS_3702_Feet
 			crs =  {"type": "name","properties": {"name": "EPSG:2272"}}
 
+		pa_plane = pyproj.Proj(init='epsg:2272', preserve_units=True)
+		wgs = pyproj.Proj(proj='latlong', datum='WGS84', ellps='WGS84') #google maps, etc
+
+
 		geometries = [] #array of features
 		#collect the nodes
 		for k,v in self.list_objects('node', bbox).items():
 			props = {'flood_duration':v.flood_duration, 'id':v.id}
-			geometry = Point(v.coordinates, properties=props)
+			lat,lng = pyproj.transform(pa_plane, wgs, *v.coordinates)
+			geometry = Point((lat,lng), properties=props)
 			geometries.append(geometry)
 
 		#collect the links
@@ -373,7 +384,9 @@ class Model(object):
 			        'lifecycle':v.lifecycle,
 			        'geom1':v.geom1,
 					'geom2':v.geom2,}
-			geometry = LineString(v.coordinates, properties=props)
+
+			latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in v.coordinates]
+			geometry = LineString(latlngs, properties=props)
 			geometries.append(geometry)
 
 		# points = []

@@ -7,8 +7,8 @@ import os
 import shutil
 import math
 from itertools import chain
-
-REPORT_DIR_NAME = 'Report'
+from definitions import *
+# REPORT_DIR_NAME = 'Report'
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
                          supplemental_cost_data=None, create_proj_reports=True):

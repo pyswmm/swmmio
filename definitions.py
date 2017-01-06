@@ -11,3 +11,9 @@ GEODATABASE = r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
 
 #feature class name of parcels in geodatabase
 PARCEL_FEATURES = r'PWD_PARCELS_SHEDS_PPORT'
+
+#name of the directories in which to store post processing data
+REPORT_DIR_NAME = r'Report'
+
+#path to the basemap file used to create custom basemaps
+BASEMAP_PATH = os.path.join(ROOT_DIR,'swmmio','reporting','basemaps','index.html')
