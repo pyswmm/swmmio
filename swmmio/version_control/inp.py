@@ -201,6 +201,8 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
     with a list of inp diff files (build instructions). This saves having to
     recalculate the differences of each model from the baseline whenever we want
     to combine versions.
+
+    NOTE THIS ISN'T USED ANYWHERE. DELETE ????
     """
 
     #step 1 --> combine the diff/build instructions
