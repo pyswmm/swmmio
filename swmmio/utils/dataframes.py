@@ -69,6 +69,30 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 
     return df
 
+def get_link_coords(row, nodexys, verticies):
+    """for use in an df.apply, to get coordinates of a conduit/link """
+    x1 = round(nodexys.get_value(row.InletNode, 'X'), 4)
+    y1 = round(nodexys.get_value(row.InletNode, 'Y'), 4)
+    x2 = round(nodexys.get_value(row.OutletNode, 'X'), 4)
+    y2 = round(nodexys.get_value(row.OutletNode, 'Y'), 4)
+    if None in [x1, x2, y1, y2]:
+        print row.name, 'problem, no coords'
+    #grab any extra verts, place in between up/dwn nodes
+    res =  [(x1, y1)]
+    if row.name in verticies.index:
+        xs = verticies.ix[row.name, 'X'].tolist()
+        ys = verticies.ix[row.name, 'Y'].tolist()
+        if isinstance(xs, list) and isinstance(ys, list):
+            #if more than one vert for this link exists, arrays are returned
+            #from verticies.get_value(). it then needs to be zipped up
+            res = res + zip(xs, ys)
+        else:
+            res = res + [(xs, ys)]
+
+    res = res + [(x2, y2)]
+
+    return [res] #nest in a list to force a series to be returned in a df.apply
+
 def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
     """
     given a path to an RPT file, create a dataframe of data in the given
