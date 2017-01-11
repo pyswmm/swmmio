@@ -1,11 +1,10 @@
-#!/usr/bin/env python
-#coding:utf-8
-
 #graphical functions for SWMM files
-#import swmmio
 from swmmio.utils import swmm_utils as su
 from swmmio.graphics import draw_utils as du
 from swmmio.graphics import config
+from swmmio.graphics import * #constants
+from swmmio.graphics.utils import pixel_coords_from_irl_coords, circle_bbox
+from swmmio.graphics.drawing import draw_node, draw_conduit
 from swmmio import parcels
 import re
 import os
@@ -159,6 +158,33 @@ def drawBasemap(draw, img=None, featureDicts=None, options={}, bbox=None, shiftR
 					su.annotateLine(img, polyData, annoKey='ST_NAME', labeled = anno_streets)
 					polyDrawCount += 1
 
+
+def draw_model(model):
+	"""
+	create a png rendering of the model and model results
+	"""
+
+	#gather the nodes and conduits data
+	nodes = model.nodes()
+	conduits = model.conduits()
+
+	#compute draw coordinates, and the image dimensions (in px)
+	nodes, bbox, h, w = pixel_coords_from_irl_coords(nodes)
+	conduits, bbox, h, w = pixel_coords_from_irl_coords(conduits)
+
+	#create the PIL image and draw objects
+	img = Image.new('RGB', (w,h), white)
+	draw = ImageDraw.Draw(img)
+
+	#start the draw fest, mapping draw methods to each row in the dataframes
+	conduits.apply(lambda row: draw_conduit(row, draw), axis=1)
+	nodes.apply(lambda row: draw_node(row, draw), axis=1)
+
+	fname = r'F:\models\SPhila\MasterModels_170104\Combinations\M03_R04_W05\img\coolio.png'
+	img.save(fname)
+	# del draw, img
+
+
 def drawModel (model, **kwargs):
 
 	#unpack and update the options
@@ -230,6 +256,7 @@ def drawModel (model, **kwargs):
 
 	#DRAW THE CONDUITS
 	if ops['conduitSymb']:
+		print 'conduit symb = {}'.format(ops['conduitSymb'])
 		for id, conduit in conduits.iteritems():
 
 			if conduit.coordinates: #has coordinate? draw. protect from rdii junk

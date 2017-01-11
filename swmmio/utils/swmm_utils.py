@@ -309,40 +309,6 @@ def shape2Pixels(feature, cols = ["OBJECTID", "SHAPE@"],  where="SHEDNAME = 'D68
 
 	return polyImgDict
 
-def pixel_coords_from_irl_coords(df, targetImgW=1024,
-									bbox=None, shiftRatio=None):
-
-	"""
-	given a dataframe with element id (as index) and X1, Y1 columns (and
-	optionally X2, Y2 columns), return a dataframe with the coords as pixel
-	locations based on the targetImgW.
-	"""
-	xmin, ymin, xmax, ymax = (df.X.min(), df.Y.min(),df.X.max(), df.Y.max())
-	if not bbox:
-		#start by determining the max and min coordinates in the whole model
-		bbox = [(xmin, ymin),(xmax, ymax)]
-
-	#find the actual dimensions, use to find scale factor
-	height = bbox[1][1] - bbox[0][1]
-	width = bbox[1][0] - bbox[0][0]
-	if not shiftRatio:
-		# to scale down from coordinate to pixels
-		shiftRatio = float(targetImgW / width)
-
-	def shft_x_crds(row):
-		return (row.X - xmin) * shiftRatio
-
-	def shft_y_crds(row):
-		return (height - row.Y + ymin) * shiftRatio
-
-	#copy the given df and insert new columns with the shifted coordinates
-	df_shft = df[:]
-	df_shft.insert(0, 'X_px', df_shft.apply(lambda row: shft_x_crds(row), axis = 1))
-	df_shft.insert(0, 'Y_px', df_shft.apply(lambda row: shft_y_crds(row), axis = 1))
-	# df_shft.loc[:,'Y_px'] = df_shft.apply(lambda row: shft_y_crds(row), axis = 1)
-
-	return df_shft
-
 def convertCoordinatesToPixels(element_objs, targetImgW=1024, bbox=None, shiftRatio=None):
 
 	"""
@@ -435,7 +401,7 @@ def circleBBox(coordinates, radius):
 
 	return (x-r, y-r, x+r, y+r)
 
-
+		
 def drawNode(node, draw, options, rpt=None, dTime=None, xplier=1):
 
 	color = (210, 210, 230) #default color

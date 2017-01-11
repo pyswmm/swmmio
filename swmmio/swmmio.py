@@ -11,9 +11,9 @@ import parcels
 import pickle
 from .utils import swmm_utils as su
 import glob
-import csv
+import csv, math
 from .utils import text as txt
-from .utils.dataframes import create_dataframeINP, create_dataframeRPT
+from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 
 class Model(object):
 
@@ -104,9 +104,13 @@ class Model(object):
 			link_flow_df = create_dataframeRPT(rpt.path, "Link Flow Summary")
 			conduits_df = conduits_df.join(link_flow_df)
 
+		#add conduit coordinates
+		#the xys.map() junk is to unpack a nested list
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = conduits_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		conduits_df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
-
-		self._conduits_df =conduits_df
+		self._conduits_df = conduits_df
 
 		return conduits_df
 
@@ -248,12 +252,14 @@ class Model(object):
 			all_nodes = all_nodes.join(rpt_df) #join to the all_nodes df
 
 		all_nodes = all_nodes.join(coords_df[['X', 'Y']])
+		def nodexy(row):
+			if math.isnan(row.X) or math.isnan(row.Y):
+				return None
+			else:
+				return [(row.X, row.Y)]
 
-		#lookup the subcatchment data directly draining to each node
-		subcats_df = create_dataframeINP(inp.path, "[SUBCATCHMENTS]")[['Outlet', 'Area']]
-		subcats_df['subcat_id'] = subcats_df.index
-		subcats_df = subcats_df.set_index('Outlet')
-		all_nodes = all_nodes.join(subcats_df)
+		xys = all_nodes.apply(lambda r: nodexy(r), axis=1)
+		all_nodes = all_nodes.assign(coords = xys)
 
 		self._nodes_df = all_nodes
 
