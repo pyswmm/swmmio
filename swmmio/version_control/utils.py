@@ -2,7 +2,40 @@ from datetime import datetime
 import os
 import json
 import pandas as pd
+import shutil
 from swmmio.utils import functions
+
+
+
+def copy_rpts_hsf(from_dir, to_dir, search_dir):
+    """
+    walk through a directory and find all rpts and hot start files and copy to
+    another location based on the relative path from the to_dir.
+
+    ex:
+        to_directory = r'P:\02_Projects\SouthPhila\SE_SFR\MasterModels'
+        from_dir = r'F:\models\SPhila\MasterModels_170104'
+        search_dir = r'F:\models\SPhila\MasterModels_170104\Combinations'
+        copy_rpts_hsf(from_dir, to_dir, search_dir)
+
+
+    Good for model results written on a local drive to a network drive
+    """
+
+    #chain.from_iterable(os.walk(path) for path in paths):
+    for path, dirs, files in os.walk(search_dir):
+        for f in files:
+            if '.rpt' in f:
+                rpt_path = os.path.join(path,f)
+                to_dir = path.replace(from_dir, to_dir)
+                dest = os.path.join(to_dir, f)
+                shutil.copyfile(src=rpt_path, dst=dest)
+
+            if '.hsf' in f:
+                hsf_path = os.path.join(path,f)
+                to_dir = path.replace(from_dir, to_dir)
+                dest = os.path.join(to_dir, f)
+                shutil.copyfile(src=hsf_path, dst=dest)
 
 
 def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True, na_fill = ''):

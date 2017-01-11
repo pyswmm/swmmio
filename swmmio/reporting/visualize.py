@@ -4,7 +4,8 @@ from swmmio.version_control import inp
 from definitions import *
 
 
-def create_map(model1, model2=None, bbox=None, crs=None, filename=None, subset=None):
+def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
+               subset=None, return_data=False):
 
     """
     export model as a geojson object
@@ -22,7 +23,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None, subset=N
         changes = inp.Change(model1, model2, section='[CONDUITS]')
         df = pd.concat([changes.added, changes.altered])
         subset = df.index.tolist()
-        
+
     # else:
     #     model2 = model1 #stupid, for file path
 
@@ -58,6 +59,9 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None, subset=N
         geometry = LineString(latlngs, properties=props)
         geometries.append(geometry)
 
+
+    if return_data is True:
+        return FeatureCollection(geometries, crs=crs)
 
     if filename is None:
         filename = os.path.join(model2.inp.dir,

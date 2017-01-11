@@ -63,7 +63,52 @@ class Model(object):
 				except:
 					print '{}.rpt failed to initialize'.format(name)
 
-			self.nodes = self._create_nodes_dataframe()
+			self._nodes_df = None
+			self._conduits_df = None
+
+	def conduits(self, bbox=None, subset=None):
+
+		"""
+		collect all useful and available data related model conduits and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._conduits_df is not None  and bbox==self.bbox:
+			return self._conduits_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
+		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
+		conduits_df = conduits_df.join(xsections_df)
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]") #unuesed
+
+		#concatenate the node DFs and keep only relevant cols
+		if self._nodes_df is None:
+			storages_df = create_dataframeINP(inp.path, "[STORAGE]")
+			junctions_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
+			outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
+			all_nodes = pd.concat([junctions_df, outfalls_df, storages_df])
+			cols =['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
+			all_nodes = all_nodes[cols]
+		else:
+			print 'loading nodes'
+			all_nodes_df = self._nodes_df
+
+		if rpt:
+			#create a dictionary holding data from an rpt file, if provided
+			link_flow_df = create_dataframeRPT(rpt.path, "Link Flow Summary")
+			conduits_df = conduits_df.join(link_flow_df)
+
+
+
+		self._conduits_df =conduits_df
+
+		return conduits_df
 
 	def organizeConduitData (self, bbox=None, subset=None, extraData=None):
 
@@ -167,12 +212,16 @@ class Model(object):
 
 		return output
 
-	def _create_nodes_dataframe(self, bbox=None, subset=None):
+	def nodes(self, bbox=None, subset=None):
 
 		"""
 		collect all useful and available data related model nodes and organize
 		in one dataframe.
 		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._nodes_df is not None and bbox==self.bbox:
+			return self._nodes_df
 
 		#parse out the main objects of this model
 		inp = self.inp
@@ -205,6 +254,8 @@ class Model(object):
 		subcats_df['subcat_id'] = subcats_df.index
 		subcats_df = subcats_df.set_index('Outlet')
 		all_nodes = all_nodes.join(subcats_df)
+
+		self._nodes_df = all_nodes
 
 		return all_nodes
 

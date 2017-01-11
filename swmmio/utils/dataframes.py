@@ -21,8 +21,8 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
 
     return df
 
-def create_dataframeINP (inp_path, section='[CONDUITS]', ignore_comments=True,
-                         comment_str=';'):
+def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
+                         comment_str=';', comment_cols=True):
     """
     given a path to an INP file, create a dataframe of data in the given
     section.
@@ -53,10 +53,15 @@ def create_dataframeINP (inp_path, section='[CONDUITS]', ignore_comments=True,
         df = pd.read_table(tempfilepath, delim_whitespace=False)#, index_col=0)#, skiprows=[0])
     else:
         #this section header is recognized and will be organized into known columns
-        headerlist = headerdefs['headers'][section].split() + [';', 'Comment', 'Origin']
+        headerlist = headerdefs['headers'][section].split()
+        if comment_cols:
+            headerlist = headerlist + [';', 'Comment', 'Origin']
         df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
                              index_col=0, names = headerlist, comment=comment_str)
-        df[';'] = ';'
+
+        if comment_cols:
+            df[';'] = ';'
+
         #df.columns.names=[headerlist]
     os.remove(tempfilepath)
 
