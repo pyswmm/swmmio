@@ -220,7 +220,7 @@ def parcel_options(type='flood', **kwargs):
 
 	return selected_ops
 def default_draw_options():
-
+	
 	if config.include_basemap:
 		basemap_symbology = basemap_options()
 	else:

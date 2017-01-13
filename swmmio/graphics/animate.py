@@ -110,7 +110,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 
 		#DRAW THE BASEMAP
 		if ops['basemap']:
-			sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, featureDicts=basemapFeatureDicts, xplier = xplier)
+			sg.draw_basemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox, featureDicts=basemapFeatureDicts, xplier = xplier)
 
 		#DRAW THE CONDUITS
 		if ops['conduitSymb']:
