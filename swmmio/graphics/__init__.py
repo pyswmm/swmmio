@@ -22,6 +22,15 @@ Example:
 _o = {
     'include_basemap':False,
     'include_parcels':False,
+    'basemap_shapefile_dir':r'C:\Data\ArcGIS\Shapefiles',
+
+    #regular shapefile used for drawing parcels
+    'parcels_shapefile':r'C:\Data\ArcGIS\Shapefiles\pennsport_parcels.shp',
+
+    #table resulting from one-to-many spatial join of parcels to sheds
+    'parcel_node_join_data':r'P:\02_Projects\SouthPhila\SE_SFR\MasterModels\CommonData\pennsport_sheds_parcels_join.csv',
+
+    'font_file':r'C:\Data\Code\Fonts\Raleway-Regular.ttf',
 }
 
 config = _dotdict(_o)

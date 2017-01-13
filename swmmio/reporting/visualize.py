@@ -38,13 +38,6 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
 
 
     geometries = [] #array of features
-    # # collect the nodes
-    # for k,v in model1.list_objects('node', bbox).items():
-    #     props = {'flood_duration':v.flood_duration, 'id':v.id}
-    #     lat,lng = pyproj.transform(pa_plane, wgs, *v.coordinates)
-    #     geometry = Point((lat,lng), properties=props)
-    #     geometries.append(geometry)
-
     #collect the links
     for k,v in model2.list_objects('conduit', bbox, subset=subset).items():
         props = {

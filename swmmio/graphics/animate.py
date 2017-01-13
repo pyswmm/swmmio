@@ -17,7 +17,9 @@ import pickle
 
 def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 
-
+	"""
+	FUNCTION NOT CURRENTLY SUPPORTED ! :(
+	"""
 	#unpack and update the options
 	ops = du.default_draw_options()
 	for key, value in kwargs.iteritems():

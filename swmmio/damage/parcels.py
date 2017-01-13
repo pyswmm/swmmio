@@ -37,3 +37,40 @@ def flood_duration(node_flood_df, parcel_node_join_table, threshold=0.08333):
     #filter only parcels with flood duration above the threshold
     parcel_flood_max = parcel_flood_max.loc[parcel_flood_max.HoursFlooded>=threshold]
     return parcel_flood_max
+
+def compare_flood_duration(basedf,altdf,threshold=0.08333,delta_threshold=0.25):
+
+    df = basedf.join(altdf, lsuffix='Baseline', rsuffix='Proposed', how='outer')
+    df = df.fillna(0) #any NaN means no flooding observed
+    delta = df.HoursFloodedProposed - df.HoursFloodedBaseline
+    df = df.assign(DeltaHours=delta)
+
+    def categorize(parcel):
+
+        if (parcel.HoursFloodedBaseline
+            and parcel.HoursFloodedProposed >= delta_threshold):
+            #parcel still floods, check how it changed:
+            if parcel.DeltaHours > delta_threshold:
+                #flooding duration increased (more than delta_threhold)
+                return 'increased_flooding'
+
+            elif parcel.DeltaHours < -delta_threshold:
+                #flooding duration decreased (more than delta_threhold)
+                return 'decreased_flooding'
+
+        elif (parcel.HoursFloodedBaseline < delta_threshold
+              and parcel.HoursFloodedProposed >= delta_threshold
+              and abs(parcel.DeltaHours) >= delta_threshold):
+            #flooding occurs where it perviously did not
+            return 'new_flooding'
+
+        elif (parcel.HoursFloodedBaseline >= threshold
+              and parcel.HoursFloodedProposed < threshold
+              and abs(parcel.DeltaHours) >= delta_threshold):
+            #parcel that previously flooded no longer does
+            return 'eliminated_flooding'
+
+    cats = df.apply(lambda row: categorize(row), axis=1)
+    df = df.assign(Category=cats)
+
+    return df
