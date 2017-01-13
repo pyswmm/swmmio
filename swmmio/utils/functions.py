@@ -77,3 +77,67 @@ def complete_rpt_headers (rptfilepath):
                     foundheaders.update({h:'blob'})
 
     return {'headers':foundheaders, 'order':order}
+
+def merge_dicts(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+		if dictionary:
+			result.update(dictionary)
+    return result
+
+def trace_from_node(model, startNode, mode='up', stopnode=None):
+
+	"""
+	trace up and down a SWMM model given a start node and optionally an
+	stop node.
+	"""
+
+	inp = model.inp
+	conduitsDict = inp.createDictionary("[CONDUITS]")
+	storagesDict = inp.createDictionary("[STORAGE]")
+	junctionsDict = inp.createDictionary("[JUNCTIONS]")
+	outfallsDict = inp.createDictionary("[OUTFALLS]")
+	allNodesDict = merge_dicts(storagesDict, junctionsDict, outfallsDict)
+
+	tracedNodes = [startNode] #include the starting node
+	tracedConduits = []
+
+	#recursive function to trace upstream
+	def trace (nodeID):
+		#print "tracing from {}".format(nodeID)
+		for conduit, data in conduitsDict.iteritems():
+
+			conduitUpNodeID = conduitDnNodeID = None
+			if len(data) >= 1:
+				#not sure why i need to do this check, but it prevents an indexing error on some
+				conduitUpNodeID = data[0]
+				conduitDnNodeID = data[1]
+
+			if mode=='down' and conduitUpNodeID == nodeID and conduit not in tracedConduits:
+				#conduit not in traced conduits to prevent duplicates for some reason
+				#grab its dnstream node ID
+				tracedConduits.append(conduit)
+				tracedNodes.append(conduitDnNodeID)
+				if stopnode and conduitDnNodeID == stopnode:
+					break
+				trace(conduitDnNodeID)
+
+			if mode == 'up' and conduitDnNodeID == nodeID and conduit not in tracedConduits:
+				#conduit not in traced conduits to prevent duplicates for some reason
+				#this conduit is upstream of current node
+				#grab its upstream node ID
+				tracedConduits.append(conduit)
+				tracedNodes.append(conduitUpNodeID)
+				if stopnode and conduitUpNodeID == stopnode:
+					break
+				trace(conduitUpNodeID)
+
+	#kickoff the trace
+	print "Starting trace {0} from {1}".format(mode, startNode)
+	trace(startNode)
+	print "Traced {0} nodes from {1}".format(len(tracedNodes), startNode)
+	return {'nodes':tracedNodes, 'conduits':tracedConduits}

@@ -1,6 +1,5 @@
 from swmmio.utils import text as txt
 from swmmio.utils import functions as funcs
-# from swmmio.swmmio import inp #, rpt
 import pandas as pd
 import os
 
@@ -60,12 +59,10 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
                              index_col=0, names = headerlist, comment=comment_str)
 
         if comment_cols:
+            #add new blank comment column after a semicolon column
             df[';'] = ';'
 
-        #df.columns.names=[headerlist]
     os.remove(tempfilepath)
-
-    #add new blank comment column after a semicolon column
 
     return df
 
@@ -126,7 +123,5 @@ def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
             df = pd.read_table(tempfilepath, delim_whitespace=True, index_col=0)
 
     os.remove(tempfilepath)
-
-
 
     return df

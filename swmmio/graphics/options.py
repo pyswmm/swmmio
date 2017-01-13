@@ -1,7 +1,7 @@
 from definitions import PARCEL_FEATURES, GEODATABASE
 from constants import *
 
-
+font_file = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
 basemap_options = {
 'gdb': GEODATABASE,
 'features': [
@@ -9,25 +9,18 @@ basemap_options = {
     {
         'feature': 'PhiladelphiaParks',
         'fill': park_green,
-        'outline': None,
-        'featureDict': None,
-        'cols': ["OBJECTID", "SHAPE@"]
+        'cols': ["OBJECTID"]#, "SHAPE@"]
     },
     {
         'feature': 'HydroPolyTrim',
         'fill':water_grey,
-        'outline': None,
-        'featureDict': None,
-        'cols': ["OBJECTID", "SHAPE@"]
+        'cols': ["OBJECTID"]#, "SHAPE@"]
     },
     {
         'feature': 'Streets_Dissolved5_SPhilly',
         'fill': lightgrey,
-        'width': 0,
         'fill_anno': grey,
-        'outline': None,
-        'featureDict': None,
-        'cols': ["OBJECTID", "SHAPE@", "ST_NAME"]
+        'cols': ["OBJECTID", "ST_NAME"] #"SHAPE@",
     }
   ],
 }

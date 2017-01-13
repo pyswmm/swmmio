@@ -7,9 +7,8 @@ import re
 import os
 import numpy
 import pandas as pd
-import parcels
 import pickle
-from .utils import swmm_utils as su
+from .utils import functions
 import glob
 import csv, math
 from .utils import text as txt
@@ -139,7 +138,7 @@ class Model(object):
 		coordsDict = inp.createDictionary("[COORDINATES]")
 
 		#merge all the "node" type dictionaries (those that can be junctions between SWMM links)
-		allNodesDict = su.merge_dicts(storagesDict, junctionsDict, outfallsDict)
+		allNodesDict = functions.merge_dicts(storagesDict, junctionsDict, outfallsDict)
 
 		nodesDepthSummaryDict = {} # from rpt if one is supplied
 		conduit_objects = {}
@@ -284,7 +283,7 @@ class Model(object):
 		junctionsDict = inp.createDictionary("[JUNCTIONS]")
 		outfallsDict = inp.createDictionary("[OUTFALLS]")
 		coordsDict = inp.createDictionary("[COORDINATES]")
-		allNodesDict = su.merge_dicts(storagesDict, junctionsDict, outfallsDict)
+		allNodesDict = functions.merge_dicts(storagesDict, junctionsDict, outfallsDict)
 
 		if subset:
 			allNodesDict = { key:value for key,value in allNodesDict.items() if key in subset }
@@ -371,7 +370,7 @@ class Model(object):
 		subcats_inp = self.inp.createDictionary("[SUBCATCHMENTS]")
 		subcats_rpt = self.rpt.createDictionary('Subcatchment Runoff Summary')
 
-		n.nodes_upstream = su.traceFromNode(self, node, mode='up')['nodes']
+		n.nodes_upstream = functions.trace_from_node(self, node, mode='up')['nodes']
 		n.subcats_direct = [k for k,v in subcats_inp.items() if v[1]==node]
 		n.subcats_upstream = [k for k,v in subcats_inp.items() if v[1] in n.nodes_upstream]
 
@@ -396,9 +395,9 @@ class Model(object):
 		elif element_type == 'conduit':
 			data = self.organizeConduitData(bbox, subset=subset)
 			dicts = data['conduit_objects']
-		elif element_type =='parcel':
-			data = parcels.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
-			dicts =data['parcels']
+		# elif element_type =='parcel':
+		# 	data = parcels.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
+		# 	dicts =data['parcels']
 		else:
 			return "incorrect data type specified"
 

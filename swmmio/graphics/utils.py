@@ -2,7 +2,46 @@
 import pandas as pd
 import math
 from swmmio.graphics import * #constants
+import os
+from PIL import Image
 
+def save_image(img, model, imgName=None, imgDir=None,
+				antialias=True, open=False, fileExt=".png", verbose=False):
+
+	#get the size from the Image object
+	imgSize = (img.getbbox()[2], img.getbbox()[3])
+
+	#if imgName not specified, define as model name
+	if not imgName:
+		imgName = model.inp.name
+
+	#create the saving location as necessary
+	if not imgDir:
+		inp = model.inp
+		rpt = model.rpt
+		standardDir = os.path.join(inp.dir, "img")
+		if not os.path.exists(standardDir):
+			#if no directory is specified and none exists at
+			#standard location create a new directory
+			os.makedirs(os.path.join(inp.dir, "img"))
+		newFile = os.path.join(standardDir, imgName) + fileExt
+	else:
+		#imDir is specified by user
+		if not os.path.exists(imgDir):
+			#if directory doesn't exist, create new
+			os.makedirs(imgDir)
+		newFile = os.path.join(imgDir, imgName) + fileExt
+
+	if verbose: print "saving image to: " + newFile
+
+	#shrink for antialiasing niceness (though this blows up the file about 5x)
+	if antialias:
+		size = (int(imgSize[0]*0.5), int(imgSize[1]*0.5))
+		img.thumbnail(size, Image.ANTIALIAS)
+
+	img.save(newFile)
+	if open:
+		os.startfile(newFile)
 
 def px_to_irl_coords(df, px_width=4096.0, bbox=None, shift_ratio=None):
 	"""
@@ -24,23 +63,25 @@ def px_to_irl_coords(df, px_width=4096.0, bbox=None, shift_ratio=None):
 		xmin = float(bbox[0][0])
 		ymin = float(bbox[0][1])
 
-	    #find the actual dimensions, use to find scale factor
+	#find the actual dimensions, use to find scale factor
 	height = bbox[1][1] - bbox[0][1]
 	width = bbox[1][0] - bbox[0][0]
 
 	if not shift_ratio:
 		#to scale down from coordinate to pixels
 		shift_ratio = float(px_width / width)
-		
+
 	def shft_coords(row):
 		#parse through coords (nodes, or link) and adjust for pixel space
 		return [(int((xy[0] - xmin)*shift_ratio),
 					int((height - xy[1] + ymin)*shift_ratio))
 						for xy in row.coords]
 
-	#copy the given df and insert new columns with the shifted coordinates
+	#insert new column with the shifted coordinates
 	draw_coords = df.apply(lambda row:shft_coords(row), axis=1)
-	df = df.assign(draw_coords = draw_coords)
+	if not (draw_coords.empty and df.empty):
+		df = df.assign(draw_coords = draw_coords)
+
 	return df, bbox, int(height*shift_ratio),int(width*shift_ratio),shift_ratio
 
 def read_shapefile(shp_path):
@@ -81,7 +122,24 @@ def clip_to_box(df, bbox):
 	result = [any_xy_in_box(p, bbox) for p in coords]
 	return df.loc[result]
 
+def angle_bw_points(xy1, xy2):
+	dx, dy = (xy2[0] - xy1[0]), (xy2[1] - xy1[1])
 
+	angle = (math.atan(float(dx)/float(dy)) * 180/math.pi )
+	if angle < 0:
+		angle = 270 - angle
+	else:
+		angle = 90 - angle
+	#angle in radians
+	return angle
+
+def midpoint(xy1, xy2):
+
+	dx, dy = (xy2[0] + xy1[0]), (xy2[1] + xy1[1])
+	midpt = ( int(dx/2), int(dy/2.0) )
+
+	#angle in radians
+	return midpt
 def point_in_box(bbox, point):
 	"""check if a point falls with in a bounding box, bbox"""
 	LB = bbox[0]
