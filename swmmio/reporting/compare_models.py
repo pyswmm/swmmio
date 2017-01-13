@@ -335,7 +335,7 @@ def drawModelComparison(model1, model2, delta_parcels=None, anno_results = {}, *
 						width=width, shiftRatio=shiftRatio)
 
 	if ops['basemap']:
-		sg.drawBasemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox,
+		sg.draw_basemap(draw, img=img, options=ops['basemap'], width=width, bbox=bbox,
 						shiftRatio=shiftRatio, xplier=xplier)
 
 	drawCount = 0

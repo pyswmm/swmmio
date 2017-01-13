@@ -32,6 +32,9 @@ def draw_conduit(conduit, draw):
         draw.ellipse(circle_bbox(xys[0], draw_size*0.5), fill = fill)
         draw.ellipse(circle_bbox(xys[1], draw_size*0.5), fill = fill)
 
+def draw_parcel(parcel, draw):
+	fill = gradient_color_red(parcel.HoursFlooded + 0.5, 0, 3)
+	draw.polygon(parcel.draw_coords, fill=fill)
 
 def gradient_grey_red(x, xmin, xmax):
 
@@ -54,3 +57,25 @@ def gradient_grey_red(x, xmin, xmax):
 
 def line_size(q, exp=1):
 	return int(round(math.pow(q, exp)))
+
+def gradient_color_red(x, xmin, xmax, startCol=lightgrey):
+
+	range = xmax - xmin
+
+	rMin = startCol[0]
+	gMax = startCol[1]
+	bMax = startCol[2]
+
+	rScale = (255 - rMin) / range
+	gScale = (gMax) / range
+	bScale = (bMax) / range
+	x = min(x, xmax) #limit any vals to the prescribed max
+
+
+	#print "range = " + str(range)
+	#print "scale = " + str(scale)
+	r = int(round(x*rScale + rMin ))
+	g = int(round(gMax - x*gScale))
+	b = int(round(bMax - x*bScale))
+
+	return (r, g, b)

@@ -11,7 +11,7 @@ from definitions import *
 class Parcel(object):
 
 	#object representing a swmm node object
-	
+
 	__slots__ = ('id', 'flood_duration', 'avg_flood_duration',
 				'nodes', 'sheds', 'delta_type', 'is_delta')
 
