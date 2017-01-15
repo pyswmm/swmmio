@@ -3,7 +3,7 @@ from swmmio.graphics.constants import * #constants
 from swmmio.graphics import config, options
 from swmmio.graphics.utils import *
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from swmmio.utils import swmm_utils as su
+# from swmmio.utils import swmm_utils as su
 import os
 
 def draw_node(node, draw):
@@ -46,7 +46,7 @@ def annotate_streets(df, img, text_col):
 	if not os.path.exists(config.font_file):
 		print 'Error loading defautl font. Check your config.font_file'
 		return None
-		
+
 	unique_sts = df[text_col].unique()
 	for street in unique_sts:
 		draw_coords = df.loc[df.ST_NAME==street, 'draw_coords'].tolist()[0]

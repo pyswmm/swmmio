@@ -53,6 +53,7 @@ class Model(object):
 			self.organized_node_data = None
 			self.organized_conduit_data = None
 			self.bbox = None #to remember how the model data was clipped
+			self.scenario = self._get_scenario()
 
 			#try to initialize a companion RPT object
 			rpt_path = os.path.join(wd, name + '.rpt')
@@ -64,6 +65,15 @@ class Model(object):
 
 			self._nodes_df = None
 			self._conduits_df = None
+
+	def _get_scenario(self):
+		"""get a descrition of the model scenario by reading the raingage data"""
+		rg = create_dataframeINP(self.inp.path, '[RAINGAGES]')
+		storms = rg.DataSourceName.unique()
+		if len(storms) > 1:
+			return ', '.join(storms[:3]) + '...'
+		else:
+			return '{}'.format(storms[0])
 
 	def conduits(self, bbox=None, subset=None):
 

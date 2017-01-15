@@ -39,7 +39,7 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
 
 
 
-def estimate_cost_of_new_conduits(baseline, newmodel, additional_costs=None):
+def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
 
     changes = inp.Change(baseline, newmodel, section ='[CONDUITS]')
     newconduits = pd.concat([changes.added, changes.altered])

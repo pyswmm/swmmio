@@ -5,7 +5,7 @@
 
 
 import math
-from swmmio.utils import swmm_utils as su
+# from swmmio.utils import swmm_utils as su
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import draw_utils as du
 import swmmio.parcels as p
