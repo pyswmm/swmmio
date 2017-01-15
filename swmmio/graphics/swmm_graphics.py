@@ -1,13 +1,12 @@
 #graphical functions for SWMM files
 from definitions import *
-from swmmio.utils import swmm_utils as su
 from swmmio.damage import parcels as pdamage
-from swmmio.graphics import draw_utils as du
+# from swmmio.graphics import draw_utils as du
 from swmmio.graphics import config, options
 from swmmio.graphics.constants import * #constants
 from swmmio.graphics.utils import *
 from swmmio.graphics.drawing import *
-from swmmio import parcels
+# from swmmio import parcels
 import pandas as pd
 import re
 import os

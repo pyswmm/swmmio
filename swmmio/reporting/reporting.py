@@ -1,20 +1,89 @@
-
 #Module is intended to provide high level access to post processing routines
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
-
-from swmmio.reporting import compare_models as scomp
-from swmmio.reporting import functions
-from swmmio.utils import swmm_utils as su
+from swmmio.reporting.functions import *
+from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
-from swmmio.graphics import draw_utils as du
 from swmmio.utils.dataframes import create_dataframeRPT
-from swmmio import parcels as p
 import os
 import math
 import pandas as pd
 from definitions import *
 
+
+
+class FloodReport(object):
+    def __init__(self, model, parcel_node_df=None, parcel_node_join_csv=None,
+                 threshold=0.0833):
+        """
+        Report of parcel flood duration of a given swmmio.Model object
+        """
+
+        if parcel_node_df is None:
+            #read csv if df not provided
+            parcel_node_df = pd.read_csv(parcel_node_join_csv)
+
+        self.total_parcel_count = len(parcel_node_df.PARCELID.unique())
+        self.model = model
+        self.scenario = model.scenario
+        self.parcel_flooding = parcels.flood_duration(model.nodes(),
+                                                      parcel_node_df,
+                                                      threshold=threshold)
+
+    def __str__(self):
+        """print friendly"""
+        a = '{} Report'.format(self.model.name)
+        b = self.duration_partition(self.parcel_flooding,self.total_parcel_count)
+        return '{}\n{}'.format(a, '\n'.join(b))
+
+
+    def duration_partition(self, pflood, pcount, partitions=[5, 10, 15, 30, 60, 120]):
+        results = []
+        for dur in partitions:
+            n = len(pflood.loc[pflood.HoursFlooded > dur/60.0])
+            s = '{}mins: {} ({}%)'.format(dur, n, round(n/float(pcount)*100,0))
+            results.append(s)
+        return results
+
+
+class ComparisonReport(object):
+    def __init__(self, baseline_report, alt_report, additional_costs=None):
+        """
+        Report object representing a comparison of a baseline report to another
+        (proposed conditions) report
+        """
+        basemodel = baseline_report.model
+        altmodel = alt_report.model
+        baseline_flooding = baseline_report.parcel_flooding
+        proposed_flooding = alt_report.parcel_flooding
+        self.baseline_report = baseline_report
+        self.alt_report = alt_report
+
+        #human readable name
+        self.name = '{} vs {} Report'.format(basemodel.name, altmodel.name)
+
+        #calculate the proposed sewer mileage
+        proposed_ft = length_of_new_and_replaced_conduit(basemodel, altmodel)
+        self.sewer_miles_new = proposed_ft / 5280.0
+
+        #COST ESTIMATION
+        self.cost_data = new_conduits_cost_estimate(basemodel, altmodel, additional_costs)
+        self.cost_estimate = self.cost_data.TotalCostEstimate.sum() / math.pow(10, 6)
+
+        #MEASURE THE FLOOD REDUCTION IMPACT
+        self.flood_comparison = parcels.compare_flood_duration(baseline_flooding,
+                                                               proposed_flooding)
+        self.impact = self.flood_comparison.Category.value_counts()
+
+    def write(self, report_dir):
+        #write cost per sewer segment spreadsheet
+        self.cost_data.to_csv(os.path.join(report_dir,self.name+'_cost_data.csv'))
+
+    def __str__(self):
+        """print friendly"""
+        catz = filter(None, self.flood_comparison.Category.unique())
+        a = ['{}: {}'.format(c, self.impact[c]) for c in catz]
+        return '{}\n{}'.format(self.name,'\n'.join(a))
 
 
 class Report(object):
