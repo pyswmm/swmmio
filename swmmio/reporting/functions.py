@@ -2,16 +2,9 @@
 Utility functions related to comparing SWMM models
 """
 import pandas as pd
-from swmmio.version_control import inp
+from swmmio.version_control.inp import INPDiff
 from swmmio.utils.dataframes import create_dataframeINP
 import os
-
-def length_of_new_and_replaced_conduit(model1, model2):
-
-    changes = inp.Change(model1, model2, section ='[CONDUITS]')
-    df = pd.concat([changes.added, changes.altered])
-
-    return df.Length.sum()
 
 def create_shapefile_of_new_conduits(model1, model2, filename=None):
     """
@@ -19,7 +12,7 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
     new conduits.
     """
 
-    changes = inp.Change(model1, model2, section='[CONDUITS]')
+    changes = INPDiff(model1, model2, section='[CONDUITS]')
     df = pd.concat([changes.added, changes.altered])
     new_conduit_ids = df.index.tolist()
 
@@ -41,7 +34,7 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
 
 def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
 
-    changes = inp.Change(baseline, newmodel, section ='[CONDUITS]')
+    changes = INPDiff(baseline, newmodel, section ='[CONDUITS]')
     newconduits = pd.concat([changes.added, changes.altered])
     newconduits.drop([';', 'Comment', 'Origin'], axis=1, inplace=True)
 

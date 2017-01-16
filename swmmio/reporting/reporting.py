@@ -5,6 +5,7 @@ from swmmio.reporting.functions import *
 from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.utils.dataframes import create_dataframeRPT
+from swmmio.version_control.inp import INPDiff
 import os
 import math
 import pandas as pd
@@ -33,11 +34,13 @@ class FloodReport(object):
     def __str__(self):
         """print friendly"""
         a = '{} Report'.format(self.model.name)
-        b = self.duration_partition(self.parcel_flooding,self.total_parcel_count)
+        b = self.duration_partition()
         return '{}\n{}'.format(a, '\n'.join(b))
 
 
-    def duration_partition(self, pflood, pcount, partitions=[5, 10, 15, 30, 60, 120]):
+    def duration_partition(self, partitions=[5, 10, 15, 30, 60, 120]):
+        pflood = self.parcel_flooding
+        pcount = self.total_parcel_count
         results = []
         for dur in partitions:
             n = len(pflood.loc[pflood.HoursFlooded > dur/60.0])
@@ -56,6 +59,9 @@ class ComparisonReport(object):
         altmodel = alt_report.model
         baseline_flooding = baseline_report.parcel_flooding
         proposed_flooding = alt_report.parcel_flooding
+
+        conduitdiff = INPDiff(basemodel, altmodel, '[CONDUITS]') 
+
         self.baseline_report = baseline_report
         self.alt_report = alt_report
 
@@ -63,7 +69,7 @@ class ComparisonReport(object):
         self.name = '{} vs {} Report'.format(basemodel.name, altmodel.name)
 
         #calculate the proposed sewer mileage
-        proposed_ft = length_of_new_and_replaced_conduit(basemodel, altmodel)
+        proposed_ft = conduitdiff.added.Length.sum() + conduitdiff.altered.Length.sum()
         self.sewer_miles_new = proposed_ft / 5280.0
 
         #COST ESTIMATION
