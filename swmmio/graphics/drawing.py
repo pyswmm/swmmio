@@ -3,30 +3,97 @@ from swmmio.graphics.constants import * #constants
 from swmmio.graphics import config, options
 from swmmio.graphics.utils import *
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-# from swmmio.utils import swmm_utils as su
 import os
 
-def draw_node(node, draw):
-	color = (210, 210, 230) #default color
+
+# FUNCTIONS FOR COMPUTING THE VISUAL CHARACTERISTICS OF MODEL ELEMENTS
+def node_draw_size(node):
+	"""given a row of a nodes() dataframe, return the size it should be drawn"""
+
+	if 'draw_size' in node.axes[0]:
+		#if this value has already been calculated
+		return node.draw_size
+
 	radius = 0 #aka don't show this node by default
 	if node.HoursFlooded >= 0.083:
 		radius = node.HoursFlooded*3
-		color = red
+	return radius
 
+def node_draw_color(node):
+	"""given a row of a nodes() dataframe, return the color it should be drawn"""
+
+	if 'draw_color' in node.axes[0]:
+		#if this value has already been calculated
+		return node.draw_color
+
+	color = (210, 210, 230) #default color
+	if node.HoursFlooded >= 0.083:
+		color = red
+	return color
+
+def conduit_draw_size(conduit):
+	"""return the draw size of a conduit"""
+
+	if 'draw_size' in conduit.axes[0]:
+		#if this value has already been calculated
+		return conduit.draw_size
+
+	draw_size = 1
+	if conduit.MaxQPerc >= 1:
+		capacity = conduit.MaxQ / conduit.MaxQPerc
+		stress = conduit.MaxQ / capacity
+		fill = gradient_grey_red(conduit.MaxQ*100, 0, capacity*300)
+		draw_size = int(round(math.pow(stress*10, 0.8)))
+	return draw_size
+
+def conduit_draw_color(conduit):
+	"""return the draw color of a conduit"""
+
+	if 'draw_color' in conduit.axes[0]:
+		#if this value has already been calculated
+		return conduit.draw_color
+
+	fill = (120, 120, 130)
+	if conduit.MaxQPerc >= 1:
+		capacity = conduit.MaxQ / conduit.MaxQPerc
+		stress = conduit.MaxQ / capacity
+		fill = gradient_grey_red(conduit.MaxQ*100, 0, capacity*300)
+	return fill
+
+def parcel_draw_color(parcel, style='risk'):
+	if style == 'risk':
+		fill = gradient_color_red(parcel.HoursFlooded + 0.5, 0, 3)
+	if style == 'delta':
+		if parcel.Category == 'increased_flooding':
+			#parcel previously flooded, now floods more
+			fill = red
+
+		if parcel.Category == 'new_flooding':
+			#parcel previously did not flood, now floods in proposed conditions
+			fill = purple
+
+		if parcel.Category == 'decreased_flooding':
+			#parcel flooding problem decreased
+			fill = lightblue #du.lightgrey
+
+		if parcel.Category == 'eliminated_flooding':
+			#parcel flooding problem eliminated
+			fill = lightgreen
+
+	return fill
+
+# PIL DRAW METHODS APPLIED TO ImageDraw OBJECTS
+def draw_node(node, draw):
+	"""draw a node to the given PIL ImageDraw object"""
+	color = node_draw_color(node)
+	radius = node_draw_size(node)
 	draw.ellipse(circle_bbox(node.draw_coords[0], radius), fill = color)
 
 def draw_conduit(conduit, draw):
     #default fill and size
-    fill = (120, 120, 130)
-    draw_size = 1
+    fill = conduit_draw_color(conduit)
+    draw_size = int(conduit_draw_size(conduit))
     xys = conduit.draw_coords
-
-    if conduit.MaxQPerc >= 1:
-        capacity = conduit.MaxQ / conduit.MaxQPerc
-        stress = conduit.MaxQ / capacity
-        fill = gradient_grey_red(conduit.MaxQ*100, 0, capacity*300)
-        draw_size = int(round(math.pow(stress*10, 0.8)))
-
 
     #draw that thing
     draw.line(xys, fill = fill, width = draw_size)
@@ -36,8 +103,27 @@ def draw_conduit(conduit, draw):
         draw.ellipse(circle_bbox(xys[0], draw_size*0.5), fill = fill)
         draw.ellipse(circle_bbox(xys[1], draw_size*0.5), fill = fill)
 
-def draw_parcel(parcel, draw):
+def draw_parcel_risk(parcel, draw):
 	fill = gradient_color_red(parcel.HoursFlooded + 0.5, 0, 3)
+	draw.polygon(parcel.draw_coords, fill=fill)
+
+def draw_parcel_risk_delta(parcel, draw):
+	if parcel.Category == 'increased_flooding':
+		#parcel previously flooded, now floods more
+		fill = red
+
+	if parcel.Category == 'new_flooding':
+		#parcel previously did not flood, now floods in proposed conditions
+		fill = purple
+
+	if parcel.Category == 'decreased_flooding':
+		#parcel flooding problem decreased
+		fill = lightblue #du.lightgrey
+
+	if parcel.Category == 'eliminated_flooding':
+		#parcel flooding problem eliminated
+		fill = lightgreen
+
 	draw.polygon(parcel.draw_coords, fill=fill)
 
 def annotate_streets(df, img, text_col):
@@ -130,10 +216,6 @@ def _annotateMap (canvas, model, model2=None, currentTstr = None, options=None, 
 	title = ' to '.join([m.inp.name for m in filter(None, [model, model2])])
 	symbology_string = ', '.join([s['title'] for s in filter(None, [nodeSymb, conduitSymb, parcelSymb])])
 	title += "\n" + symbology_string
-
-	#params_string = ''.join([" > " + str(round(s['threshold']*600)/10) + "min " for s in filter(None, [parcelSymb])])
-	#build the title
-
 
 	#collect results
 	for result, value in results.iteritems():

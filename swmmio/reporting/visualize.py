@@ -1,6 +1,6 @@
 import os, shutil
 import pandas as pd
-from swmmio.version_control import inp
+from swmmio.version_control.inp import INPDiff
 from definitions import *
 
 
@@ -8,7 +8,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
                subset=None, return_data=False):
 
     """
-    export model as a geojson object
+    export model as a geojson object. this is sloppy currently
     """
 
     import geojson
@@ -20,7 +20,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
 
 
     if model2 is not None:
-        changes = inp.Change(model1, model2, section='[CONDUITS]')
+        changes = INPDiff(model1, model2, section='[CONDUITS]')
         df = pd.concat([changes.added, changes.altered])
         subset = df.index.tolist()
 

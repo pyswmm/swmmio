@@ -75,7 +75,7 @@ class Model(object):
 		else:
 			return '{}'.format(storms[0])
 
-	def conduits(self, bbox=None, subset=None):
+	def conduits(self):
 
 		"""
 		collect all useful and available data related model conduits and
@@ -83,7 +83,7 @@ class Model(object):
 		"""
 
 		#check if this has been done already and return that data accordingly
-		if self._conduits_df is not None  and bbox==self.bbox:
+		if self._conduits_df is not None:
 			return self._conduits_df
 
 		#parse out the main objects of this model
@@ -94,19 +94,7 @@ class Model(object):
 		conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
 		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
 		conduits_df = conduits_df.join(xsections_df)
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]") #unuesed
-
-		#concatenate the node DFs and keep only relevant cols
-		if self._nodes_df is None:
-			storages_df = create_dataframeINP(inp.path, "[STORAGE]")
-			junctions_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
-			outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
-			all_nodes = pd.concat([junctions_df, outfalls_df, storages_df])
-			cols =['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
-			all_nodes = all_nodes[cols]
-		else:
-			print 'loading nodes'
-			all_nodes_df = self._nodes_df
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
 
 		if rpt:
 			#create a dictionary holding data from an rpt file, if provided

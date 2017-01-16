@@ -35,7 +35,7 @@ class BuildInstructions(object):
             allheaders = funcs.complete_inp_headers(build_instr_file)
             instructions = {}
             for section in allheaders['order']:
-                change = Change(build_instr_file=build_instr_file, section=section)
+                change = INPDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section:change})
 
             self.instructions = instructions
@@ -128,7 +128,7 @@ class BuildInstructions(object):
                 #write the section
                 vc_utils.write_inp_section(f, allheaders, section, new_section)
 
-class Change(object):
+class INPDiff(object):
     """
     This object represents the 'changes' of a given section of a INP file
     with respect to another INP. Three main dataframes are attributes:
@@ -188,7 +188,7 @@ class Change(object):
     def __add__(self, other):
 
         # this should be made more robust to catch conflicts
-        change = Change()
+        change = INPDiff()
         change.added = self.added.append(other.added)
         change.removed = self.removed.append(other.removed)
         change.altered = self.altered.append(other.altered)
@@ -304,7 +304,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
         for section in allsections_a['order']:
             if section not in problem_sections:
                 #calculate the changes in the current section
-                changes = Change(modela, modelb, section)
+                changes = INPDiff(modela, modelb, section)
                 data = pd.concat([changes.removed, changes.added, changes.altered])
                 #vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False, na_fill='NaN') #na fill fixes SNOWPACK blanks spaces issue

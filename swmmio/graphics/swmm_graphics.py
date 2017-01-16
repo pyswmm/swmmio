@@ -36,14 +36,16 @@ def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 											fill=f['fill']), axis=1)
 
 
-def draw_model(model, img_name=None, bbox=None, px_width=2048.0):
+def draw_model(model=None, nodes=None, conduits=None, parcels=None,
+				img_name=None, bbox=None, px_width=2048.0):
 	"""
 	create a png rendering of the model and model results
 	"""
 
-	#gather the nodes and conduits data
-	nodes = model.nodes()
-	conduits = model.conduits()
+	#gather the nodes and conduits data if a swmmio Model object was passed in
+	if model is not None:
+		nodes = model.nodes()
+		conduits = model.conduits()
 
 	#antialias X2
 	xplier=1
@@ -63,17 +65,17 @@ def draw_model(model, img_name=None, bbox=None, px_width=2048.0):
 		_draw_basemap(draw, img, bb, px_width, shift_ratio)
 
 	if config.include_parcels is True:
-		par_flood = pdamage.flood_duration(nodes, config.parcel_node_join_data)
+		par_flood = pdamage.flood_duration(nodes, parcel_node_join_csv=config.parcel_node_join_data)
 		par_shp = read_shapefile(config.parcels_shapefile)
 		par_px = px_to_irl_coords(par_shp, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
 		parcels = pd.merge(par_flood, par_px, right_on='PARCELID', left_index=True)
-		parcels.apply(lambda row: draw_parcel(row, draw), axis=1)
+		parcels.apply(lambda row: draw_parcel_risk(row, draw), axis=1)
 
 	#start the draw fest, mapping draw methods to each row in the dataframes
 	conduits.apply(lambda row: draw_conduit(row, draw), axis=1)
 	nodes.apply(lambda row: draw_node(row, draw), axis=1)
 
 	#SAVE IMAGE TO DISK
-	save_image(img, model, img_name, imgDir=None)
+	return img
+	# save_image(img, model, img_name, imgDir=None)
 	# del draw, img
-	return conduits
