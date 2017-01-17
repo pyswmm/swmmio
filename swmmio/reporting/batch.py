@@ -1,14 +1,59 @@
 from swmmio.swmmio import Model
 from swmmio.reporting import reporting
 from swmmio.reporting import functions
-from swmmio.utils import swmm_utils as su
+# from swmmio.utils import swmm_utils as su
 from time import strftime
 import os
 import shutil
 import math
 from itertools import chain
 from definitions import *
+import pandas as pd
 # REPORT_DIR_NAME = 'Report'
+
+
+def batch_reports(project_dir, results_file,
+                  additional_costs=None, join_data=None):
+
+    #combine the segments and options (combinations) into one iterable
+    SEGMENTS_DIR = os.path.join(project_dir, 'Segements')
+    COMBOS_DIR = os.path.join(project_dir, 'Combinations')
+    COMMON_DATA_DIR = os.path.join(project_dir, 'CommonData')
+    ADMIN_DIR = os.path.join(project_dir, 'ProjectAdmin')
+    BASELINE_DIR = os.path.join(project_dir, 'Baseline')
+
+    #instantiate the true baseline flood report
+    baseline_model = Model(BASELINE_DIR)
+    pn_join_csv = os.path.join(COMMON_DATA_DIR,r'pennsport_sheds_parcels_join.csv')
+    parcel_node_join_df = pd.read_csv(pn_join_csv)
+    baserpt = reporting.FloodReport(baseline_model, parcel_node_join_df)
+
+    paths = (SEGMENTS_DIR,COMBOS_DIR)
+
+    for path, dirs, files in chain.from_iterable(os.walk(path) for path in paths):
+
+        for f in files:
+            if '.inp' in f:
+                inp_path = os.path.join(path,f)
+                alt = Model(inp_path)
+
+                #generate the reports
+                frpt = reporting.FloodReport(alt, parcel_node_join_df)
+                impact_rpt = reporting.ComparisonReport(baserpt, frpt,
+                                                        additional_costs,
+                                                        join_data)
+
+                #write to the log
+                model_id = os.path.splitext(f)[0]
+                with open(results_file, 'a') as res:
+                    res.write('{}, {}\n'.format(model_id, impact_rpt.cost_estimate))
+
+                report_dir = os.path.join(alt.inp.dir, REPORT_DIR_NAME)
+                if not os.path.exists(report_dir):os.mkdir(report_dir)
+
+                #write the report files
+                impact_rpt.write(report_dir)
+
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
                          supplemental_cost_data=None, create_proj_reports=True):

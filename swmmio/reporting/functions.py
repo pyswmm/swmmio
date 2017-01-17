@@ -32,20 +32,9 @@ def create_shapefile_of_new_conduits(model1, model2, filename=None):
 
 
 
-def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
+def conduits_cost_estimate(conduit_df, additional_costs=None):
 
-    changes = INPDiff(baseline, newmodel, section ='[CONDUITS]')
-    newconduits = pd.concat([changes.added, changes.altered])
-    newconduits.drop([';', 'Comment', 'Origin'], axis=1, inplace=True)
-
-    xsections = create_dataframeINP(newmodel.inp.path, section='[XSECTIONS]')
-    xsections.drop([';', 'Comment', 'Origin'], axis=1, inplace=True)
-
-    #join the xsection data to the newconduits df. convert geoms to numbers
-    newconduits = newconduits.join(xsections)
-    geoms = ['Geom1','Geom2','Geom2','Geom4']
-    newconduits[geoms] = newconduits[geoms].apply(pd.to_numeric)
-
+    
     def calc_area(row):
         """calculate the cross-sectional area of a sewer segment"""
 
@@ -56,7 +45,7 @@ def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
 
         if 'RECT' in row.Shape:
             #assume triangular bottom sections (geom3) deepens the excavated box
-            return (row.Geom1 + row.Geom3) * row.Geom2
+            return (row.Geom1 + row.Geom3) * float(row.Geom2)
         if row.Shape =='EGG':
             #assume geom1 is the span
             return row.Geom1*1.5
@@ -87,8 +76,6 @@ def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
             return round_to(n, 0.05)
 
         cleaned_geom = round_to_05(row.Geom1)
-        # print '{}: Raw Geom1 = {} is rounded  to {}'.format(row.InletNode, row.Geom1, cleaned_geom)
-
         RectBox_UnitCost = 80
         if row.Shape == 'CIRCULAR':
             try:
@@ -121,24 +108,21 @@ def new_conduits_cost_estimate(baseline, newmodel, additional_costs=None):
         #add in any additional cost data (from crossing water mains, etc)
         return row.CostEstimate + row.AdditionalCost
 
-    newconduits['XArea'] = newconduits.apply (lambda row: calc_area (row), axis=1)
-    newconduits['UnitCostLF'] = newconduits.apply(lambda row: get_unit_cost(row), axis=1)
-    newconduits['Volume'] = newconduits.apply (lambda row:
-                                               compute_volume (row), axis=1)
-    newconduits['CostEstimate'] = newconduits.apply (lambda row:
-                                                     compute_conduit_cost (row),
-                                                     axis=1)
+    conduit_df['XArea'] = conduit_df.apply (lambda r: calc_area (r), axis=1)
+    conduit_df['UnitCostLF'] = conduit_df.apply(lambda r: get_unit_cost(r), axis=1)
+    conduit_df['Volume'] = conduit_df.apply (lambda r:compute_volume (r), axis=1)
+    conduit_df['CostEstimate'] = conduit_df.apply (lambda r:compute_conduit_cost (r),axis=1)
 
     if additional_costs:
         #read in the supplemental cost data from the csv
         addcosts = pd.read_csv(additional_costs, index_col=0)
-        newconduits = newconduits.join(addcosts).fillna(0)
-        newconduits['TotalCostEstimate'] = newconduits.apply (lambda row:
-                                                              added_cost(row),
+        conduit_df = conduit_df.join(addcosts).fillna(0)
+        conduit_df['TotalCostEstimate'] = conduit_df.apply (lambda r:
+                                                              added_cost(r),
                                                               axis=1)
     else:
         # NOTE this lingo here is weak...
         #additional_costs not provided, rename the CostEstimate to TotalCostEstimate
-        newconduits = newconduits.rename(columns={"CostEstimate": "TotalCostEstimate"})
+        conduit_df = conduit_df.rename(columns={"CostEstimate": "TotalCostEstimate"})
 
-    return newconduits
+    return conduit_df
