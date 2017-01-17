@@ -14,6 +14,12 @@ green_bright= (23, 191, 23)
 lightgreen = (150,212,166)
 water_grey = (130, 130, 130)
 purple = (250, 0, 250)
+#plotly colors
+plt_orange = (255, 127, 14)
+plt_green =  (44, 160, 44)
+plt_red = (214, 39, 40)
+plt_blue = (31, 119, 180)
+
 
 #BOUNDING BOX CONSTANTS (USED FOR S. PHILLY)
 sPhilaBox = 	((2683629, 220000), (2700700, 231000))

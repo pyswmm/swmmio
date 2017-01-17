@@ -6,6 +6,7 @@ from swmmio.graphics import config, options
 from swmmio.graphics.constants import * #constants
 from swmmio.graphics.utils import *
 from swmmio.graphics.drawing import *
+from swmmio.utils import spatial
 # from swmmio import parcels
 import pandas as pd
 import re
@@ -23,7 +24,7 @@ def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 	for f in options.basemap_options['features']:
 
 		shp_path = os.path.join(config.basemap_shapefile_dir, f['feature'])
-		df = read_shapefile(shp_path)[f['cols']+['coords']]
+		df = spatial.read_shapefile(shp_path)[f['cols']+['coords']]
 		df = px_to_irl_coords(df, bbox=bbox, shift_ratio=shift_ratio,
 								px_width=px_width)[0]
 
@@ -66,7 +67,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None,
 
 	if config.include_parcels is True:
 		par_flood = pdamage.flood_duration(nodes, parcel_node_join_csv=config.parcel_node_join_data)
-		par_shp = read_shapefile(config.parcels_shapefile)
+		par_shp = spatial.read_shapefile(config.parcels_shapefile)
 		par_px = px_to_irl_coords(par_shp, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
 		parcels = pd.merge(par_flood, par_px, right_on='PARCELID', left_index=True)
 		parcels.apply(lambda row: draw_parcel_risk(row, draw), axis=1)

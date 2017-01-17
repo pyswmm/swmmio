@@ -4,7 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>South Philly GSI Explore</title>
+    <title>{{TITLE}}</title>
 
     <!-- Bootstrap -->
     <!-- Latest compiled and minified CSS -->
@@ -57,6 +57,8 @@
     <script type="text/javascript">
 
     // data = [SWMMIO DUMP JSON DATA HERE]
+    // parcels = {{delta_parcels}}
+    newconduits = {{newconduits}}
 
     // Set up the map
     var mymap = L.map('mapid').setView([39.921685, -75.148946], 15);
@@ -70,15 +72,20 @@
     console.log(feature.properties.geom1)
     // console.log(layer)
         if (feature.properties && feature.properties.geom1) {
-            content = feature.properties.geom1 + 'ft x ' + feature.properties.geom2 + 'ft'
+            content = feature.properties.HoursFloodedProposed + 'hrs x ' + feature.properties.geom2 + 'ft'
             // layer.bindPopup('Geom1 % ' + feature.properties.MaxQPercent);
             layer.bindPopup(content);
         };
 
-    }
+    };
+    function mystylz (feature){
+      console.log(feature.properties.fill)
+      return {color: feature.properties.fill};
+    };
     // ADD THE DATA TO MAP
     // convert_coords(data)
-    L.geoJSON(data, {onEachFeature:onEachFeature}).addTo(mymap);
+    L.geoJSON(newconduits, {onEachFeature:onEachFeature}).addTo(mymap);
+    // L.geoJSON(newconduits, {onEachFeature:onEachFeature}).addTo(mymap);
 
     </script>
   </body>

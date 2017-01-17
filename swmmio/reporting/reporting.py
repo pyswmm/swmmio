@@ -2,16 +2,19 @@
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
 from swmmio.reporting.functions import *
+from swmmio.reporting.utils import insert_in_file, insert_in_file_2
 from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
+from swmmio.graphics import drawing
 from swmmio.utils.dataframes import create_dataframeRPT
+from swmmio.utils import spatial
 from swmmio.version_control.inp import INPDiff
 import os
 import math
 import pandas as pd
 from definitions import *
-
-
+import json
+import shutil
 
 class FloodReport(object):
     def __init__(self, model, parcel_node_df=None, parcel_node_join_csv=None,
@@ -50,7 +53,8 @@ class FloodReport(object):
 
 
 class ComparisonReport(object):
-    def __init__(self, baseline_report, alt_report, additional_costs=None):
+    def __init__(self, baseline_report, alt_report, additional_costs=None,
+                 join_data=None):
         """
         Report object representing a comparison of a baseline report to another
         (proposed conditions) report
@@ -60,30 +64,79 @@ class ComparisonReport(object):
         baseline_flooding = baseline_report.parcel_flooding
         proposed_flooding = alt_report.parcel_flooding
 
-        conduitdiff = INPDiff(basemodel, altmodel, '[CONDUITS]') 
+        conduitdiff = INPDiff(basemodel, altmodel, '[CONDUITS]')
+        new_cond_ids = pd.concat([conduitdiff.added, conduitdiff.altered]).index
 
         self.baseline_report = baseline_report
         self.alt_report = alt_report
 
+        #sort out the new and "altered" conduits
+        self.newconduits = altmodel.conduits().ix[new_cond_ids]
+        self.newconduits.ix[conduitdiff.altered.index, 'Category'] = 'Replaced'
+        self.newconduits.ix[conduitdiff.added.index, 'Category'] = 'Proposed'
+
         #human readable name
         self.name = '{} vs {} Report'.format(basemodel.name, altmodel.name)
+        phase_diff = list(set(altmodel.name.split('_')) - set(basemodel.name.split('_')))
+        phase_diff = ', '.join(phase_diff[:-1]) + ', and {}'.format(phase_diff[-1])
+        self.description = 'Adding {} to {}'.format(phase_diff, basemodel.name)
 
         #calculate the proposed sewer mileage
-        proposed_ft = conduitdiff.added.Length.sum() + conduitdiff.altered.Length.sum()
+        proposed_ft = self.newconduits.Length.sum()#conduitdiff.added.Length.sum() + conduitdiff.altered.Length.sum()
         self.sewer_miles_new = proposed_ft / 5280.0
 
         #COST ESTIMATION
-        self.cost_data = new_conduits_cost_estimate(basemodel, altmodel, additional_costs)
-        self.cost_estimate = self.cost_data.TotalCostEstimate.sum() / math.pow(10, 6)
+        self.newconduits = conduits_cost_estimate(self.newconduits, additional_costs)
+        self.cost_estimate = self.newconduits.TotalCostEstimate.sum() / math.pow(10, 6)
+
+        #ADD ANY ADDITIONAL DATA TO THE NEW CONDIUTS (FEASIBILITY, REAL GEOM etc)
+        if join_data is not None:
+            joindf = pd.read_csv(join_data, index_col=0)
+            self.newconduits = self.newconduits.join(joindf)
 
         #MEASURE THE FLOOD REDUCTION IMPACT
         self.flood_comparison = parcels.compare_flood_duration(baseline_flooding,
                                                                proposed_flooding)
         self.impact = self.flood_comparison.Category.value_counts()
 
-    def write(self, report_dir):
+
+    def write(self, rpt_dir):
         #write cost per sewer segment spreadsheet
-        self.cost_data.to_csv(os.path.join(report_dir,self.name+'_cost_data.csv'))
+        costcols = ['Length', 'Geom1','Geom2','Geom2','Geom4', 'Shape', 'XArea',
+                    'CostEstimate', 'AdditionalCost', 'AddtlCostNotes',
+                    'TotalCostEstimate', 'RealGeom1', 'RealGeom2']
+        self.newconduits[costcols].to_csv(os.path.join(rpt_dir,'cost_estimate.csv'))
+        self.flood_comparison.to_csv(os.path.join(rpt_dir,'parcel_flood_comparison.csv'))
+
+        #write parcel json files
+        parcels = spatial.read_shapefile(sg.config.parcels_shapefile)
+        parcels = parcels[['PARCELID', 'ADDRESS', 'OWNER1', 'coords']]
+        flooded = self.flood_comparison
+        flooded = flooded.loc[flooded.Category.notnull()] #parcels with significant flood delta
+        flooded = pd.merge(flooded, parcels, right_on='PARCELID', left_index=True)
+        colors = flooded.apply(lambda row:'#%02x%02x%02x' % drawing.parcel_draw_color(row, style='delta'), axis=1)
+        flooded = flooded.assign(fill=colors)
+        geoparcelpath = os.path.join(rpt_dir,'delta_parcels.json')
+        spatial.create_geojson(flooded, geomtype='polygon', filename=geoparcelpath)
+
+        #write new conduit json
+        geocondpath = os.path.join(rpt_dir,'new_conduits.json')
+        spatial.create_geojson(self.newconduits, filename=geocondpath)
+
+        #write node and conduit report csvs
+        self.alt_report.model.nodes().to_csv(os.path.join(rpt_dir,'nodes.csv'))
+        self.alt_report.model.conduits().to_csv(os.path.join(rpt_dir,'conduits.csv'))
+
+        #create map
+        # mapfile = os.path.join(report_dir, 'map.html')
+        # shutil.copyfile(BASEMAP_PATH, mapfile)
+        #
+        # # with open(geoparcelpath, 'r') as geo:
+        # # insert_in_file_2('delta_parcels', json.dumps(pjson), mapfile)
+        # insert_in_file_2('newconduits', json.dumps(conjson), mapfile)
+
+        # with open(mapfile, 'r') as geo:
+        #     insert_in_file('newconduits', geo.read(), mapfile)
 
     def __str__(self):
         """print friendly"""
