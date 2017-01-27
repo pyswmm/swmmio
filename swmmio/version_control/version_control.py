@@ -7,7 +7,7 @@ from datetime import datetime
 from swmmio.swmmio import Model
 from swmmio.utils import functions as funcs
 from swmmio.utils.dataframes import create_dataframeINP
-from swmmio.utils import swmm_utils as su
+# from swmmio.utils import swmm_utils as su
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 

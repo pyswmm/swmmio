@@ -9,30 +9,87 @@ from swmmio.graphics import drawing
 from swmmio.utils.dataframes import create_dataframeRPT
 from swmmio.utils import spatial
 from swmmio.version_control.inp import INPDiff
+from swmmio import swmmio
 import os
 import math
 import pandas as pd
 from definitions import *
-import json
+import json, geojson
 import shutil
 
+
+
+def read_all_reports(project_dir):
+    """scan through all reports in a project directory and return as dataframe
+    containing the cost benefit data for each project"""
+
+    #combine the segments and options (combinations) into one iterable
+    SEGMENTS_DIR = os.path.join(project_dir, 'Segements')
+    COMBOS_DIR = os.path.join(project_dir, 'Combinations')
+    COMMON_DATA_DIR = os.path.join(project_dir, 'CommonData')
+    ADMIN_DIR = os.path.join(project_dir, 'ProjectAdmin')
+    BASELINE_DIR = os.path.join(project_dir, 'Baseline')
+
+    paths = (SEGMENTS_DIR,COMBOS_DIR)
+
+    for path, dirs, files in chain.from_iterable(os.walk(path) for path in paths):
+
+        for f in files:
+            if '.inp' in f:
+                pass
+
+
+
+def read_report_dir(rptdir, total_parcel_count=0):
+    #rpt dir passed in, just read the preprossed report data
+    rpt = FloodReport()
+    rpt.total_parcel_count = total_parcel_count
+    rpt.model = swmmio.Model(os.path.dirname(rptdir))
+    rpt.scenario = rpt.model.scenario
+    rpt.parcel_flooding = pd.read_csv(os.path.join(rptdir,
+                                                   'parcel_flood_comparison.csv'))
+    rpt.parcel_hrs_flooded = rpt.parcel_flooding.HoursFloodedProposed.sum()
+    rpt.parcel_vol_flooded = rpt.parcel_flooding.TotalFloodVolProposed.sum()
+    costcsv = os.path.join(rptdir, 'cost_estimate.csv')
+    conduits_geojson_path = os.path.join(rptdir, 'new_conduits.json')
+
+    if os.path.exists(costcsv):
+        #calc the cost estimate total in millions
+        cost_df =  pd.read_csv(costcsv)
+        rpt.cost_estimate = cost_df.TotalCostEstimate.sum() / math.pow(10, 6)
+
+    if os.path.exists(conduits_geojson_path):
+        with open (conduits_geojson_path, 'r') as f:
+            rpt.new_conduits_geojson = geojson.loads(f.read())
+
+    return rpt
+
 class FloodReport(object):
-    def __init__(self, model, parcel_node_df=None, parcel_node_join_csv=None,
+    def __init__(self, model=None, parcel_node_df=None, parcel_node_join_csv=None,
                  threshold=0.0833):
         """
         Report of parcel flood duration of a given swmmio.Model object
         """
+        self.total_parcel_count = None
+        self.model = None
+        self.scenario = None
+        self.parcel_flooding = None
+        self.cost_estimate = None
+        self.new_conduits_geojson = None
+        self.parcel_hrs_flooded = None
+        self.parcel_vol_flooded = None
 
-        if parcel_node_df is None:
-            #read csv if df not provided
-            parcel_node_df = pd.read_csv(parcel_node_join_csv)
+        if model is not None:
+            if parcel_node_df is None:
+                #read csv if df not provided
+                parcel_node_df = pd.read_csv(parcel_node_join_csv)
 
-        self.total_parcel_count = len(parcel_node_df.PARCELID.unique())
-        self.model = model
-        self.scenario = model.scenario
-        self.parcel_flooding = parcels.flood_duration(model.nodes(),
-                                                      parcel_node_df,
-                                                      threshold=threshold)
+            self.total_parcel_count = len(parcel_node_df.PARCELID.unique())
+            self.model = model
+            self.scenario = model.scenario
+            self.parcel_flooding = parcels.flood_duration(model.nodes(),
+                                                          parcel_node_df,
+                                                          threshold=threshold)
 
     def __str__(self):
         """print friendly"""
