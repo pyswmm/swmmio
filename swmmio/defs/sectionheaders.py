@@ -44,6 +44,6 @@ rpt_header_dict={
     'Node Depth Summary':'Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr',
     'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc',
     'Subcatchment Results':     'Date Time PrecipInchPerHour LossesInchPerHr RunoffCFS',
-    'Node Results':             'Date Time InflowCFS FloodingCFS DepthFt HeadFt',
+    'Node Results':             'Date Time InflowCFS FloodingCFS DepthFt HeadFt TSS TP TN',
     'Link Results':             'Date Time FlowCFS VelocityFPS DepthFt PercentFull',
 }
