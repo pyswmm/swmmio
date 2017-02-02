@@ -50,8 +50,8 @@ Many options can be passed to control how and what data is visualized.
 ```python
 from swmmio.graphics import swmm_graphics as sg
 sg.drawModel(mymodel)
-![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
 ```
+![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.
 ```python
