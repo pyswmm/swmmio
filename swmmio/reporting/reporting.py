@@ -6,6 +6,7 @@ from swmmio.reporting.utils import insert_in_file, insert_in_file_2
 from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import drawing
+from swmmio.graphics.constants import *
 from swmmio.utils.dataframes import create_dataframeRPT
 from swmmio.utils import spatial
 from swmmio.version_control.inp import INPDiff
@@ -17,52 +18,6 @@ from definitions import *
 import json, geojson
 import shutil
 
-
-
-def read_all_reports(project_dir):
-    """scan through all reports in a project directory and return as dataframe
-    containing the cost benefit data for each project"""
-
-    #combine the segments and options (combinations) into one iterable
-    SEGMENTS_DIR = os.path.join(project_dir, 'Segements')
-    COMBOS_DIR = os.path.join(project_dir, 'Combinations')
-    COMMON_DATA_DIR = os.path.join(project_dir, 'CommonData')
-    ADMIN_DIR = os.path.join(project_dir, 'ProjectAdmin')
-    BASELINE_DIR = os.path.join(project_dir, 'Baseline')
-
-    paths = (SEGMENTS_DIR,COMBOS_DIR)
-
-    for path, dirs, files in chain.from_iterable(os.walk(path) for path in paths):
-
-        for f in files:
-            if '.inp' in f:
-                pass
-
-
-
-def read_report_dir(rptdir, total_parcel_count=0):
-    #rpt dir passed in, just read the preprossed report data
-    rpt = FloodReport()
-    rpt.total_parcel_count = total_parcel_count
-    rpt.model = swmmio.Model(os.path.dirname(rptdir))
-    rpt.scenario = rpt.model.scenario
-    rpt.parcel_flooding = pd.read_csv(os.path.join(rptdir,
-                                                   'parcel_flood_comparison.csv'))
-    rpt.parcel_hrs_flooded = rpt.parcel_flooding.HoursFloodedProposed.sum()
-    rpt.parcel_vol_flooded = rpt.parcel_flooding.TotalFloodVolProposed.sum()
-    costcsv = os.path.join(rptdir, 'cost_estimate.csv')
-    conduits_geojson_path = os.path.join(rptdir, 'new_conduits.json')
-
-    if os.path.exists(costcsv):
-        #calc the cost estimate total in millions
-        cost_df =  pd.read_csv(costcsv)
-        rpt.cost_estimate = cost_df.TotalCostEstimate.sum() / math.pow(10, 6)
-
-    if os.path.exists(conduits_geojson_path):
-        with open (conduits_geojson_path, 'r') as f:
-            rpt.new_conduits_geojson = geojson.loads(f.read())
-
-    return rpt
 
 class FloodReport(object):
     def __init__(self, model=None, parcel_node_df=None, parcel_node_join_csv=None,
@@ -131,6 +86,7 @@ class ComparisonReport(object):
         self.newconduits = altmodel.conduits().ix[new_cond_ids]
         self.newconduits.ix[conduitdiff.altered.index, 'Category'] = 'Replaced'
         self.newconduits.ix[conduitdiff.added.index, 'Category'] = 'Proposed'
+        self.new_ix = self.newconduits.index
 
         #human readable name
         self.name = '{} vs {} Report'.format(basemodel.name, altmodel.name)
@@ -184,80 +140,106 @@ class ComparisonReport(object):
         self.alt_report.model.nodes().to_csv(os.path.join(rpt_dir,'nodes.csv'))
         self.alt_report.model.conduits().to_csv(os.path.join(rpt_dir,'conduits.csv'))
 
-        #create map
-        # mapfile = os.path.join(report_dir, 'map.html')
-        # shutil.copyfile(BASEMAP_PATH, mapfile)
-        #
-        # # with open(geoparcelpath, 'r') as geo:
-        # # insert_in_file_2('delta_parcels', json.dumps(pjson), mapfile)
-        # insert_in_file_2('newconduits', json.dumps(conjson), mapfile)
+        #create figures
+    def generate_figures(self, rpt_dir, parcel_shp_df, bbox=d68d70):
 
-        # with open(mapfile, 'r') as geo:
-        #     insert_in_file('newconduits', geo.read(), mapfile)
+        basemodel = self.baseline_report.model
+        altmodel = self.alt_report.model
+        files = '{}\n{}'.format(basemodel.inp.path, altmodel.inp.path)
+
+
+        #SIMPLE PLAN VIEW OF OPTION (showing new conduits)
+        conduits = altmodel.conduits()
+        pth = os.path.join(rpt_dir, '00 Proposed Infrastructure.png')
+        conduits['draw_color'] = '#bebeb4' #default color
+        conduits['draw_size'] = conduits.Geom1
+        conduits.ix[self.new_ix, 'draw_color'] = '#1414e6' #new cond col
+        conduits.ix[self.new_ix,'draw_size'] = conduits.ix[self.new_ix,'Geom1']*2
+        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), bbox=bbox,
+                      title=self.name, annotation=files, file_path=pth)
+
+        #EXISTING CONDITIONS PARCEL FLOOD DURATION
+        pth = os.path.join(rpt_dir, '01 Existing Parcel Flood Duration.png')
+        base_conduits = basemodel.conduits()
+        base_conduits['draw_color'] = '#bebeb4' #default color
+        pars = self.baseline_report.parcel_flooding
+        pars = pd.merge(pars, parcel_shp_df, right_on='PARCELID', left_index=True)
+        comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'risk'), axis=1)
+        pars = pars.assign(draw_color=comp_cols)
+        sg.draw_model(conduits=base_conduits, nodes=basemodel.nodes(), parcels=pars,
+                      bbox=bbox,title=self.name, annotation=self.baseline_report.__str__(),
+                      file_path=pth)
+
+        #PROPOSED CONDITIONS PARCEL FLOOD DURATION
+        pth = os.path.join(rpt_dir, '02 Proposed Parcel Flood Duration.png')
+        pars = self.alt_report.parcel_flooding
+        pars = pd.merge(pars, parcel_shp_df, right_on='PARCELID', left_index=True)
+        comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'risk'), axis=1)
+        pars = pars.assign(draw_color=comp_cols)
+        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), parcels=pars,
+                      bbox=bbox,title=self.name, annotation=self.alt_report.__str__(),
+                      file_path=pth)
+
+        #PROPOSED CONDITIONS PARCEL FLOOD DURATION
+        pth = os.path.join(rpt_dir, '02 Proposed Parcel Flood Duration.png')
+        pars = self.alt_report.parcel_flooding
+        pars = pd.merge(pars, parcel_shp_df, right_on='PARCELID', left_index=True)
+        comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'risk'), axis=1)
+        pars = pars.assign(draw_color=comp_cols)
+        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), parcels=pars,
+                      bbox=bbox,title=self.name, annotation=self.alt_report.__str__(),
+                      file_path=pth)
+
+        #IMPACT OF INFRASTRUCTURE
+        pth = os.path.join(rpt_dir, '03 Impact of Option.png')
+        pars = pd.merge(self.flood_comparison, parcel_shp_df, right_on='PARCELID', left_index=True)
+        comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'delta'), axis=1)
+        pars = pars.assign(draw_color=comp_cols)
+        annotation = self.alt_report.__str__() + '\n\n' + self.__str__()
+        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), parcels=pars,
+                      bbox=bbox,title=self.name, annotation=annotation,
+                      file_path=pth)
+
+        #IMPACT OF INFRASTRUCTURE OVERALL
+        pth = os.path.join(rpt_dir, '04 Impact of Option - Overall.png')
+        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), parcels=pars,
+                      bbox=study_area,title=self.name, annotation=annotation,
+                      file_path=pth)
 
     def __str__(self):
         """print friendly"""
         catz = filter(None, self.flood_comparison.Category.unique())
         a = ['{}: {}'.format(c, self.impact[c]) for c in catz]
-        return '{}\n{}'.format(self.name,'\n'.join(a))
+        files = [self.baseline_report.model.inp.path,
+                 self.alt_report.model.inp.path]
+        return '{}\n{}'.format(self.name,'\n'.join(a+files))
 
 
-class Report(object):
+def read_report_dir(rptdir, total_parcel_count=0):
+    #rpt dir passed in, just read the preprossed report data
+    rpt = FloodReport()
+    rpt.total_parcel_count = total_parcel_count
+    rpt.model = swmmio.Model(os.path.dirname(rptdir))
+    rpt.scenario = rpt.model.scenario
+    rpt.parcel_flooding = pd.read_csv(os.path.join(rptdir,
+                                                   'parcel_flood_comparison.csv'))
+    rpt.parcel_hrs_flooded = rpt.parcel_flooding.HoursFloodedProposed.sum()
+    rpt.parcel_vol_flooded = rpt.parcel_flooding.TotalFloodVolProposed.sum()
+    costcsv = os.path.join(rptdir, 'cost_estimate.csv')
+    conduits_geojson_path = os.path.join(rptdir, 'new_conduits.json')
 
-    def __init__(self, baseline_model, option, existing_parcel_flooding = None,
-                 additional_costs=None):
+    if os.path.exists(costcsv):
+        #calc the cost estimate total in millions
+        cost_df =  pd.read_csv(costcsv)
+        rpt.cost_estimate = cost_df.TotalCostEstimate.sum() / math.pow(10, 6)
 
-        #parcel_features = 'PWD_PARCELS_SHEDS_PPORT' #'PWD_PARCELS_SHEDS'
-        #parcel calculations
-        anno_results={}
-        #if not existing_parcel_flooding:
-        existing_parcel_flooding = p.parcel_flood_duration(baseline_model, parcel_features=PARCEL_FEATURES,
-    											bbox=None, anno_results=anno_results)['parcels']
+    if os.path.exists(conduits_geojson_path):
+        with open (conduits_geojson_path, 'r') as f:
+            rpt.new_conduits_geojson = geojson.loads(f.read())
 
-        proposed_parcel_flooding = p.parcel_flood_duration(option, parcel_features=PARCEL_FEATURES,
-												bbox=None, anno_results=anno_results)['parcels']
+    return rpt
 
-        delta_parcels = p.compareParcels(existing_parcel_flooding, proposed_parcel_flooding,
-										bbox=None, floodthreshold=0.0833,
-										delta_threshold=0.25,
-										anno_results=anno_results)
-
-        self.baseline=baseline_model
-        self.option = option
-        self.delta_parcels = delta_parcels['parcels']
-        self.anno_results = anno_results
-        self.sewer_miles_new = functions.length_of_new_and_replaced_conduit(baseline_model, option)  / 5280.0
-        self.sewer_miles_replaced = None
-        self.storage_new = None #some volume measurement
-        self.cost_estimate_data = functions.estimate_cost_of_new_conduits(baseline_model, option, additional_costs)
-        self.cost_estimate = self.cost_estimate_data.TotalCostEstimate.sum() / math.pow(10, 6)
-        self.parcels_new_flooding = delta_parcels['new_flooding']
-        self.parcels_worse_flooding = delta_parcels['increased_flooding']
-        self.parcels_eliminated_flooding = delta_parcels['eliminated_flooding']
-        self.parcels_flooding_improved = delta_parcels['decreased_flooding'] + delta_parcels['eliminated_flooding']
-
-        print '{} new miles '.format(self.sewer_miles_new)
-        print '{} parcels deltas'.format(len(self.delta_parcels))
-
-    def write (self, report_dir):
-        #generate the figures
-        generate_figures(self.baseline, self.option,
-                        delta_parcels = self.delta_parcels,
-                        anno_results = self.anno_results,
-                        bbox = su.d68d70, imgDir=report_dir)
-
-        #write the cost estimate file
-        costsdf  = self.cost_estimate_data[['Length', 'Shape', 'Geom1', 'Geom2',
-                                            'Geom3', 'XArea', 'Volume',
-                                            'CostEstimate', 'AdditionalCost',
-                                            'AddCostNotes', 'TotalCostEstimate']]
-        costsdf.to_csv(os.path.join(report_dir, self.option.inp.name + '_cost_data.csv'))
-        #write text report
-        with open(os.path.join(report_dir, 'report.txt'), 'w') as f:
-            f.write('Parcels Improved {}\n'.format(self.parcels_flooding_improved))
-            f.write('New Sewer Miles {}\n'.format(self.sewer_miles_new))
-            f.write('Cost Estimate {}\n'.format(self.cost_estimate))
-
+#LEGACY CODE ON CHAPPIN BLOCK
 def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
                     bbox=None, imgDir=None, verbose=False):
 
@@ -305,25 +287,3 @@ def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
                                 anno_results = anno_results,
                                 conduitSymb=du.conduit_options('compare_flow'),
                                 bbox=bbox, imgName=imgname, imgDir=imgDir)
-
-
-def timeseries_join(elements, *models):
-    """
-    Given a list of element IDs and Model objects, a dataframe is returned
-    with the elements' time series data for each model.
-    Example:
-        df = timeseries_join(elements = ['P1, P2'], model1, model2)
-        returns df with index = DateTime and cols = [model1_P1_FlowCFS, model1_P2_FlowCFS,
-                                                    model2_P1_FlowCFS, model2_P2_FlowCFS]
-    """
-    # dfs = [[dataframes.create_dataframeRPT(m.rpt.path, 'Link Results', el)[['FlowCFS']]
-    #         for el in elements] for m in models]
-    param_name = 'FlowCFS' #as named by our dataframe method
-    section_name = 'Link Results' #in the rpt
-    dfs = [create_dataframeRPT(m.rpt.path, section_name, elem)[[param_name]].rename(
-                columns={param_name:'{}_{}_{}'.format(m.inp.name, elem, param_name)}
-                )
-                for m in models for elem in elements]
-
-    df = pd.concat(dfs, axis=1)
-    return df

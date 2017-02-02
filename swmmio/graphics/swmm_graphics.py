@@ -1,22 +1,15 @@
 #graphical functions for SWMM files
 from definitions import *
 from swmmio.damage import parcels as pdamage
-# from swmmio.graphics import draw_utils as du
 from swmmio.graphics import config, options
 from swmmio.graphics.constants import * #constants
 from swmmio.graphics.utils import *
 from swmmio.graphics.drawing import *
 from swmmio.utils import spatial
-# from swmmio import parcels
 import pandas as pd
-import re
 import os
-import numpy
-from PIL import Image, ImageDraw, ImageFont
-import datetime
-from datetime import timedelta
-from time import gmtime, strftime
-import pickle
+from PIL import Image, ImageDraw
+
 
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
@@ -37,8 +30,8 @@ def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 											fill=f['fill']), axis=1)
 
 
-def draw_model(model=None, nodes=None, conduits=None, parcels=None,
-				img_name=None, bbox=None, px_width=2048.0):
+def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
+				annotation=None, file_path=None, bbox=None, px_width=2048.0):
 	"""
 	create a png rendering of the model and model results
 	"""
@@ -65,6 +58,11 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None,
 	if config.include_basemap is True:
 		_draw_basemap(draw, img, bb, px_width, shift_ratio)
 
+	if parcels is not None:
+		#expects dataframe with coords and draw color column
+		par_px = px_to_irl_coords(parcels, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
+		par_px.apply(lambda r: draw.polygon(r.draw_coords, fill=r.draw_color), axis=1)
+
 	if config.include_parcels is True:
 		par_flood = pdamage.flood_duration(nodes, parcel_node_join_csv=config.parcel_node_join_data)
 		par_shp = spatial.read_shapefile(config.parcels_shapefile)
@@ -76,7 +74,13 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None,
 	conduits.apply(lambda row: draw_conduit(row, draw), axis=1)
 	nodes.apply(lambda row: draw_node(row, draw), axis=1)
 
+	#ADD ANNOTATION AS NECESSARY
+	if title: annotate_title(title, draw)
+	if annotation: annotate_details(annotation, draw)
+	annotate_timestamp(draw)
+
 	#SAVE IMAGE TO DISK
+	if file_path:
+		save_image(img, file_path)
+
 	return img
-	# save_image(img, model, img_name, imgDir=None)
-	# del draw, img

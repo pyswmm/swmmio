@@ -1,6 +1,8 @@
 from swmmio.swmmio import Model
 from swmmio.reporting import reporting
 from swmmio.reporting import functions
+from swmmio.utils import spatial
+from swmmio.graphics import swmm_graphics as sg
 # from swmmio.utils import swmm_utils as su
 from time import strftime
 import os
@@ -9,7 +11,6 @@ import math
 from itertools import chain
 from definitions import *
 import pandas as pd
-# REPORT_DIR_NAME = 'Report'
 
 
 def batch_reports(project_dir, results_file,
@@ -26,6 +27,7 @@ def batch_reports(project_dir, results_file,
     baseline_model = Model(BASELINE_DIR)
     pn_join_csv = os.path.join(COMMON_DATA_DIR,r'pennsport_sheds_parcels_join.csv')
     parcel_node_join_df = pd.read_csv(pn_join_csv)
+    parcel_shp_df = spatial.read_shapefile(sg.config.parcels_shapefile)
     baserpt = reporting.FloodReport(baseline_model, parcel_node_join_df)
 
     paths = (SEGMENTS_DIR,COMBOS_DIR)
@@ -53,6 +55,7 @@ def batch_reports(project_dir, results_file,
 
                 #write the report files
                 impact_rpt.write(report_dir)
+                impact_rpt.generate_figures(report_dir, parcel_shp_df)
 
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,

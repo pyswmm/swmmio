@@ -5,43 +5,18 @@ from swmmio.graphics import * #constants
 import os
 from PIL import Image
 
-def save_image(img, model, imgName=None, imgDir=None,
-				antialias=True, open=False, fileExt=".png", verbose=False):
+def save_image(img, img_path, model=None, imgName=None, imgDir=None,
+				antialias=True, open=False, fileExt=".png"):
 
 	#get the size from the Image object
 	imgSize = (img.getbbox()[2], img.getbbox()[3])
-
-	#if imgName not specified, define as model name
-	if not imgName:
-		imgName = model.inp.name
-
-	#create the saving location as necessary
-	if not imgDir:
-		inp = model.inp
-		rpt = model.rpt
-		standardDir = os.path.join(inp.dir, "img")
-		if not os.path.exists(standardDir):
-			#if no directory is specified and none exists at
-			#standard location create a new directory
-			os.makedirs(os.path.join(inp.dir, "img"))
-		newFile = os.path.join(standardDir, imgName) + fileExt
-	else:
-		#imDir is specified by user
-		if not os.path.exists(imgDir):
-			#if directory doesn't exist, create new
-			os.makedirs(imgDir)
-		newFile = os.path.join(imgDir, imgName) + fileExt
-
-	if verbose: print "saving image to: " + newFile
-
-	#shrink for antialiasing niceness (though this blows up the file about 5x)
 	if antialias:
 		size = (int(imgSize[0]*0.5), int(imgSize[1]*0.5))
 		img.thumbnail(size, Image.ANTIALIAS)
 
-	img.save(newFile)
+	img.save(img_path)
 	if open:
-		os.startfile(newFile)
+		os.startfile(img_path)
 
 def px_to_irl_coords(df, px_width=4096.0, bbox=None, shift_ratio=None):
 	"""
