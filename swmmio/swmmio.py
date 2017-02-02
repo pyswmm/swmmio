@@ -111,108 +111,6 @@ class Model(object):
 
 		return conduits_df
 
-	def organizeConduitData (self, bbox=None, subset=None, extraData=None):
-
-		#creates a dictionary of dictionaries containing relevant data
-		#for conduits within a SWMM model. Upstream and downstream node data is attributed to the
-
-		#check if this has been done already and return that data accordingly
-		if self.organized_conduit_data and bbox==self.bbox:
-			return self.organized_conduit_data
-
-		#parse out the main objects of this model
-		inp = self.inp
-		rpt = self.rpt
-
-		#creat dictionary of conduits and join dictionaries of all nodes
-		conduitsDict = inp.createDictionary("[CONDUITS]")
-		xsectionsDict = inp.createDictionary("[XSECTIONS]")
-		if subset:
-			conduitsDict = { key:value for key,value in conduitsDict.items() if key in subset }
-			xsectionsDict = { key:value for key,value in xsectionsDict.items() if key in subset }
-		storagesDict = inp.createDictionary("[STORAGE]")
-		junctionsDict = inp.createDictionary("[JUNCTIONS]")
-		outfallsDict = inp.createDictionary("[OUTFALLS]")
-		coordsDict = inp.createDictionary("[COORDINATES]")
-
-		#merge all the "node" type dictionaries (those that can be junctions between SWMM links)
-		allNodesDict = functions.merge_dicts(storagesDict, junctionsDict, outfallsDict)
-
-		nodesDepthSummaryDict = {} # from rpt if one is supplied
-		conduit_objects = {}
-		#downstreamConduits = []
-		if rpt:
-			#create a dictionary holding data from an rpt file, if provided
-			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
-			allLinksSummaryDict = rpt.createDictionary("Link Flow Summary")
-			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-
-		reachLength = 0.00 #used for tranform
-		maxEl = 0.00 #used for tranform
-		minEl = 999999 #used for transform
-		#errCount = 0
-
-		for conduit_id, conduit_data in conduitsDict.iteritems():
-
-			#try:
-			upstreamNodeID = conduit_data[0]
-			downstreamNodeID = conduit_data[1]
-			inletoffset = float(conduit_data[4])
-			outletoffset = float(conduit_data[5])
-			length = float(conduit_data[2])
-			upstreamXY = coordsDict[upstreamNodeID]
-			upstreamXY = [float(i) for i in upstreamXY] #convert to floats
-			downstreamXY = coordsDict[downstreamNodeID]
-			downstreamXY = [float(i) for i in downstreamXY] #convert to floats
-			geom1 = float(xsectionsDict[conduit_id][1]) #conduit diameter / height
-			geom2 = xsectionsDict[conduit_id][2] #conduit width (sometimes a curve ref)
-
-			if bbox and (not su.pointIsInBox(bbox, upstreamXY) and not su.pointIsInBox(bbox, downstreamXY)):
-				#skip conduits who are not within a given boudning box. This includes conduits who are partially in the box.
-				continue
-
-			#downstream pipe id: the pipe whose upstream id equals downstreamNodeID
-			conduit = Link(conduit_id, [upstreamXY, downstreamXY], geom1, geom2, inletoffset, outletoffset)
-			conduit.length = length
-			conduit.upNodeID = upstreamNodeID
-			conduit.downNodeID = downstreamNodeID
-
-			if rpt and (upstreamNodeID in nodesDepthSummaryDict) and (downstreamNodeID in nodesDepthSummaryDict):
-				# #if the up and downstream nodes are also found in the node depth summary dictionary,
-				# #grab the relevant data and store a little dictionary
-				upNDA = nodesDepthSummaryDict[upstreamNodeID] #upstream node depth array
-				dnNDA = nodesDepthSummaryDict[downstreamNodeID] #downstream node depth array
-				upHGL = float(upNDA[3])
-				dnHGL = float(dnNDA[3])
-				conduit.maxHGLDownstream = dnHGL
-				conduit.maxHGLUpstream = upHGL
-
-
-			if rpt and conduit_id in allLinksSummaryDict:
-				#if the conduit is found in the link summary dictionary,
-				#grab the link flow smmary data and store a little dictionary
-				lsa = allLinksSummaryDict[conduit_id] #link summary array
-				#lsa = [float(i) for i in lsa] #convert to floats
-				if lsa[0] == "CONDUIT":
-
-					conduit.maxflow = float(lsa[1])
-					conduit.maxQpercent = float(lsa[5])
-
-
-			#append data to the overall dictionary
-			conduit_objects.update({conduit_id:conduit})
-
-			#except Exception (e):
-			#	print str(e)
-
-		output = {'conduit_objects': conduit_objects}
-
-		#remember this stuff for later
-		self.organized_conduit_data = output
-		self.bbox = bbox
-
-		return output
-
 	def nodes(self, bbox=None, subset=None):
 
 		"""
@@ -263,104 +161,13 @@ class Model(object):
 		return all_nodes
 
 
-	def organizeNodeData(self, bbox=None, subset=None):
-
-		#creates a dictionary of dictionaries containing relevant data
-		#per node within a SWMM model.
-
-		#check if this has been done already and return that data accordingly
-		if self.organized_node_data and bbox==self.bbox:
-			return self.organized_node_data
-
-		#parse out the main objects of this model
-		inp = self.inp
-		rpt = self.rpt
-
-		#creat dictionary of all nodes from the INP and join dictionaries
-		storagesDict = inp.createDictionary("[STORAGE]")
-		junctionsDict = inp.createDictionary("[JUNCTIONS]")
-		outfallsDict = inp.createDictionary("[OUTFALLS]")
-		coordsDict = inp.createDictionary("[COORDINATES]")
-		allNodesDict = functions.merge_dicts(storagesDict, junctionsDict, outfallsDict)
-
-		if subset:
-			allNodesDict = { key:value for key,value in allNodesDict.items() if key in subset }
-
-		if rpt:
-			#create a dictionary holding data from an rpt file, if provided
-			nodesDepthSummaryDict = rpt.createDictionary("Node Depth Summary")
-			nodesFloodSummaryDict = rpt.createDictionary("Node Flooding Summary")
-
-
-		maxEl = 0.00 #used for tranform
-		minEl = 999999 #used for transform
-		#errCount = 0
-		node_objects = {}
-		for node in allNodesDict:
-
-			if not allNodesDict[node] or not node in coordsDict:
-				continue
-
-			#if the conduit's upstream & downstream nodes are
-			# found in the allNodesDict look up it's data
-			#try:
-			invert = 	float(allNodesDict[node][0])
-			xy = [float(i) for i in coordsDict[node]]#convert to floats
-
-			if bbox and (not su.pointIsInBox(bbox, xy)):
-				#skip nodes who are not within a given boudning box.
-				continue
-
-			n = Node(node, invert, xy)
-			try:
-			    n.maxDepth = float(allNodesDict[node][1])
-			except ValueError:
-			    pass #not a float, probably a 'FIXED' tag at that index on a outfall node
-
-
-			if rpt and (node in nodesDepthSummaryDict):
-				#if the up and downstream nodes are also found in the node depth summary dictionary,
-				#grab the relevant data and store a little dictionary
-				NDA = nodesDepthSummaryDict[node] #upstream node depth array
-
-				n.maxHGL = float(NDA[3])
-				#n.maxDepth = float(NDA[2])
-				maxEl = max(n.maxHGL, maxEl) #increase the max elevation observed with the HGL
-
-			if rpt and (node in nodesFloodSummaryDict):
-				#if the up and downstream nodes are also found in the node flooding summary dictionary,
-				#grab the relevant data and store a little dictionary
-				NFA = nodesFloodSummaryDict[node] #upstream node flooding array
-				n.flood_duration = float(NFA[0])
-				#nodeDict.update({'floodDuration':floodDuration})
-
-			#append data to the overall dictionary
-			node_objects.update({node:n})
-
-			maxEl = max(n.maxDepth, n.maxHGL, maxEl) #inverts plus the geom1 (pipe dimension)
-			minEl = min(invert, minEl)
-
-			#except:
-				#errors occured when nodes aren't found in COORDINATES table
-			#	print 'problem with ', node
-
-		output = {
-			'node_objects': node_objects,
-			'maxEl':maxEl,
-			'minEl':minEl,
-			}
-
-		#save for later use. save the bbox instance so we refresh this attributed
-		#whenever the bbox is changed (so we don't leave elements out)
-		self.organized_node_data = output
-		self.bbox = bbox
-
-		return output
-
 	def node(self, node, conduit=None):
 
-		#method for provide information about specific model elements
-		#returns a node object given its ID
+		"""
+		DEPRECIATED/NOT SUPPORTED: organizeNodeData()
+
+		method for provide information about specific model elements
+		returns a node object given its ID"""
 		if not self.organized_node_data:
 			self.organized_node_data = self.organizeNodeData()
 
@@ -393,66 +200,11 @@ class Model(object):
 		elif element_type == 'conduit':
 			data = self.organizeConduitData(bbox, subset=subset)
 			dicts = data['conduit_objects']
-		# elif element_type =='parcel':
-		# 	data = parcels.parcel_flood_duration(self, 'PWD_PARCELS_SHEDS', threshold=0)
-		# 	dicts =data['parcels']
+		
 		else:
 			return "incorrect data type specified"
 
 		return dicts
-
-	def export_geojson(self, bbox=None, crs=None, filename=None):
-		"""
-		export model as a geojson object
-		"""
-		import geojson
-		try:
-			import pyproj
-		except ImportError:
-			raise ImportError('pyproj module needed. get this package here: ',
-							'https://pypi.python.org/pypi/pyproj')
-
-		from geojson import Point, LineString, Feature, GeometryCollection
-
-		if crs is None:
-			#default coordinate system (http://spatialreference.org/ref/epsg/2272/):
-			#NAD_1983_StatePlane_Pennsylvania_South_FIPS_3702_Feet
-			crs =  {"type": "name","properties": {"name": "EPSG:2272"}}
-
-		pa_plane = pyproj.Proj(init='epsg:2272', preserve_units=True)
-		wgs = pyproj.Proj(proj='latlong', datum='WGS84', ellps='WGS84') #google maps, etc
-
-
-		geometries = [] #array of features
-		#collect the nodes
-		for k,v in self.list_objects('node', bbox).items():
-			props = {'flood_duration':v.flood_duration, 'id':v.id}
-			lat,lng = pyproj.transform(pa_plane, wgs, *v.coordinates)
-			geometry = Point((lat,lng), properties=props)
-			geometries.append(geometry)
-
-		#collect the links
-		for k,v in self.list_objects('conduit', bbox).items():
-			props = {'MaxQPercent':v.maxQpercent,
-			        'id':v.id,
-			        'lifecycle':v.lifecycle,
-			        'geom1':v.geom1,
-					'geom2':v.geom2,}
-
-			latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in v.coordinates]
-			geometry = LineString(latlngs, properties=props)
-			geometries.append(geometry)
-
-		# points = []
-		# for k, v in node_dicts.items():
-		# 	xy = v.coordinates
-		# 	points.append((xy[0], xy[1]))
-		if filename is None:
-			return GeometryCollection(geometries, crs=crs)
-		else:
-			with open(filename, 'wb') as f:
-				f.write(geojson.dumps(GeometryCollection(geometries, crs=crs)))
-				#f.write(geojson.dumps(FeatureCollection(nodefeatures, crs=crs)))
 
 
 	def export_to_shapefile(self, element_type='node', filename=None, bbox=None, subset=None):
@@ -509,27 +261,6 @@ class Model(object):
 		prj_filepath = os.path.splitext(filename)[0] + '.prj'
 		shutil.copy(os.path.join(currentdir, 'defs/default.prj'), prj_filepath)
 
-	def export_to_csv(self,  element_type='node', filename=None, bbox=None, openfile=True):
-
-		"""
-		exports the organized SWMM data into a csv table
-		"""
-
-		#organize the data -> dictionary of objects
-		dicts = self.list_objects(element_type, bbox)
-
-		#grab first object in list to structure the dataframe
-		ref_object = dicts[dicts.keys()[0]]
-		data = [[getattr(v,j) for j in ref_object.__slots__] for k,v in dicts.items()]
-		df = pd.DataFrame(data, columns = ref_object.__slots__)
-
-		#save to file csv
-		if not filename: filename = self.inp.name + "_" + element_type + 's_'
-		csvfilepath = os.path.join(self.inp.dir, filename) + '.csv'
-		df.to_csv(csvfilepath)
-
-		if openfile:
-			os.startfile(csvfilepath)
 
 class SWMMIOFile(object):
 
@@ -569,30 +300,6 @@ class SWMMIOFile(object):
 
 		return [start, end]
 
-	def exportCSV(self, sectionTitle = defaultSection):
-		#create CSV of section of choice in inp file
-
-		outFilePath = self.dir + "\\" + self.name + "_" + sectionTitle.replace(" ", "") + ".csv"
-		outFile = open(outFilePath, 'w') #create outfile
-		preppedTempFilePath = txt.extract_section_from_file(self.path, sectionTitle)
-		if not preppedTempFilePath:
-			return None #if nothing was found, do nothing
-
-		with open(preppedTempFilePath) as rptFile:
-			for line in rptFile:
-
-				#if the line is blankish, break (chop off any junk at the end)
-				if len(line) <=3: break
-				if ";" in line: continue #don't include any comments
-				#print line if there is stuff on it, CSV style
-				line = ','.join(re.findall('\"[^\"]*\"|\S+', line))
-				outFile.write("%s\n" % line)
-
-		outFile.close()
-		os.remove(preppedTempFilePath)
-
-		return outFilePath
-
 	def createDictionary (self, sectionTitle = defaultSection):
 
 		"""
@@ -628,27 +335,6 @@ class SWMMIOFile(object):
 		os.remove(preppedTempFilePath)
 
 		return the_dict
-
-
-
-
-	def printSectionOfFile(self, lookUpStr=None, startByte=0, printLength = 500):
-
-		l = startByte #line byte location
-		with open(self.path) as f:
-
-			f.seek(startByte) #jump to section at byte
-			#return f.read(printLength)
-
-			if lookUpStr:
-				for line in f:
-					#l += len(line) + len("\n")
-					if lookUpStr in line:
-						f.seek(l)
-						break
-					l += len(line) + len("\n")
-
-			print f.read(printLength)
 
 class rpt(SWMMIOFile):
 
@@ -756,22 +442,8 @@ class inp(SWMMIOFile):
 	#make sure INP has been saved in the GUI before using this
 
 	def __init__(self, filePath):
-
+		#is this class necessary anymore?
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
-
-		#assign the header list
-		#self.headerList = swmm_headers.inpHeaderList
-
-	def replace_section(self, newdata, sectionheader='[FILES]'):
-
-		"""
-		replace a given section of the INP file with the contents of a passed
-		dataframe object. Function creates a temporary copy of the original,
-		rebuilds the entire inp, section by section, saves the temp file, then
-		renames the temp file to the original file name.
-		"""
-		pass
-
 
 
 

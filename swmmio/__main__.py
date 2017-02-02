@@ -38,13 +38,13 @@ elif args.start_pool is not None:
     models_dirs = [os.path.join(wd, f) for f in args.start_pool]
     print 'looking for models to queue in:\n\t{}'.format('\n\t'.join(models_dirs))
     #combine the segments and options (combinations) into one iterable
-    dirs_containing_inps = []
+    inp_paths = []
     for root, dirs, files in chain.from_iterable(os.walk(path) for path in models_dirs):
         for f in files:
             if f.endswith('.inp') and 'bk' not in root:
                 #we've found a directory containing an inp
                 print f
-                inp_paths.append(os.path.join(root, f))
+                inp_paths.append(root)#os.path.join(root, f))
 
 
     #call the main() function in start_pool.py

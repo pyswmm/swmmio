@@ -34,8 +34,10 @@ from swmmio import swmmio
 #instantiate a swmmio model object
 mymodel = swmmio.Model('/path/to/directory with swmm files')
 
-#export node data to a csv
-mymodel.export_to_csv()
+#Pandas dataframe with most useful data related to model nodes, conduits
+nodes_df = mymodel.nodes()
+conduits_df = mymodel.conduits()
+
 
 #access specific elements by element ID
 mynode = mymodel.node('MY_NODE_ID')
@@ -48,6 +50,7 @@ Many options can be passed to control how and what data is visualized.
 ```python
 from swmmio.graphics import swmm_graphics as sg
 sg.drawModel(mymodel)
+![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
 ```
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.

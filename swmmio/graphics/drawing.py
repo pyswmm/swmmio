@@ -3,6 +3,7 @@ from swmmio.graphics.constants import * #constants
 from swmmio.graphics import config, options
 from swmmio.graphics.utils import *
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from time import strftime
 import os
 
 
@@ -26,7 +27,7 @@ def node_draw_color(node):
 		#if this value has already been calculated
 		return node.draw_color
 
-	color = (210, 210, 230) #default color
+	color = '#d2d2e6'#(210, 210, 230) #default color
 	if node.HoursFlooded >= 0.083:
 		color = red
 	return color
@@ -53,7 +54,7 @@ def conduit_draw_color(conduit):
 		#if this value has already been calculated
 		return conduit.draw_color
 
-	fill = (120, 120, 130)
+	fill = '#787882' #(120, 120, 130)
 	if conduit.MaxQPerc >= 1:
 		capacity = conduit.MaxQ / conduit.MaxQPerc
 		stress = conduit.MaxQ / capacity
@@ -64,6 +65,7 @@ def parcel_draw_color(parcel, style='risk'):
 	if style == 'risk':
 		fill = gradient_color_red(parcel.HoursFlooded + 0.5, 0, 3)
 	if style == 'delta':
+		fill = lightgrey #default
 		if parcel.Category == 'increased_flooding':
 			#parcel previously flooded, now floods more
 			fill = red
@@ -190,6 +192,32 @@ def gradient_color_red(x, xmin, xmax, startCol=lightgrey):
 
 	return (r, g, b)
 
+def annotate_title(title, draw):
+	size = (draw.im.getbbox()[2], draw.im.getbbox()[3])
+	scale = 1 * size[0] / 2048
+	fnt = ImageFont.truetype(config.font_file, int(40 *scale))
+	draw.text((10, 15), title, fill=black, font=fnt)
+
+def annotate_timestamp(draw):
+	size = (draw.im.getbbox()[2], draw.im.getbbox()[3])
+	scale = 1 * size[0] / 2048
+	fnt = ImageFont.truetype(config.font_file, int(20 *scale))
+
+	timestamp = strftime("%b-%d-%Y %H:%M:%S")
+	txt_height = draw.textsize(timestamp, fnt)[1]
+	txt_width = draw.textsize(timestamp, fnt)[0]
+	xy = (size[0] - txt_width - 10, 15)
+	draw.text(xy, timestamp, fill=grey, font=fnt)
+
+def annotate_details(txt, draw):
+	size = (draw.im.getbbox()[2], draw.im.getbbox()[3])
+	scale = 1 * size[0] / 2048
+	fnt = ImageFont.truetype(config.font_file, int(20 *scale))
+
+	txt_height = draw.textsize(txt, fnt)[1]
+
+	draw.text((10, size[1] - txt_height - 10),
+				txt, fill=black, font=fnt)
 
 #LEGACY CODE !!!!!!
 def _annotateMap (canvas, model, model2=None, currentTstr = None, options=None, results={}):
