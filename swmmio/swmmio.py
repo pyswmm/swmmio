@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 #coding:utf-8
-
-import random
-from time import gmtime, strftime
 import re
 import os
-import numpy
 import pandas as pd
-import pickle
 from .utils import functions
 import glob
-import csv, math
+import math
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 
@@ -65,6 +60,7 @@ class Model(object):
 
 			self._nodes_df = None
 			self._conduits_df = None
+			self._subcatchments_df = None
 
 	def _get_scenario(self):
 		"""get a descrition of the model scenario by reading the raingage data"""
@@ -160,6 +156,22 @@ class Model(object):
 
 		return all_nodes
 
+	def subcatchments(self):
+		"""
+		collect all useful and available data related subcatchments and organize
+		in one dataframe.
+		"""
+		subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]")
+		subs = subs.drop([';', 'Comment', 'Origin'], axis=1)
+
+		if self.rpt:
+			flw = create_dataframeRPT(self.rpt.path, 'Subcatchment Runoff Summary')
+			subs = subs.join(flw)
+
+		self._subcatchments_df = subs
+
+		return subs
+
 
 	def node(self, node, conduit=None):
 
@@ -200,7 +212,7 @@ class Model(object):
 		elif element_type == 'conduit':
 			data = self.organizeConduitData(bbox, subset=subset)
 			dicts = data['conduit_objects']
-		
+
 		else:
 			return "incorrect data type specified"
 
@@ -444,75 +456,6 @@ class inp(SWMMIOFile):
 	def __init__(self, filePath):
 		#is this class necessary anymore?
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
-
-
-
-
-class Node(object):
-
-	#object representing a swmm node object
-
-	__slots__ = ('id', 'invert', 'coordinates', 'nodes_upstream', 'subcats_direct', 'subcats_upstream',
-				'drainage_area_direct', 'drainage_area_upstream',
-				'runoff_upstream_cf', 'runoff_upstream_mg',
-				'flood_duration', 'maxDepth',
-				'maxHGL', 'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
-
-	def __init__(self, id, invert=None, coordinates=[]):
-
-		#assign the header list
-		self.id = id
-		self.invert = invert
-		self.coordinates = coordinates
-		self.nodes_upstream = None
-		self.subcats_direct = [] #subcatchment draining into this node, if any
-		self.subcats_upstream = [] #all subcats upstream
-		self.drainage_area_direct = None #only populated when needed
-		self.drainage_area_upstream = None #only populated when needed
-		self.runoff_upstream_cf = None #only populated when needed
-		self.runoff_upstream_mg = None #only populated when needed
-		self.flood_duration = 0
-		self.maxDepth = 0
-		self.maxHGL = 0
-		self.draw_coordinates = None
-		self.lifecycle = 'existing'
-		self.is_delta = None
-		self.delta_type = None #whether this object's data represents a change between two parent models
-
-
-
-class Link(object):
-
-	#object representing a swmm Link (conduit) object
-
-	__slots__ = ('id', 'coordinates', 'maxflow', 'maxQpercent', 'upNodeID', 'downNodeID',
-				'maxHGLDownstream', 'maxHGLUpstream', 'geom1', 'geom2', 'length','inletoffset', 'outletoffset',
-				'draw_coordinates', 'lifecycle', 'delta_type', 'is_delta')
-
-
-	def __init__(self, id, coordinates=[], geom1=None, geom2=None, inletoffset=0, outletoffset=0):
-
-		#assign the header list
-		self.id = id
-		self.coordinates = coordinates
-		self.maxflow = 0
-		self.maxQpercent = 0
-		self.maxHGLDownstream = 0
-		self.maxHGLUpstream = 0
-		self.inletoffset = inletoffset
-		self.outletoffset = outletoffset
-		self.upNodeID = None
-		self.downNodeID = None
-		self.geom1 = geom1 #faster to use zero as default?
-		self.geom2 = geom2 #faster to use zero as default?
-		self.length = None
-		self.draw_coordinates = None
-		self.lifecycle = 'existing'
-		self.is_delta = None
-		self.delta_type = None #whether this object's data represents a change between two parent models
-
-
-
 
 
 
