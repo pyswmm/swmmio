@@ -61,8 +61,6 @@ class BuildInstructions(object):
         #combine the metadata
         #deepcopy so child structures aren't linked to original
         bi.metadata = deepcopy(self.metadata)
-        #bi.metadata['Parent Models'].update(other.metadata['Parent Models'])
-        #bi.metadata['Comments'].update(other.metadata['Comments'])
         otherbaseline = other.metadata['Parent Models']['Baseline']
         otheralternatives = other.metadata['Parent Models']['Alternatives']
         bi.metadata['Parent Models']['Baseline'].update(otherbaseline)
@@ -239,7 +237,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
             f.write(s + '\n')
 
     #step 2 --> clean up the new combined diff instructions
-    df_dict = clean_inp_diff_formatting(combi_build_instr_file) #makes more human readable
+    # df_dict = clean_inp_diff_formatting(combi_build_instr_file) #makes more human readable
 
     #step 3 --> create a new inp based on the baseline, with the inp_diff
     #instructions applied

@@ -36,7 +36,7 @@ elif args.hotstart_model_to_run is not None:
 elif args.start_pool is not None:
 
     models_dirs = [os.path.join(wd, f) for f in args.start_pool]
-    print 'looking for models to queue in:\n\t{}'.format('\n\t'.join(models_dirs))
+    print 'LOOKY looking for models to queue in:\n\t{}'.format('\n\t'.join(models_dirs))
     #combine the segments and options (combinations) into one iterable
     inp_paths = []
     for root, dirs, files in chain.from_iterable(os.walk(path) for path in models_dirs):
@@ -44,10 +44,11 @@ elif args.start_pool is not None:
             if f.endswith('.inp') and 'bk' not in root:
                 #we've found a directory containing an inp
                 print f
-                inp_paths.append(root)#os.path.join(root, f))
+                inp_paths.append(os.path.join(root, f))
 
 
     #call the main() function in start_pool.py
+    print inp_paths
     start_pool.main(inp_paths, args.cores_left)
 
     print "swmmio has completed running {} models".format(len(inp_paths))

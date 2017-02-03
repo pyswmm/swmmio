@@ -43,6 +43,36 @@ def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None)
     else:
         return FeatureCollection(features)
 
+def write_shapefile(df, filename, geomtype='line'):
+
+    import shapefile
+    df['Name'] = df.index
+
+    #create a shp file writer object of geom type 'point'
+    if geomtype == 'point':
+        w = shapefile.Writer(shapefile.POINT)
+    elif geomtype == 'line':
+        w = shapefile.Writer(shapefile.POLYLINE)
+
+    #use the helper mode to ensure the # of records equals the # of shapes
+    #(shapefile are made up of shapes and records, and need both to be valid)
+    w.autoBalance = 1
+
+    #add the fields
+    for fieldname in df.columns:
+        w.field(fieldname, "C")
+
+    for k, row in df.iterrows():
+        w.record(row.tolist())
+        w.line(parts = [row.coords])
+
+    w.save(filename)
+
+    #save the projection data
+    currentdir = os.path.dirname(__file__)
+    prj_filepath = os.path.splitext(filename)[0] + '.prj'
+    shutil.copy(os.path.join(currentdir, 'defs/default.prj'), prj_filepath)
+
 def read_shapefile(shp_path):
 	"""
 	Read a shapefile into a Pandas dataframe with a 'coords' column holding

@@ -21,7 +21,8 @@ def run_swmm_engine(inp_folder):
         with open (logfile, 'a') as f:
             now = datetime.now().strftime("%y-%m-%d %H:%M")
             f.write('{} -- {} started... '.format(now, m.inp.name))
-            run.run_hot_start_sequence(m)
+            print 'running {}\n'.format(m.inp.name)
+            run.run_hot_start_sequence(m.inp.path)
             now = datetime.now().strftime("%y-%m-%d %H:%M")
             f.write('completed at {}\n'.format(now))
     else:
