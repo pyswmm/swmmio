@@ -38,7 +38,147 @@ mymodel = swmmio.Model('/path/to/directory with swmm files')
 nodes_df = mymodel.nodes()
 conduits_df = mymodel.conduits()
 
-
+nodes_df.head()
+```
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>InvertElev</th>
+      <th>MaxDepth</th>
+      <th>SurchargeDepth</th>
+      <th>PondedArea</th>
+      <th>Type</th>
+      <th>AvgDepth</th>
+      <th>MaxNodeDepth</th>
+      <th>MaxHGL</th>
+      <th>MaxDay_depth</th>
+      <th>MaxHr_depth</th>
+      <th>HoursFlooded</th>
+      <th>MaxQ</th>
+      <th>MaxDay_flood</th>
+      <th>MaxHr_flood</th>
+      <th>TotalFloodVol</th>
+      <th>MaximumPondDepth</th>
+      <th>X</th>
+      <th>Y</th>
+      <th>coords</th>
+    </tr>
+    <tr>
+      <th>Name</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>S42A_10.N_4</th>
+      <td>13.506673</td>
+      <td>6.326977</td>
+      <td>5.0</td>
+      <td>110.0</td>
+      <td>JUNCTION</td>
+      <td>0.69</td>
+      <td>6.33</td>
+      <td>19.83</td>
+      <td>0</td>
+      <td>12:01</td>
+      <td>0.01</td>
+      <td>0.20</td>
+      <td>0.0</td>
+      <td>11:52</td>
+      <td>0.000</td>
+      <td>6.33</td>
+      <td>2689107.0</td>
+      <td>227816.000</td>
+      <td>[(2689107.0, 227816.0)]</td>
+    </tr>
+    <tr>
+      <th>D70_ShunkStreet_Trunk_43</th>
+      <td>8.508413</td>
+      <td>2.493647</td>
+      <td>5.0</td>
+      <td>744.0</td>
+      <td>JUNCTION</td>
+      <td>0.04</td>
+      <td>0.23</td>
+      <td>8.74</td>
+      <td>0</td>
+      <td>12:14</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>2691329.5</td>
+      <td>223675.813</td>
+      <td>[(2691329.5, 223675.813)]</td>
+    </tr>
+    <tr>
+      <th>TD61_1_2_90</th>
+      <td>5.150000</td>
+      <td>15.398008</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>JUNCTION</td>
+      <td>0.68</td>
+      <td>15.40</td>
+      <td>20.55</td>
+      <td>0</td>
+      <td>11:55</td>
+      <td>0.01</td>
+      <td>19.17</td>
+      <td>0.0</td>
+      <td>11:56</td>
+      <td>0.000</td>
+      <td>15.40</td>
+      <td>2698463.5</td>
+      <td>230905.720</td>
+      <td>[(2698463.5, 230905.72)]</td>
+    </tr>
+    <tr>
+      <th>D66_36.D.7.C.1_19</th>
+      <td>19.320000</td>
+      <td>3.335760</td>
+      <td>5.0</td>
+      <td>6028.0</td>
+      <td>JUNCTION</td>
+      <td>0.57</td>
+      <td>3.38</td>
+      <td>22.70</td>
+      <td>0</td>
+      <td>12:00</td>
+      <td>0.49</td>
+      <td>6.45</td>
+      <td>0.0</td>
+      <td>11:51</td>
+      <td>0.008</td>
+      <td>3.38</td>
+      <td>2691999.0</td>
+      <td>230309.563</td>
+      <td>[(2691999.0, 230309.563)]</td>
+    </tr>
+  </tbody>
+</table>
+```python
 #access specific elements by element ID
 mynode = mymodel.node('MY_NODE_ID')
 print mynode.runoff_upstream_cf #accumulated runoff from upstream nodes
