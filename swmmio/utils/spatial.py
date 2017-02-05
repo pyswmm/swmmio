@@ -1,13 +1,17 @@
+from definitions import ROOT_DIR
 import geojson
 import json
 import pandas as pd
 from geojson import Point, LineString, Polygon, FeatureCollection, Feature
-try: import pyproj
-except ImportError:
-    raise ImportError('pyproj module needed. get this package here: ',
-                    'https://pypi.python.org/pypi/pyproj')
+import os, shutil
+
 
 def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None):
+
+    try: import pyproj
+    except ImportError:
+        raise ImportError('pyproj module needed. get this package here: ',
+                        'https://pypi.python.org/pypi/pyproj')
 
     #SET UP THE TO AND FROM COORDINATE PROJECTION
     pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
@@ -43,7 +47,12 @@ def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None)
     else:
         return FeatureCollection(features)
 
-def write_shapefile(df, filename, geomtype='line'):
+def write_shapefile(df, filename, geomtype='line', prj=None):
+
+    """
+    create a shapefile given a pandas Dataframe that has coordinate data in a
+    column called 'coords'.
+    """
 
     import shapefile
     df['Name'] = df.index
@@ -63,15 +72,17 @@ def write_shapefile(df, filename, geomtype='line'):
         w.field(fieldname, "C")
 
     for k, row in df.iterrows():
-        w.record(row.tolist())
+        w.record(*row.tolist())
         w.line(parts = [row.coords])
 
     w.save(filename)
 
-    #save the projection data
-    currentdir = os.path.dirname(__file__)
+    #add projection data to the shapefile,
+    if prj is None:
+        #if not sepcified, the default, projection is used (PA StatePlane)
+        prj = os.path.join(ROOT_DIR, 'swmmio/defs/default.prj')
     prj_filepath = os.path.splitext(filename)[0] + '.prj'
-    shutil.copy(os.path.join(currentdir, 'defs/default.prj'), prj_filepath)
+    shutil.copy(prj, prj_filepath)
 
 def read_shapefile(shp_path):
 	"""

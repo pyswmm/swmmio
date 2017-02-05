@@ -16,7 +16,7 @@ def node_draw_size(node):
 		return node.draw_size
 
 	radius = 0 #aka don't show this node by default
-	if node.HoursFlooded >= 0.083:
+	if 'HoursFlooded' in node and node.HoursFlooded >= 0.083:
 		radius = node.HoursFlooded*3
 	return radius
 
@@ -28,7 +28,7 @@ def node_draw_color(node):
 		return node.draw_color
 
 	color = '#d2d2e6'#(210, 210, 230) #default color
-	if node.HoursFlooded >= 0.083:
+	if 'HoursFlooded' in node and node.HoursFlooded >= 0.083:
 		color = red
 	return color
 
@@ -40,11 +40,15 @@ def conduit_draw_size(conduit):
 		return conduit.draw_size
 
 	draw_size = 1
-	if conduit.MaxQPerc >= 1:
+	if 'MaxQPerc' in conduit and conduit.MaxQPerc >= 1:
 		capacity = conduit.MaxQ / conduit.MaxQPerc
 		stress = conduit.MaxQ / capacity
 		fill = gradient_grey_red(conduit.MaxQ*100, 0, capacity*300)
 		draw_size = int(round(math.pow(stress*10, 0.8)))
+
+	elif 'Geom1' in conduit:
+		draw_size = conduit.Geom1
+
 	return draw_size
 
 def conduit_draw_color(conduit):
@@ -55,7 +59,7 @@ def conduit_draw_color(conduit):
 		return conduit.draw_color
 
 	fill = '#787882' #(120, 120, 130)
-	if conduit.MaxQPerc >= 1:
+	if 'MaxQPerc' in conduit and conduit.MaxQPerc >= 1:
 		capacity = conduit.MaxQ / conduit.MaxQPerc
 		stress = conduit.MaxQ / capacity
 		fill = gradient_grey_red(conduit.MaxQ*100, 0, capacity*300)

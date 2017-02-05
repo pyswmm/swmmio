@@ -3,7 +3,7 @@
 import re
 import os
 import pandas as pd
-from .utils import functions
+from .utils import functions, spatial
 import glob
 import math
 from .utils import text as txt
@@ -200,78 +200,22 @@ class Model(object):
 		n.runoff_upstream_cf = n.runoff_upstream_mg*1000000/7.48
 		return n
 
-	def list_objects(self,element_type='node', bbox=None, subset=None):
-		"""
-		return a dictionary of element obects of the type specified, with
-		keys equal to the element ID.
-		"""
-		#organize the data -> dictionary of objects
-		if element_type == 'node':
-			data = self.organizeNodeData(bbox, subset=subset)
-			dicts = data['node_objects']
-		elif element_type == 'conduit':
-			data = self.organizeConduitData(bbox, subset=subset)
-			dicts = data['conduit_objects']
 
-		else:
-			return "incorrect data type specified"
-
-		return dicts
-
-
-	def export_to_shapefile(self, element_type='node', filename=None, bbox=None, subset=None):
+	def export_to_shapefile(self, shpdir, prj=None):
 		"""
 		export the model data into a shapefile. element_type dictates which type
 		of data will be included.
 		"""
-		import shapefile
-		import shutil
 
-		#organize the data -> dictionary of objects
-		dicts = self.list_objects(element_type, bbox, subset=subset)
+		#CREATE THE CONDUIT shp
+		conds = self.conduits()
+		conds_path = os.path.join(shpdir, self.inp.name + '_conduits.shp')
+		spatial.write_shapefile(conds, conds_path, prj=prj)
 
-		#grab first object in list to structure the dataframe
-		ref_object = dicts[dicts.keys()[0]]
-		fields = ref_object.__slots__
-		data = [[getattr(v,j) for j in fields] for k,v in dicts.items()]
-
-		#create a shp file writer object of geom type 'point'
-		if element_type == 'node':
-			w = shapefile.Writer(shapefile.POINT)
-		elif element_type == 'conduit':
-			w = shapefile.Writer(shapefile.POLYLINE)
-
-		#use the helper mode to ensure the # of records equals the # of shapes
-		#(shapefile are made up of shapes and records, and need both to be valid)
-		w.autoBalance = 1
-
-		#add the fields
-		for fieldname in fields:
-			w.field(fieldname, "C")
-
-		#add the data
-		for k, v in dicts.items():
-
-			#add the coordinates
-			xy = v.coordinates
-
-			if element_type == 'node':
-				w.point(xy[0], xy[1])
-			elif element_type == 'conduit':
-				w.line(parts = [xy])
-
-
-			#add the record, by accessing each object attribute's data
-			w.record(*[getattr(v,j) for j in fields])
-			#print [getattr(v,j) for j in fields]
-			#print '{}:  {} - {}'.format(v.id, xy[0], xy[1])
-
-		w.save(filename)
-
-		#save the projection data
-		currentdir = os.path.dirname(__file__)
-		prj_filepath = os.path.splitext(filename)[0] + '.prj'
-		shutil.copy(os.path.join(currentdir, 'defs/default.prj'), prj_filepath)
+		#CREATE THE NODE shp
+		nodes = self.nodes()
+		nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
+		spatial.write_shapefile(conds, nodes_path, geomtype='point', prj=prj)
 
 
 class SWMMIOFile(object):

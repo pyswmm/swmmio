@@ -14,6 +14,11 @@ from PIL import Image, ImageDraw
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 
+	"""
+	given the shapefiles in options.basemap_options, render each layer
+	on the model basemap.
+	"""
+
 	for f in options.basemap_options['features']:
 
 		shp_path = os.path.join(config.basemap_shapefile_dir, f['feature'])
@@ -33,7 +38,35 @@ def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
 				annotation=None, file_path=None, bbox=None, px_width=2048.0):
 	"""
-	create a png rendering of the model and model results
+	create a png rendering of the model and model results.
+
+	A swmmio.Model object can be passed in independently, or Pandas Dataframes
+	for the nodes and conduits of a model may be passed in. A dataframe containing
+	parcel data can optionally be passed in.
+
+	model -> swmmio.Model object
+
+	nodes -> Pandas Dataframe (optional, if model not provided)
+
+	conduits -> Pandas Dataframe (optional, if model not provided)
+
+	parcels - > Pandas Dataframe (optional)
+
+	title -> string, to be written in top left of PNG
+
+	annotation -> string, to be written in bnottom left of PNG
+
+	file_path -> stirng, file path where png should be drawn. if not specified,
+		a PIL Image object is return (nice for IPython notebooks)
+
+	bbox -> tuple of coordinates representing bottom left and top right corner
+		of a bounding box. the rendering will be clipped to this box. If not
+		provided, the rendering will clip tightly to the model extents
+		e.g. bbox = ((2691647, 221073),	(2702592, 227171))
+
+		Note: this hasn't been tested with anything other than PA StatePlane coords
+
+	px_width -> float, width of image in pixels
 	"""
 
 	#gather the nodes and conduits data if a swmmio Model object was passed in
@@ -63,12 +96,12 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
 		par_px = px_to_irl_coords(parcels, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
 		par_px.apply(lambda r: draw.polygon(r.draw_coords, fill=r.draw_color), axis=1)
 
-	if config.include_parcels is True:
-		par_flood = pdamage.flood_duration(nodes, parcel_node_join_csv=config.parcel_node_join_data)
-		par_shp = spatial.read_shapefile(config.parcels_shapefile)
-		par_px = px_to_irl_coords(par_shp, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
-		parcels = pd.merge(par_flood, par_px, right_on='PARCELID', left_index=True)
-		parcels.apply(lambda row: draw_parcel_risk(row, draw), axis=1)
+	# if config.include_parcels is True:
+	# 	par_flood = pdamage.flood_duration(nodes, parcel_node_join_csv=config.parcel_node_join_data)
+	# 	par_shp = spatial.read_shapefile(config.parcels_shapefile)
+	# 	par_px = px_to_irl_coords(par_shp, bbox=bb, shift_ratio=shift_ratio, px_width=px_width)[0]
+	# 	parcels = pd.merge(par_flood, par_px, right_on='PARCELID', left_index=True)
+	# 	parcels.apply(lambda row: draw_parcel_risk(row, draw), axis=1)
 
 	#start the draw fest, mapping draw methods to each row in the dataframes
 	conduits.apply(lambda row: draw_conduit(row, draw), axis=1)

@@ -17,3 +17,6 @@ REPORT_DIR_NAME = r'Report'
 
 #path to the basemap file used to create custom basemaps
 BASEMAP_PATH = os.path.join(ROOT_DIR,'swmmio','reporting','basemaps','index.html')
+
+#path to the basemap file used to create custom basemaps
+FONT_PATH = os.path.join(ROOT_DIR,'swmmio','graphics','fonts','Verdana.ttf')
