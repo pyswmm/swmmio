@@ -1,10 +1,10 @@
 # SWMMIO
-
-SWMMIO is a set of python tools aiming to provide efficient means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
+![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
+SWMMIO is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
 
 ### Prerequisites
-SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) files produced by SWMM. Functions within the `run_models` module rely on a SWMM5 engine which can be downloaded [here](https://www.epa.gov/water-research/storm-water-management-model-swmm). To optionally visualize basemap data, arcpy is required (which requires a license from [ESRI](http://www.esri.com/)).
+SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) files produced by SWMM. Functions within the `run_models` module rely on a SWMM5 engine which can be downloaded [here](https://www.epa.gov/water-research/storm-water-management-model-swmm).
 
 
 ### Dependencies
@@ -35,33 +35,59 @@ from swmmio import swmmio
 mymodel = swmmio.Model('/path/to/directory with swmm files')
 
 #Pandas dataframe with most useful data related to model nodes, conduits
-nodes_df = mymodel.nodes()
-conduits_df = mymodel.conduits()
+nodes = mymodel.nodes()
+conduits = mymodel.conduits()
 
 #enjoy all the Pandas functions
-nodes_df.head()
+nodes.head()
 ```
 <table border=1 class=dataframe><thead><tr style=text-align:right><th><th>InvertElev<th>MaxDepth<th>SurchargeDepth<th>PondedArea<th>Type<th>AvgDepth<th>MaxNodeDepth<th>MaxHGL<th>MaxDay_depth<th>MaxHr_depth<th>HoursFlooded<th>MaxQ<th>MaxDay_flood<th>MaxHr_flood<th>TotalFloodVol<th>MaximumPondDepth<th>X<th>Y<th>coords<tr><th>Name<th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><tbody><tr><th>S42A_10.N_4<td>13.506673<td>6.326977<td>5.0<td>110.0<td>JUNCTION<td>0.69<td>6.33<td>19.83<td>0<td>12:01<td>0.01<td>0.20<td>0.0<td>11:52<td>0.000<td>6.33<td>2689107.0<td>227816.000<td>[(2689107.0, 227816.0)]<tr><th>D70_ShunkStreet_Trunk_43<td>8.508413<td>2.493647<td>5.0<td>744.0<td>JUNCTION<td>0.04<td>0.23<td>8.74<td>0<td>12:14<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>2691329.5<td>223675.813<td>[(2691329.5, 223675.813)]<tr><th>TD61_1_2_90<td>5.150000<td>15.398008<td>0.0<td>0.0<td>JUNCTION<td>0.68<td>15.40<td>20.55<td>0<td>11:55<td>0.01<td>19.17<td>0.0<td>11:56<td>0.000<td>15.40<td>2698463.5<td>230905.720<td>[(2698463.5, 230905.72)]<tr><th>D66_36.D.7.C.1_19<td>19.320000<td>3.335760<td>5.0<td>6028.0<td>JUNCTION<td>0.57<td>3.38<td>22.70<td>0<td>12:00<td>0.49<td>6.45<td>0.0<td>11:51<td>0.008<td>3.38<td>2691999.0<td>230309.563<td>[(2691999.0, 230309.563)]</table>
 ```python
 
 #write to a csv
-nodes_df.to_csv('/path/mynodes.csv')
+nodes.to_csv('/path/mynodes.csv')
 
 #access specific elements by element ID
 mynode = mymodel.node('MY_NODE_ID')
 print mynode.runoff_upstream_cf #accumulated runoff from upstream nodes
 print mynode.drainage_area_upstream #accumulated drainage area from upstream nodes
 ```
-Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized.
-Many options can be passed to control how and what data is visualized.
+Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized if your model includes output data (a .rpt file should accompany the .inp).
 
 ```python
 from swmmio.graphics import swmm_graphics as sg
-sg.drawModel(mymodel)
+sg.draw_model(mymodel)
 ```
-![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
+![Default Draw Output](docs/img/default_draw.png?raw=true "Sewer Stress, Node Flooding")
+
+Use pandas to calculate some interesting stats, and generate a image to highlight
+what's interesting or important for your project:
+
+```python
+#isolate nodes that have flooded for more than 30 minutes
+flooded_series = nodes.ix[nodes.HoursFlooded>0.5, 'TotalFloodVol']
+flood_vol = sum(flooded_series) #total flood volume (million gallons)
+flooded_count = len(flooded_series) #count of flooded nodes
+
+#highlight these nodes in a graphic
+nodes['draw_color'] = '#787882' #grey, default node color
+nodes.ix[nodes.HoursFlooded>0.5, 'draw_color'] = '#751167' #purple, flooded nodes
+
+#set the radius of flooded nodes as a function of HoursFlooded
+nodes.ix[nodes.HoursFlooded>1, 'draw_size'] = nodes.ix[nodes.HoursFlooded>1, 'HoursFlooded'] * 12
+
+#make the conduits grey, sized as function of their geometry
+conds['draw_color'] = '#787882'
+conds['draw_size'] = conds.Geom1
+
+#add an informative annotation, and draw:
+annotation = 'Flooded Volume: {}MG\nFlooded Nodes:{}'.format(round(flood_vol), flooded_count)
+sg.draw_model(mymodel, annotation=annotation, file_path='flooded_anno_example.png')
+```
+![Flooded highlight](docs/img/flooded_anno_example.png?raw=true "Node Flooding with annotation")
 
 Create an animated gif of a model's response to a storm. Again many options can be passed.
+(CURRENTLY NOT SUPPORTED)
 ```python
 sg.animateModel(mymodel, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
 ```

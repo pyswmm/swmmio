@@ -1,3 +1,5 @@
+from definitions import FONT_PATH
+
 class _dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
@@ -30,7 +32,7 @@ _o = {
     #table resulting from one-to-many spatial join of parcels to sheds
     'parcel_node_join_data':r'P:\02_Projects\SouthPhila\SE_SFR\MasterModels\CommonData\pennsport_sheds_parcels_join.csv',
 
-    'font_file':r'C:\Data\Code\Fonts\Raleway-Regular.ttf',
+    'font_file':FONT_PATH,#r'C:\Data\Code\Fonts\Raleway-Regular.ttf',
 }
 
 config = _dotdict(_o)
