@@ -86,11 +86,6 @@ sg.draw_model(mymodel, annotation=annotation, file_path='flooded_anno_example.pn
 ```
 ![Flooded highlight](docs/img/flooded_anno_example.png?raw=true "Node Flooding with annotation")
 
-Create an animated gif of a model's response to a storm. Again many options can be passed.
-(CURRENTLY NOT SUPPORTED)
-```python
-sg.animateModel(mymodel, startDtime='JAN-01-1990 11:59:00', endDtime='JAN-01-1990 12:01:00')
-```
 
 ### Running Models
 Using the command line tool, individual SWMM5 models can be run by invoking the swmmio module in your shell as such:
