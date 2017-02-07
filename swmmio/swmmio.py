@@ -168,6 +168,10 @@ class Model(object):
 			flw = create_dataframeRPT(self.rpt.path, 'Subcatchment Runoff Summary')
 			subs = subs.join(flw)
 
+			#more accurate runoff calculations
+			subs['RunoffAcFt'] = subs.TotalRunoffIn/ 12.0 * subs.Area
+			subs['RunoffMGAccurate'] = subs.RunoffAcFt / 3.06888785
+
 		self._subcatchments_df = subs
 
 		return subs

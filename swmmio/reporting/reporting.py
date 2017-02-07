@@ -45,21 +45,36 @@ class FloodReport(object):
             self.parcel_flooding = parcels.flood_duration(model.nodes(),
                                                           parcel_node_df,
                                                           threshold=threshold)
+            subs = self.model.subcatchments()
+            nodes = self.model.nodes()
+            self.runoff_vol_mg = subs.RunoffMGAccurate.sum()
+            self.flood_vol_mg = nodes.TotalFloodVol.sum()
 
     def __str__(self):
         """print friendly"""
-        a = '{} Report'.format(self.model.name)
+        a = '{}\n'.format(self.model.name)
         b = self.duration_partition()
-        return '{}\n{}'.format(a, '\n'.join(b))
+        c = '\nRunoff: {}MG'.format(round(self.runoff_vol_mg, 1))
+
+        ffrac = round(self.flood_vol_mg / self.runoff_vol_mg *100, 1)
+        d = 'Volume Flooded: {}MG ({}%)'.format(round(self.flood_vol_mg, 1), ffrac)
+
+        #return '{}\n{}'.format(a, '\n'.join(b))
+        return '\n'.join([a]+ b + [c, d])
 
 
-    def duration_partition(self, partitions=[5, 10, 15, 30, 60, 120]):
+    def duration_partition(self, partitions=[5, 10, 15, 30, 60, 120], raw=False):
         pflood = self.parcel_flooding
         pcount = self.total_parcel_count
         results = []
         for dur in partitions:
             n = len(pflood.loc[pflood.HoursFlooded > dur/60.0])
-            s = '{}mins: {} ({}%)'.format(dur, n, round(n/float(pcount)*100,0))
+            frac = n/float(pcount)*100.0
+            if raw:
+
+                results.append(s)
+            else:
+                s = '{}mins: {} ({}%)'.format(dur, n, round(frac,1))
             results.append(s)
         return results
 
@@ -162,22 +177,13 @@ class ComparisonReport(object):
         pth = os.path.join(rpt_dir, '01 Existing Parcel Flood Duration.png')
         base_conduits = basemodel.conduits()
         base_conduits['draw_color'] = '#bebeb4' #default color
+        base_conduits['draw_size'] = base_conduits.Geom1
         pars = self.baseline_report.parcel_flooding
         pars = pd.merge(pars, parcel_shp_df, right_on='PARCELID', left_index=True)
         comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'risk'), axis=1)
         pars = pars.assign(draw_color=comp_cols)
         sg.draw_model(conduits=base_conduits, nodes=basemodel.nodes(), parcels=pars,
                       bbox=bbox,title=self.name, annotation=self.baseline_report.__str__(),
-                      file_path=pth)
-
-        #PROPOSED CONDITIONS PARCEL FLOOD DURATION
-        pth = os.path.join(rpt_dir, '02 Proposed Parcel Flood Duration.png')
-        pars = self.alt_report.parcel_flooding
-        pars = pd.merge(pars, parcel_shp_df, right_on='PARCELID', left_index=True)
-        comp_cols = pars.apply(lambda row: drawing.parcel_draw_color(row, 'risk'), axis=1)
-        pars = pars.assign(draw_color=comp_cols)
-        sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), parcels=pars,
-                      bbox=bbox,title=self.name, annotation=self.alt_report.__str__(),
                       file_path=pth)
 
         #PROPOSED CONDITIONS PARCEL FLOOD DURATION

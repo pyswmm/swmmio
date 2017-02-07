@@ -38,7 +38,7 @@ def batch_reports(project_dir, results_file,
             if '.inp' in f:
                 inp_path = os.path.join(path,f)
                 alt = Model(inp_path)
-
+                print 'reporting on {}'.format(alt.name)
                 #generate the reports
                 frpt = reporting.FloodReport(alt, parcel_node_join_df)
                 impact_rpt = reporting.ComparisonReport(baserpt, frpt,
