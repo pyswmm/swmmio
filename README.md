@@ -34,9 +34,10 @@ from swmmio import swmmio
 #instantiate a swmmio model object
 mymodel = swmmio.Model('/path/to/directory with swmm files')
 
-#Pandas dataframe with most useful data related to model nodes, conduits
+#Pandas dataframe with most useful data related to model nodes, conduits, and subcatchments
 nodes = mymodel.nodes()
 conduits = mymodel.conduits()
+subcatchments = mymodel.subcatchments()
 
 #enjoy all the Pandas functions
 nodes.head()
@@ -116,7 +117,7 @@ Consider the simplified situaiton where a city is interested in solving a floodi
 *  B1 -> One block of relief sewer on Street B
 *  B2 -> Two blocks of relief sewer on Street B
 
-To be comprehensive, implementation scenarios should be modeled for combinations of these options; it may be more cost-effective, for example, to build releif sewers on one block of Street A and Street B in combination, rather than two blocks on either street independently.
+To be comprehensive, implementation scenarios should be modeled for combinations of these options; it may be more cost-effective, for example, to build relief sewers on one block of Street A and Street B in combination, rather than two blocks on either street independently.
 
 swmmio aciheves this within the version_control module. The `create_combinations()` function builds models for every logical combinations of the segmented flood mitigation models. In the example above, models for the following scenarios will be created:
 *  A1 with B1

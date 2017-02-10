@@ -6,7 +6,7 @@ from geojson import Point, LineString, Polygon, FeatureCollection, Feature
 import os, shutil
 
 
-def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None):
+def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
 
     try: import pyproj
     except ImportError:
