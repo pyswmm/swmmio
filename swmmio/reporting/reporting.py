@@ -45,6 +45,7 @@ class FloodReport(object):
             self.parcel_flooding = parcels.flood_duration(model.nodes(),
                                                           parcel_node_df,
                                                           threshold=threshold)
+            self.parcel_hrs_flooded = self.parcel_flooding.HoursFlooded.sum()
             subs = self.model.subcatchments()
             nodes = self.model.nodes()
             self.runoff_vol_mg = subs.RunoffMGAccurate.sum()
@@ -145,11 +146,15 @@ class ComparisonReport(object):
         colors = flooded.apply(lambda row:'#%02x%02x%02x' % drawing.parcel_draw_color(row, style='delta'), axis=1)
         flooded = flooded.assign(fill=colors)
         geoparcelpath = os.path.join(rpt_dir,'delta_parcels.json')
-        spatial.create_geojson(flooded, geomtype='polygon', filename=geoparcelpath)
+        spatial.write_geojson(flooded, filename=geoparcelpath, geomtype='polygon')
 
-        #write new conduit json
+        #write new conduit json, shapefiles
+        shpdir = os.path.join(os.path.dirname(rpt_dir), 'shapefiles')
+        if not os.path.exists(shpdir):os.mkdir(shpdir)
         geocondpath = os.path.join(rpt_dir,'new_conduits.json')
-        spatial.create_geojson(self.newconduits, filename=geocondpath)
+        shpcondpath = os.path.join(shpdir, self.alt_report.model.inp.name + '_new_conduits.shp')
+        spatial.write_geojson(self.newconduits, filename=geocondpath)
+        spatial.write_shapefile(self.newconduits, filename=shpcondpath)
 
         #write node and conduit report csvs
         self.alt_report.model.nodes().to_csv(os.path.join(rpt_dir,'nodes.csv'))

@@ -15,19 +15,18 @@ def run_swmm_engine(inp_folder):
     logfile = os.path.join(wd, 'log_'+log_start_time+'.txt')
 
     m = Model(inp_folder)
-    print 'inp_folder = {}'.format(inp_folder)
-    if not m.rpt:
-        # print 'completed {} at {}'.format(m.inp.name, datetime.now())
+    if not m.rpt_is_valid():
+        # if the rpt is not valid i.e. not having current, usable data: run
         with open (logfile, 'a') as f:
             now = datetime.now().strftime("%y-%m-%d %H:%M")
-            f.write('{} -- {} started... '.format(now, m.inp.name))
-            print 'running {}\n'.format(m.inp.name)
+            f.write('{}: started at {} '.format(m.inp.name, now))
+            # print 'running {}\n'.format(m.inp.name)
             run.run_hot_start_sequence(m.inp.path)
             now = datetime.now().strftime("%y-%m-%d %H:%M")
-            f.write('completed at {}\n'.format(now))
+            f.write(', completed at {}\n'.format(now))
     else:
         with open (logfile, 'a') as f:
-            f.write('RPT already exist: {}\n'.format(m.rpt.path))
+            f.write('{}: skipped (up-to-date)\n'.format(m.inp.name))
 
 def main(inp_paths, cores_left):
 
@@ -42,34 +41,3 @@ def main(inp_paths, cores_left):
 
     #create a process pool with the run_swmm_engine() func on each directory
     res = pool.map(run_swmm_engine, inp_paths)
-
-
-if __name__ == '__main__':
-    """
-    the old way
-    """
-    for arg in sys.argv[1:]:
-        print arg
-    args = sys.argv[1:]
-    if len(args) > 0:
-        combi_folder = args[0]
-        folders = os.listdir(combi_folder)
-        dirs_containing_inps = []
-        for root, dirs, files in os.walk(combi_folder):
-            for file in files:
-                if file.endswith('.inp') and 'bk' not in root:
-                    #we've found a directory containing an inp
-                    print file
-                    dirs_containing_inps.append(root)
-                    #dirs_containing_inps.append(os.path.join(root, file))
-
-        print 'dirs_containing_inps = {}'.format(dirs_containing_inps)
-
-        pool = Pool(cpu_count() - 6) # use all but 6 available cores
-        # proces data_inputs iterable with pool
-        res = pool.map(run_swmm_engine, dirs_containing_inps)
-
-        print "hi im done running"
-        baseline_dir = r'F:\models\SPhila\MasterModels_170104\Baseline' #r'P:\06_Tools\v_control\BIG\Baseline'
-        log_dir = r'F:\models\SPhila\MasterModels_170104\ProjectAdmin'
-        # batch.batch_post_process(combi_folder, baseline_dir, log_dir, bbox=su.d68d70)
