@@ -15,9 +15,10 @@ def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
 
     #SET UP THE TO AND FROM COORDINATE PROJECTION
     pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
-    wgs = pyproj.Proj(proj='latlong', datum='WGS84', ellps='WGS84') #google maps, etc
+    wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84') #google maps, etc
 
     #CONVERT THE DF INTO JSON
+    df['Name'] = df.index #add a name column (we wont have the index)
     records = json.loads(df.to_json(orient='records'))
 
     #ITERATE THROUGH THE RECORDS AND CREATE GEOJSON OBJECTS
@@ -32,6 +33,7 @@ def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
         if geomtype == 'linestring':
             geometry = LineString(latlngs)
         elif geomtype == 'point':
+            # lnglats = [(latlngs[0][1], latlngs[0][0])] #needs to be reversed. Why??
             geometry = Point(latlngs)
         elif geomtype == 'polygon':
             geometry = Polygon([latlngs])

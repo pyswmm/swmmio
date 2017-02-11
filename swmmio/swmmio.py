@@ -77,7 +77,7 @@ class Model(object):
 		#check if the rpt has ERRORS output from SWMM
 		with open (self.rpt.path) as f:
 			#jump to 500 bytes before the end of file
-		    f.seek(m.rpt.file_size - 500)
+		    f.seek(self.rpt.file_size - 500)
 		    for line in f:
 		        spl = line.split()
 		        if len(spl) > 0 and spl[0]=='ERROR':

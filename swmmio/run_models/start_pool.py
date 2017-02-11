@@ -2,7 +2,7 @@ from swmmio.run_models import run
 from swmmio.swmmio import Model
 # from swmmio.reporting import reporting
 from swmmio.utils import swmm_utils as su
-# from swmmio.reporting import batch
+from swmmio.reporting import batch
 from multiprocessing import Pool, cpu_count
 from datetime import datetime
 import os
@@ -41,3 +41,11 @@ def main(inp_paths, cores_left):
 
     #create a process pool with the run_swmm_engine() func on each directory
     res = pool.map(run_swmm_engine, inp_paths)
+
+    # #post process
+    # ADMIN_DIR = os.path.join(wd, 'ProjectAdmin')
+    # results_file = os.path(ADMIN_DIR, '170210_results.csv')
+    # add_data = os.path(ADMIN_DIR, 'additional_costs.csv')
+    # join_data = os.path(ADMIN_DIR, 'equivalentgeoms.csv')
+    # batch.batch_reports(wd, results_file=results_file,
+    #                     additional_costs=add_data, join_data=join_data)
