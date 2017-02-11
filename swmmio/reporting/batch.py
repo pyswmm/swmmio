@@ -67,14 +67,14 @@ def batch_reports(project_dir, results_file,
 
                 #write the report files
                 impact_rpt.write(report_dir)
-                impact_rpt.generate_figures(report_dir, parcel_shp_df)
+                # impact_rpt.generate_figures(report_dir, parcel_shp_df)
 
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
                          supplemental_cost_data=None, create_proj_reports=True):
     """
     DEPRECIATED
-    
+
     compute the cost estimate of each model/option in the segments and
     combinations directories. Resulsts will be printed in the results text file.
     """

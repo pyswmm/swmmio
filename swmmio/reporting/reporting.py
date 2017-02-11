@@ -114,14 +114,14 @@ class ComparisonReport(object):
         proposed_ft = self.newconduits.Length.sum()#conduitdiff.added.Length.sum() + conduitdiff.altered.Length.sum()
         self.sewer_miles_new = proposed_ft / 5280.0
 
-        #COST ESTIMATION
-        self.newconduits = conduits_cost_estimate(self.newconduits, additional_costs)
-        self.cost_estimate = self.newconduits.TotalCostEstimate.sum() / math.pow(10, 6)
-
         #ADD ANY ADDITIONAL DATA TO THE NEW CONDIUTS (FEASIBILITY, REAL GEOM etc)
         if join_data is not None:
             joindf = pd.read_csv(join_data, index_col=0)
             self.newconduits = self.newconduits.join(joindf)
+
+        #COST ESTIMATION
+        self.newconduits = conduits_cost_estimate(self.newconduits, additional_costs)
+        self.cost_estimate = self.newconduits.TotalCostEstimate.sum() / math.pow(10, 6)
 
         #MEASURE THE FLOOD REDUCTION IMPACT
         self.flood_comparison = parcels.compare_flood_duration(baseline_flooding,
@@ -131,10 +131,7 @@ class ComparisonReport(object):
 
     def write(self, rpt_dir):
         #write cost per sewer segment spreadsheet
-        costcols = ['Length', 'Geom1','Geom2','Geom2','Geom4', 'Shape', 'XArea',
-                    'CostEstimate', 'AdditionalCost', 'AddtlCostNotes',
-                    'TotalCostEstimate', 'RealGeom1', 'RealGeom2']
-        self.newconduits[costcols].to_csv(os.path.join(rpt_dir,'cost_estimate.csv'))
+        self.newconduits.to_csv(os.path.join(rpt_dir,'cost_estimate.csv'))
         self.flood_comparison.to_csv(os.path.join(rpt_dir,'parcel_flood_comparison.csv'))
 
         #write parcel json files
