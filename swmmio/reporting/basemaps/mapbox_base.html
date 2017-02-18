@@ -6,6 +6,7 @@
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://www.mapbox.com/base/latest/base.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -14,6 +15,16 @@
 <body>
 
 <div id='map'></div>
+<!-- <div class='col12 clearfix'>
+  <div class='pill'>
+    <a href='#' class='col12 button' data-path="P:\02_Projects\SouthPhila\SE_SFR\MasterModels\Combinations\M03_R05_W05\Report\new_conduits.json">Pizza Dog</a>
+    <a href='#' class='col12 button' data-path='cool'>Penny Dog</a>
+    <a href='#' class='col12 button' data-path='coolded'>Charlotte Dog</a>
+  </div>
+</div> -->
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw';
 var map = new mapboxgl.Map({
@@ -27,13 +38,24 @@ var map = new mapboxgl.Map({
 
 
 //INSERT GEOJSON HERE ~~~~~
+var sewer_source, parcel_source;
+$('.button').click(function() {
+  var pth = $(this).data('path')
+  console.log(pth);
+
+  $.get(pth, function (newdata) {
+        map.getSource('sewer-data').setData(newdata);
+    });
+
+
+});
 
 map.on('load', function() {
 
   //load the data into the map
-  map.addSource('sewer-data', {'type': 'geojson', 'data': conduits});
-  map.addSource('parcel-data', {'type': 'geojson','data': parcels});
-  // map.addSource('node-data', {'type': 'geojson','data': nodes});
+  sewer_source = map.addSource('sewer-data', {'type': 'geojson', 'data': conduits});
+  parcel_source = map.addSource('parcel-data', {'type': 'geojson','data': parcels});
+  // node_source = map.addSource('node-data', {'type': 'geojson','data': nodes});
 
 
   map.addLayer({
@@ -49,7 +71,7 @@ map.on('load', function() {
               ]
         },
           'line-opacity': 0.75,
-  	      'line-width':2,
+  	      'line-width':4,
       }
 	});
   map.addLayer({
@@ -64,21 +86,7 @@ map.on('load', function() {
 		'filter':["==", "'InletNode'", ""],
     });
 
-  // map.addLayer({
-  //     "id": "parcel",
-  //     'type': 'fill',
-  //     "source": "parcel-data",
-  //     'paint': {
-  //         'fill-color': {
-  //             property: 'HoursFloodedBaseline',
-  //             stops: [
-  //               [0.0833, '#343332'],
-  //               [2.0, '#f91313']
-  //             ]
-  //       },
-  //         'fill-opacity': 0.8,
-  //     }
-	// });
+
   map.addLayer({
       "id": "parcel-extrusion",
       'type': 'fill-extrusion',
@@ -94,11 +102,11 @@ map.on('load', function() {
             'fill-extrusion-height': {
                 property: 'HoursFlooded',
                 stops: [
-                  [0.0833, 5],
+                  [0.0833, 0],
                   [2.0, 200]
                 ]
             },
-          'fill-extrusion-opacity': 1,
+          'fill-extrusion-opacity': 0.85,
       }
 	});
 
