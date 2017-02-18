@@ -17,7 +17,7 @@ def batch_reports(project_dir, results_file,
                   additional_costs=None, join_data=None):
 
     #combine the segments and options (combinations) into one iterable
-    SEGMENTS_DIR = os.path.join(project_dir, 'Segements')
+    SEGMENTS_DIR = os.path.join(project_dir, 'Segments')
     COMBOS_DIR = os.path.join(project_dir, 'Combinations')
     COMMON_DATA_DIR = os.path.join(project_dir, 'CommonData')
     ADMIN_DIR = os.path.join(project_dir, 'ProjectAdmin')
@@ -25,7 +25,7 @@ def batch_reports(project_dir, results_file,
 
     #instantiate the true baseline flood report
     baseline_model = Model(BASELINE_DIR)
-    pn_join_csv = os.path.join(COMMON_DATA_DIR,r'pennsport_sheds_parcels_join.csv')
+    pn_join_csv = os.path.join(COMMON_DATA_DIR,r'sphila_sheds_parcels_join.csv')
     parcel_node_join_df = pd.read_csv(pn_join_csv)
     parcel_shp_df = spatial.read_shapefile(sg.config.parcels_shapefile)
     baserpt = reporting.FloodReport(baseline_model, parcel_node_join_df)
@@ -33,7 +33,7 @@ def batch_reports(project_dir, results_file,
 
     paths = (SEGMENTS_DIR,COMBOS_DIR)
     #result file header
-    cols = 'MODEL,COST,FLOOD_VOL_MG,PARCEL_FLOOD_HRS,FLOOD_VOL_REDUCED_MG,PARCEL_FLOOD_HRS_REDUCED'
+    cols = 'MODEL,COST,FLOOD_VOL_MG,PARCEL_FLOOD_HRS,FLOOD_VOL_REDUCED_MG,PARCEL_FLOOD_HRS_REDUCED,PARCEL_HRS_REDUCED_DELTA_THRESH'
     with open(results_file, 'a') as f:
         f.write(cols + '\n')
 
@@ -57,17 +57,19 @@ def batch_reports(project_dir, results_file,
                     stats = (model_id, impact_rpt.cost_estimate,
                              frpt.flood_vol_mg, frpt.parcel_hrs_flooded,
                              baserpt.flood_vol_mg - frpt.flood_vol_mg,
-                             baserpt.parcel_hrs_flooded -frpt.parcel_hrs_flooded)
-                    f.write('{},{},{},{},{},{}\n'.format(*stats))
+                             baserpt.parcel_hrs_flooded - frpt.parcel_hrs_flooded,
+                             impact_rpt.impact_parcel_hours,
+                             )
+                    f.write('{},{},{},{},{},{},{}\n'.format(*stats))
 
 
 
-                report_dir = os.path.join(alt.inp.dir, REPORT_DIR_NAME)
+                report_dir = os.path.join(alt.inp.dir, 'Report_AllParcels')
                 if not os.path.exists(report_dir):os.mkdir(report_dir)
 
                 #write the report files
                 impact_rpt.write(report_dir)
-                # impact_rpt.generate_figures(report_dir, parcel_shp_df)
+                impact_rpt.generate_figures(report_dir, parcel_shp_df)
 
 
 def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,

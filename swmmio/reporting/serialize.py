@@ -61,7 +61,7 @@ def encode_report(rpt, rpt_path, is_compare=False):
         f.write(json.dumps(rpt_dict))
 
     #start writing that thing
-    with open(r'P:\06_Tools\swmmio\swmmio\reporting\basemaps\compare.html', 'r') as bm:
+    with open(BETTER_BASEMAP_PATH, 'r') as bm:
         filename = os.path.join(os.path.dirname(rpt_path), rpt.model.name + '.html')
         with open(filename, 'wb') as newmap:
             for line in bm:

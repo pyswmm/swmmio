@@ -37,7 +37,7 @@ mymodel = swmmio.Model('/path/to/directory with swmm files')
 #Pandas dataframe with most useful data related to model nodes, conduits, and subcatchments
 nodes = mymodel.nodes()
 conduits = mymodel.conduits()
-subcatchments = mymodel.subcatchments()
+subs = mymodel.subcatchments()
 
 #enjoy all the Pandas functions
 nodes.head()
@@ -48,11 +48,12 @@ nodes.head()
 #write to a csv
 nodes.to_csv('/path/mynodes.csv')
 
-#access specific elements by element ID
-mynode = mymodel.node('MY_NODE_ID')
-print mynode.runoff_upstream_cf #accumulated runoff from upstream nodes
-print mynode.drainage_area_upstream #accumulated drainage area from upstream nodes
+#calculate average and weighted average impervious
+avg_imperviousness = subs.PercImperv.mean()
+weighted_avg_imp = (subs.Area * subs.PercImperv).sum() / len(subs)
+
 ```
+### Generating Graphics
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized if your model includes output data (a .rpt file should accompany the .inp).
 
 ```python
@@ -86,6 +87,48 @@ annotation = 'Flooded Volume: {}MG\nFlooded Nodes:{}'.format(round(flood_vol), f
 sg.draw_model(mymodel, annotation=annotation, file_path='flooded_anno_example.png')
 ```
 ![Flooded highlight](docs/img/flooded_anno_example.png?raw=true "Node Flooding with annotation")
+
+### Building Variations of Models
+Starting with a base SWMM model, other models can be created by inserting altered data into a new inp file. Useful for sensitivity analysis or varying boundary conditions, models can be created using a fairly simple loop, leveraging the `modify_model` package.
+
+For example, climate change impacts can be investigated by creating a set of models with varying outfall Fixed Stage elevations:
+
+```python
+import os, shutil
+from swmmio import swmmio
+from swmmio.utils.modify_model import replace_inp_section
+from swmmio.utils.dataframes import create_dataframeINP
+
+#initialize a baseline model object
+baseline = swmmio.Model(r'path\to\baseline.inp')
+rise = 0.0 #set the starting sea level rise condition
+
+#create models up to 5ft of sea level rise.
+while rise <= 5:
+
+    #create a dataframe of the model's outfalls
+    outfalls = create_dataframeINP(baseline.inp.path, '[OUTFALLS]')
+
+    #create the Pandas logic to access the StageOrTimeseries column of  FIXED outfalls
+    slice_condition = outfalls.OutfallType == 'FIXED', 'StageOrTimeseries'
+
+    #add the current rise to the outfalls' stage elevation
+    outfalls.loc[slice_condition] = pd.to_numeric(outfalls.loc[slice_condition]) + rise
+
+    #copy the base model into a new directory    
+    newdir = os.path.join(baseline.inp.dir, str(rise))
+    os.mkdir(newdir)
+    newfilepath = os.path.join(newdir, baseline.inp.name + "_" + str(rise) + '_SLR.inp')
+    shutil.copyfile(baseline.inp.path, newfilepath)
+
+    #Overwrite the OUTFALLS section of the new model with the adjusted data
+    replace_inp_section(newfilepath, '[OUTFALLS]', outfalls)
+
+    #increase sea level rise for the next loop
+    rise += 0.25
+
+```
+
 
 
 ### Running Models

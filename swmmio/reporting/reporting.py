@@ -128,6 +128,12 @@ class ComparisonReport(object):
                                                                proposed_flooding)
         self.impact = self.flood_comparison.Category.value_counts()
 
+        df = self.flood_comparison
+        parcel_hours_reduction = df.loc[df.Category.isin(['decreased_flooding',
+                                                          'eliminated_flooding']),
+                                        'DeltaHours']
+        self.impact_parcel_hours = - sum(parcel_hours_reduction)
+
 
     def write(self, rpt_dir):
         #write cost per sewer segment spreadsheet
@@ -156,6 +162,29 @@ class ComparisonReport(object):
         #write node and conduit report csvs
         self.alt_report.model.nodes().to_csv(os.path.join(rpt_dir,'nodes.csv'))
         self.alt_report.model.conduits().to_csv(os.path.join(rpt_dir,'conduits.csv'))
+
+        #write a html map
+        with open (geocondpath, 'r') as f:
+            geo_conduits = geojson.loads(f.read())
+
+
+        proposed_flooded = self.alt_report.parcel_flooding
+        proposed_flooded = pd.merge(proposed_flooded, parcels, right_on='PARCELID', left_index=True)
+        geo_parcels = spatial.write_geojson(proposed_flooded)
+        # with open (geoparcelpath, 'r') as f:
+        #     geo_parcels = geojson.loads(f.read())
+
+        with open(BETTER_BASEMAP_PATH, 'r') as bm:
+            filename = os.path.join(os.path.dirname(geocondpath), self.alt_report.model.name + '.html')
+            with open(filename, 'wb') as newmap:
+                for line in bm:
+                    if '//INSERT GEOJSON HERE ~~~~~' in line:
+                        newmap.write('conduits = {};\n'.format(geojson.dumps(geo_conduits)))
+                        newmap.write('nodes = {};\n'.format(0))
+                        newmap.write('parcels = {};\n'.format(geojson.dumps(geo_parcels)))
+                    else:
+                        newmap.write(line)
+
 
         #create figures
     def generate_figures(self, rpt_dir, parcel_shp_df, bbox=d68d70):

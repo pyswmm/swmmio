@@ -64,6 +64,8 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
         w = shapefile.Writer(shapefile.POINT)
     elif geomtype == 'line':
         w = shapefile.Writer(shapefile.POLYLINE)
+    elif geomtype == 'polygon':
+        w = shapefile.Writer(shapefile.POLYGON)
 
     #use the helper mode to ensure the # of records equals the # of shapes
     #(shapefile are made up of shapes and records, and need both to be valid)
