@@ -36,7 +36,7 @@ var map = new mapboxgl.Map({
     container: 'map',
 });
 
-
+//INSERT BBOX HERE
 //INSERT GEOJSON HERE ~~~~~
 var sewer_source, parcel_source;
 $('.button').click(function() {
@@ -54,8 +54,8 @@ map.on('load', function() {
 
   //load the data into the map
   sewer_source = map.addSource('sewer-data', {'type': 'geojson', 'data': conduits});
-  parcel_source = map.addSource('parcel-data', {'type': 'geojson','data': parcels});
-  // node_source = map.addSource('node-data', {'type': 'geojson','data': nodes});
+  // parcel_source = map.addSource('parcel-data', {'type': 'geojson','data': parcels});
+  node_source = map.addSource('node-data', {'type': 'geojson','data': nodes});
 
 
   map.addLayer({
@@ -64,14 +64,16 @@ map.on('load', function() {
       "source": "sewer-data",
       'paint': {
           'line-color': {
-              property: 'Geom1',
+              property: 'MaxQPerc',//'Geom1',
               stops: [
-                [1, '#343332'],
-                [6, '#64bab4']
+                // [1, '#343332'],//'#343332'],
+                // [6, '#64bab4']
+                [0.2, '#343332'],
+                [3, '#f91313']
               ]
         },
           'line-opacity': 0.75,
-  	      'line-width':4,
+  	      'line-width':3,
       }
 	});
   map.addLayer({
@@ -86,29 +88,39 @@ map.on('load', function() {
 		'filter':["==", "'InletNode'", ""],
     });
 
+    map.addLayer({
+        "id": "node",
+        'type': 'circle',
+        "source": "node-data",
+        'paint': {
+            'circle-color': 'rgb(220, 50, 60)',
+            'circle-opacity': 0.75,
+    	      'circle-radius':6,
+        }
+  	});
 
-  map.addLayer({
-      "id": "parcel-extrusion",
-      'type': 'fill-extrusion',
-      "source": "parcel-data",
-      'paint': {
-          'fill-extrusion-color': {
-              property: 'HoursFlooded',
-              stops: [
-                [0.0833, '#343332'],
-                [2.0, '#f91313']
-              ]
-            },
-            'fill-extrusion-height': {
-                property: 'HoursFlooded',
-                stops: [
-                  [0.0833, 0],
-                  [2.0, 200]
-                ]
-            },
-          'fill-extrusion-opacity': 0.85,
-      }
-	});
+  // map.addLayer({
+  //     "id": "parcel-extrusion",
+  //     'type': 'fill-extrusion',
+  //     "source": "parcel-data",
+  //     'paint': {
+  //         'fill-extrusion-color': {
+  //             property: 'HoursFlooded',
+  //             stops: [
+  //               [0.0833, '#343332'],
+  //               [2.0, '#f91313']
+  //             ]
+  //           },
+  //           'fill-extrusion-height': {
+  //               property: 'HoursFlooded',
+  //               stops: [
+  //                 [0.0833, 0],
+  //                 [2.0, 200]
+  //               ]
+  //           },
+  //         'fill-extrusion-opacity': 0.85,
+  //     }
+	// });
 
 
     // When a click event occurs near a polygon, open a popup at the location of
