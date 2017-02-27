@@ -34,40 +34,45 @@ def decode_report(rpt_path):
     pars_df = json_normalize(read_rpt['parcels']['features'])
     pars_df = df_clean(pars_df)
 
+    rpt_dict = {'conduits':conds_df, 'nodes':nodes_df, 'parcels':pars_df}
+    rpt_dict.update()
     return {'conduits':conds_df, 'nodes':nodes_df, 'parcels':pars_df}
 
-def encode_report(rpt, rpt_path, is_compare=False):
+def encode_report(rpt, rpt_path):
 
     rpt_dict = {}
 
     #write parcel json files
     parcels = spatial.read_shapefile(sg.config.parcels_shapefile)
     parcels = parcels[['PARCELID', 'coords']] #omit 'ADDRESS', 'OWNER1'
-    if is_compare:
-        flooded = rpt.flood_comparison
-        rpt = rpt.alt_report
-    else:
-        flooded = rpt.parcel_flooding
+    flooded = rpt.alt_report.parcel_flooding #proposed flooding condition
     flooded = pd.merge(flooded, parcels, right_on='PARCELID', left_index=True)
     rpt_dict['parcels'] = spatial.write_geojson(flooded, geomtype='polygon')
 
-    #encode conduit data into geojson
-    rpt_dict['conduits'] = spatial.write_geojson(rpt.model.conduits())
-    rpt_dict['nodes'] = spatial.write_geojson(rpt.model.nodes(),geomtype='point')
+    #non null delta category parcels
+    delta_parcels = rpt.flood_comparison.loc[pd.notnull(rpt.flood_comparison.Category)]
+    delta_parcels = pd.merge(delta_parcels, parcels, right_on='PARCELID', left_index=True)
+    rpt_dict['delta_parcels'] = spatial.write_geojson(delta_parcels, geomtype='polygon')
 
+    #encode conduit and nodes data into geojson
+    # rpt_dict['conduits'] = spatial.write_geojson(rpt.alt_report.model.conduits())
+    rpt_dict['new_conduits'] = spatial.write_geojson(rpt.newconduits)
+    # rpt_dict['nodes'] = spatial.write_geojson(rpt.model.nodes(), geomtype='point')
 
+    #write summary stats
+    rpt_dict.update(rpt.summary_dict)
 
     with open(rpt_path, 'w') as f:
         f.write(json.dumps(rpt_dict))
 
-    #start writing that thing
-    with open(BETTER_BASEMAP_PATH, 'r') as bm:
-        filename = os.path.join(os.path.dirname(rpt_path), rpt.model.name + '.html')
-        with open(filename, 'wb') as newmap:
-            for line in bm:
-                if '//INSERT GEOJSON HERE ~~~~~' in line:
-                    newmap.write('conduits = {};\n'.format(geojson.dumps(rpt_dict['conduits'])))
-                    newmap.write('nodes = {};\n'.format(geojson.dumps(rpt_dict['nodes'])))
-                    newmap.write('parcels = {};\n'.format(geojson.dumps(rpt_dict['parcels'])))
-                else:
-                    newmap.write(line)
+    # #start writing that thing
+    # with open(BETTER_BASEMAP_PATH, 'r') as bm:
+    #     filename = os.path.join(os.path.dirname(rpt_path), rpt.model.name + '.html')
+    #     with open(filename, 'wb') as newmap:
+    #         for line in bm:
+    #             if '//INSERT GEOJSON HERE ~~~~~' in line:
+    #                 newmap.write('conduits = {};\n'.format(geojson.dumps(rpt_dict['conduits'])))
+    #                 newmap.write('nodes = {};\n'.format(geojson.dumps(rpt_dict['nodes'])))
+    #                 newmap.write('parcels = {};\n'.format(geojson.dumps(rpt_dict['parcels'])))
+    #             else:
+    #                 newmap.write(line)

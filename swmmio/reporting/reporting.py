@@ -132,7 +132,24 @@ class ComparisonReport(object):
         parcel_hours_reduction = df.loc[df.Category.isin(['decreased_flooding',
                                                           'eliminated_flooding']),
                                         'DeltaHours']
-        self.impact_parcel_hours = - sum(parcel_hours_reduction)
+
+        parcel_hours_increased = df.loc[df.Category == 'increased_flooding','DeltaHours']
+        parcel_hours_new = df.loc[df.Category == 'new_flooding','DeltaHours']
+        self.parcel_hours_reduced = - sum(parcel_hours_reduction)
+        self.parcel_hours_increased = sum(parcel_hours_increased)
+        self.parcel_hours_new = sum(parcel_hours_new)
+
+        self.summary_dict = {
+            'parcel_hours_reduced':self.parcel_hours_reduced,
+            'parcel_hours_increased':self.parcel_hours_increased,
+            'parcel_hours_new':self.parcel_hours_new,
+            'description':self.description,
+            'cost_estimate':self.cost_estimate,
+            'baseline_name':self.baseline_report.model.name,
+            'alt_name':self.alt_report.model.name,
+            'sewer_miles_new':self.sewer_miles_new,
+        }
+
 
 
     def write(self, rpt_dir):

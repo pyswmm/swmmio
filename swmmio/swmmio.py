@@ -7,8 +7,10 @@ import pandas as pd
 from .utils import functions, spatial
 import glob
 import math
+import geojson
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+from definitions import *
 
 class Model(object):
 
@@ -97,7 +99,48 @@ class Model(object):
 		else:
 			return True
 
+	def to_map(self, filename=None, inproj='epsg:2272'):
 
+		conds = self.conduits()
+		nodes = self.nodes()
+		try:
+			import pyproj
+		except ImportError:
+			raise ImportError('pyproj module needed. get this package here: https://pypi.python.org/pypi/pyproj')
+
+		#SET UP THE TO AND FROM COORDINATE PROJECTION
+		pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
+		wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84') #google maps, etc
+
+		#get center point
+		c = ((nodes.X.max() + nodes.X.min())/2 , (nodes.Y.max() + nodes.Y.min())/2)
+		c = pyproj.transform(pa_plane, wgs, c[0], c[1])
+		bbox = [(nodes.X.min(), nodes.Y.min()),
+				(nodes.X.max(), nodes.Y.max())]
+		bbox = [pyproj.transform(pa_plane, wgs, *xy) for xy in bbox]
+
+
+		geo_conduits = spatial.write_geojson(conds)
+		geo_nodes = spatial.write_geojson(nodes, geomtype='point')
+
+		if filename is None:
+			filename = os.path.join(self.inp.dir, self.inp.name + '.html')
+
+		with open(BETTER_BASEMAP_PATH, 'r') as bm:
+			with open(filename, 'wb') as newmap:
+				for line in bm:
+					if '//INSERT GEOJSON HERE ~~~~~' in line:
+						newmap.write('conduits = {};\n'.format(geojson.dumps(geo_conduits)))
+						newmap.write('nodes = {};\n'.format(geojson.dumps(geo_nodes)))
+						newmap.write('parcels = {};\n'.format(0))
+
+					if 'center: [-75.148946, 39.921685],' in line:
+						newmap.write('center:[{}, {}],\n'.format(c[0], c[1]))
+					if '//INSERT BBOX HERE' in line:
+						 newmap.write('map.fitBounds([[{}, {}], [{}, {}]]);\n'.format(bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1]))
+
+					else:
+						newmap.write(line)
 
 	def _get_scenario(self):
 		"""get a descrition of the model scenario by reading the raingage data"""
