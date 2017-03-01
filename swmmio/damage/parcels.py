@@ -22,7 +22,7 @@ def flood_duration(node_flood_df, parcel_node_df=None,
     if parcel_node_df is None:
         parcel_node_df = pd.read_csv(parcel_node_join_csv)
 
-    useful_cols = ['PARCELID', 'OUTLET', 'SUBCATCH', 'ADDRESS', 'REGULATOR']
+    useful_cols = ['PARCELID', 'OUTLET', 'SUBCATCH', 'ADDRESS']
     parcel_node_df = parcel_node_df[useful_cols]
 
     #clean up the nodes df, using only a few columns

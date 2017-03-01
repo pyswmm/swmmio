@@ -45,6 +45,7 @@ class FloodReport(object):
             self.parcel_flooding = parcels.flood_duration(model.nodes(),
                                                           parcel_node_df,
                                                           threshold=threshold)
+            self.parcel_hrs_flooded = self.parcel_flooding.HoursFlooded.sum()
             subs = self.model.subcatchments()
             nodes = self.model.nodes()
             self.runoff_vol_mg = subs.RunoffMGAccurate.sum()
@@ -113,27 +114,47 @@ class ComparisonReport(object):
         proposed_ft = self.newconduits.Length.sum()#conduitdiff.added.Length.sum() + conduitdiff.altered.Length.sum()
         self.sewer_miles_new = proposed_ft / 5280.0
 
-        #COST ESTIMATION
-        self.newconduits = conduits_cost_estimate(self.newconduits, additional_costs)
-        self.cost_estimate = self.newconduits.TotalCostEstimate.sum() / math.pow(10, 6)
-
         #ADD ANY ADDITIONAL DATA TO THE NEW CONDIUTS (FEASIBILITY, REAL GEOM etc)
         if join_data is not None:
             joindf = pd.read_csv(join_data, index_col=0)
             self.newconduits = self.newconduits.join(joindf)
+
+        #COST ESTIMATION
+        self.newconduits = conduits_cost_estimate(self.newconduits, additional_costs)
+        self.cost_estimate = self.newconduits.TotalCostEstimate.sum() / math.pow(10, 6)
 
         #MEASURE THE FLOOD REDUCTION IMPACT
         self.flood_comparison = parcels.compare_flood_duration(baseline_flooding,
                                                                proposed_flooding)
         self.impact = self.flood_comparison.Category.value_counts()
 
+        df = self.flood_comparison
+        parcel_hours_reduction = df.loc[df.Category.isin(['decreased_flooding',
+                                                          'eliminated_flooding']),
+                                        'DeltaHours']
+
+        parcel_hours_increased = df.loc[df.Category == 'increased_flooding','DeltaHours']
+        parcel_hours_new = df.loc[df.Category == 'new_flooding','DeltaHours']
+        self.parcel_hours_reduced = - sum(parcel_hours_reduction)
+        self.parcel_hours_increased = sum(parcel_hours_increased)
+        self.parcel_hours_new = sum(parcel_hours_new)
+
+        self.summary_dict = {
+            'parcel_hours_reduced':self.parcel_hours_reduced,
+            'parcel_hours_increased':self.parcel_hours_increased,
+            'parcel_hours_new':self.parcel_hours_new,
+            'description':self.description,
+            'cost_estimate':self.cost_estimate,
+            'baseline_name':self.baseline_report.model.name,
+            'alt_name':self.alt_report.model.name,
+            'sewer_miles_new':self.sewer_miles_new,
+        }
+
+
 
     def write(self, rpt_dir):
         #write cost per sewer segment spreadsheet
-        costcols = ['Length', 'Geom1','Geom2','Geom2','Geom4', 'Shape', 'XArea',
-                    'CostEstimate', 'AdditionalCost', 'AddtlCostNotes',
-                    'TotalCostEstimate', 'RealGeom1', 'RealGeom2']
-        self.newconduits[costcols].to_csv(os.path.join(rpt_dir,'cost_estimate.csv'))
+        self.newconduits.to_csv(os.path.join(rpt_dir,'cost_estimate.csv'))
         self.flood_comparison.to_csv(os.path.join(rpt_dir,'parcel_flood_comparison.csv'))
 
         #write parcel json files
@@ -145,15 +166,42 @@ class ComparisonReport(object):
         colors = flooded.apply(lambda row:'#%02x%02x%02x' % drawing.parcel_draw_color(row, style='delta'), axis=1)
         flooded = flooded.assign(fill=colors)
         geoparcelpath = os.path.join(rpt_dir,'delta_parcels.json')
-        spatial.create_geojson(flooded, geomtype='polygon', filename=geoparcelpath)
+        spatial.write_geojson(flooded, filename=geoparcelpath, geomtype='polygon')
 
-        #write new conduit json
+        #write new conduit json, shapefiles
+        shpdir = os.path.join(os.path.dirname(rpt_dir), 'shapefiles')
+        if not os.path.exists(shpdir):os.mkdir(shpdir)
         geocondpath = os.path.join(rpt_dir,'new_conduits.json')
-        spatial.create_geojson(self.newconduits, filename=geocondpath)
+        shpcondpath = os.path.join(shpdir, self.alt_report.model.inp.name + '_new_conduits.shp')
+        spatial.write_geojson(self.newconduits, filename=geocondpath)
+        spatial.write_shapefile(self.newconduits, filename=shpcondpath)
 
         #write node and conduit report csvs
         self.alt_report.model.nodes().to_csv(os.path.join(rpt_dir,'nodes.csv'))
         self.alt_report.model.conduits().to_csv(os.path.join(rpt_dir,'conduits.csv'))
+
+        #write a html map
+        with open (geocondpath, 'r') as f:
+            geo_conduits = geojson.loads(f.read())
+
+
+        proposed_flooded = self.alt_report.parcel_flooding
+        proposed_flooded = pd.merge(proposed_flooded, parcels, right_on='PARCELID', left_index=True)
+        geo_parcels = spatial.write_geojson(proposed_flooded)
+        # with open (geoparcelpath, 'r') as f:
+        #     geo_parcels = geojson.loads(f.read())
+
+        with open(BETTER_BASEMAP_PATH, 'r') as bm:
+            filename = os.path.join(os.path.dirname(geocondpath), self.alt_report.model.name + '.html')
+            with open(filename, 'wb') as newmap:
+                for line in bm:
+                    if '//INSERT GEOJSON HERE ~~~~~' in line:
+                        newmap.write('conduits = {};\n'.format(geojson.dumps(geo_conduits)))
+                        newmap.write('nodes = {};\n'.format(0))
+                        newmap.write('parcels = {};\n'.format(geojson.dumps(geo_parcels)))
+                    else:
+                        newmap.write(line)
+
 
         #create figures
     def generate_figures(self, rpt_dir, parcel_shp_df, bbox=d68d70):
@@ -244,52 +292,3 @@ def read_report_dir(rptdir, total_parcel_count=0):
             rpt.new_conduits_geojson = geojson.loads(f.read())
 
     return rpt
-
-#LEGACY CODE ON CHAPPIN BLOCK
-def generate_figures(model1, model2, delta_parcels=None, anno_results = {},
-                    bbox=None, imgDir=None, verbose=False):
-
-    #calculate the bounding box of the alternative/option
-    #such that figures can be zoomed to the area
-    #bbox = scomp.extents_of_changes(model1, model2, extent_buffer=1.0)
-
-    #SIMPLE PLAN VIEW OF OPTION (showing new conduits)
-    imgname = "00 Proposed Infrastructure"
-    scomp.drawModelComparison(model1, model2, nodeSymb=None, parcelSymb=None,
-                                bbox=bbox, imgName=imgname, imgDir=imgDir)
-
-    #EXISTING CONDITIONS PARCEL FLOOD DURATION
-    imgname = "01 Existing Parcel Flood Duration"
-    if not imgDir:
-        imgDir=os.path.join(model2.inp.dir, 'img')
-    sg.drawModel(model1, conduitSymb=None, nodeSymb=None, bbox=bbox,
-                 imgName=imgname, imgDir=imgDir)
-
-    #PROPOSED CONDITIONS FLOOD DURATION
-    imgname = "02 Proposed Parcel Flood Duration"
-    sg.drawModel(model2, conduitSymb=None, nodeSymb=None, bbox=bbox,
-                  imgName=imgname, imgDir=imgDir)
-
-    #IMPACT OF INFRASTRUCTURE
-    imgname = "03 Impact of Option"
-    scomp.drawModelComparison(model1, model2,
-                                delta_parcels = delta_parcels,
-                                anno_results = anno_results,
-                                nodeSymb=None, bbox=bbox,
-                                imgName=imgname, imgDir=imgDir)
-
-    #IMPACT OF INFRASTRUCTURE STUDY-AREA-WIDE
-    imgname = "04 Impact of Option - Overall"
-    scomp.drawModelComparison(model1, model2,
-                                delta_parcels = delta_parcels,
-                                anno_results = anno_results,
-                                nodeSymb=None, bbox=su.study_area,
-                                imgName=imgname, imgDir=imgDir)
-
-    #IMPACT OF INFRASTRUCTURE CHANGE OF PEAK FLOW
-    imgname = "05 Hydraulic Deltas"
-    scomp.drawModelComparison(model1, model2,
-                                delta_parcels = delta_parcels,
-                                anno_results = anno_results,
-                                conduitSymb=du.conduit_options('compare_flow'),
-                                bbox=bbox, imgName=imgname, imgDir=imgDir)

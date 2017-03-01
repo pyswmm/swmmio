@@ -2,12 +2,15 @@
 #coding:utf-8
 import re
 import os
+from time import ctime
 import pandas as pd
 from .utils import functions, spatial
 import glob
 import math
+import geojson
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+from definitions import *
 
 class Model(object):
 
@@ -62,6 +65,83 @@ class Model(object):
 			self._conduits_df = None
 			self._subcatchments_df = None
 
+	def rpt_is_valid(self , verbose=False):
+		"""Return true if the .rpt file exists and has a revision date more
+		recent than the .inp file. If the inp has an modified date later than
+		the rpt, assume that the rpt should be regenerated"""
+
+		if self.rpt is None:
+			if verbose:
+				print '{} does not have an rpt file'.format(self.name)
+			return False
+
+
+		#check if the rpt has ERRORS output from SWMM
+		with open (self.rpt.path) as f:
+			#jump to 500 bytes before the end of file
+		    f.seek(self.rpt.file_size - 500)
+		    for line in f:
+		        spl = line.split()
+		        if len(spl) > 0 and spl[0]=='ERROR':
+					#return false at first "ERROR" occurence
+		            return False
+
+		rpt_mod_time = os.path.getmtime(self.rpt.path)
+		inp_mod_time = os.path.getmtime(self.inp.path)
+
+		if verbose:
+			print "{}.rpt: modified {}".format(self.name, ctime(rpt_mod_time))
+			print "{}.inp: modified {}".format(self.name, ctime(inp_mod_time))
+
+		if inp_mod_time > rpt_mod_time:
+			#inp datetime modified greater than rpt datetime modified
+			return False
+		else:
+			return True
+
+	def to_map(self, filename=None, inproj='epsg:2272'):
+
+		conds = self.conduits()
+		nodes = self.nodes()
+		try:
+			import pyproj
+		except ImportError:
+			raise ImportError('pyproj module needed. get this package here: https://pypi.python.org/pypi/pyproj')
+
+		#SET UP THE TO AND FROM COORDINATE PROJECTION
+		pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
+		wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84') #google maps, etc
+
+		#get center point
+		c = ((nodes.X.max() + nodes.X.min())/2 , (nodes.Y.max() + nodes.Y.min())/2)
+		c = pyproj.transform(pa_plane, wgs, c[0], c[1])
+		bbox = [(nodes.X.min(), nodes.Y.min()),
+				(nodes.X.max(), nodes.Y.max())]
+		bbox = [pyproj.transform(pa_plane, wgs, *xy) for xy in bbox]
+
+
+		geo_conduits = spatial.write_geojson(conds)
+		geo_nodes = spatial.write_geojson(nodes, geomtype='point')
+
+		if filename is None:
+			filename = os.path.join(self.inp.dir, self.inp.name + '.html')
+
+		with open(BETTER_BASEMAP_PATH, 'r') as bm:
+			with open(filename, 'wb') as newmap:
+				for line in bm:
+					if '//INSERT GEOJSON HERE ~~~~~' in line:
+						newmap.write('conduits = {};\n'.format(geojson.dumps(geo_conduits)))
+						newmap.write('nodes = {};\n'.format(geojson.dumps(geo_nodes)))
+						newmap.write('parcels = {};\n'.format(0))
+
+					if 'center: [-75.148946, 39.921685],' in line:
+						newmap.write('center:[{}, {}],\n'.format(c[0], c[1]))
+					if '//INSERT BBOX HERE' in line:
+						 newmap.write('map.fitBounds([[{}, {}], [{}, {}]]);\n'.format(bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1]))
+
+					else:
+						newmap.write(line)
+
 	def _get_scenario(self):
 		"""get a descrition of the model scenario by reading the raingage data"""
 		rg = create_dataframeINP(self.inp.path, '[RAINGAGES]')
@@ -90,7 +170,7 @@ class Model(object):
 		conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
 		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
 		conduits_df = conduits_df.join(xsections_df)
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
 
 		if rpt:
 			#create a dictionary holding data from an rpt file, if provided
@@ -101,11 +181,21 @@ class Model(object):
 		#the xys.map() junk is to unpack a nested list
 		verts = create_dataframeINP(inp.path, '[VERTICES]')
 		xys = conduits_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
-		conduits_df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
+		df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
-		self._conduits_df = conduits_df
+		#add conduit up/down inverts and calculate slope
+		elevs = self.nodes()[['InvertElev']]
+		df = pd.merge(df, elevs, left_on='InletNode', right_index=True, how='left')
+		df = df.rename(index=str, columns={"InvertElev": "InletNodeInvert"})
+		df = pd.merge(df, elevs, left_on='OutletNode', right_index=True, how='left')
+		df = df.rename(index=str, columns={"InvertElev": "OutletNodeInvert"})
+		df['UpstreamInvert'] = df.InletNodeInvert + df.InletOffset
+		df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
+		df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
-		return conduits_df
+		self._conduits_df = df
+
+		return df
 
 	def nodes(self, bbox=None, subset=None):
 
@@ -209,6 +299,8 @@ class Model(object):
 		"""
 		export the model data into a shapefile. element_type dictates which type
 		of data will be included.
+
+		default projection is PA State Plane - untested on other cases
 		"""
 
 		#CREATE THE CONDUIT shp
@@ -219,7 +311,7 @@ class Model(object):
 		#CREATE THE NODE shp
 		nodes = self.nodes()
 		nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
-		spatial.write_shapefile(conds, nodes_path, geomtype='point', prj=prj)
+		spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
 
 
 class SWMMIOFile(object):
