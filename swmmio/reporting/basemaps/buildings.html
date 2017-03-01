@@ -17,7 +17,7 @@
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw' //'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw';
 var map = new mapboxgl.Map({
-    style: 'mapbox://styles/mapbox/light-v9',
+    style: 'mapbox://styles/aerispaha/ciyv19dwo00092rmucxorngy5',//'mapbox://styles/mapbox/light-v9',
     center: [-75.148946, 39.921685],
     zoom: 15,
     pitch: 45,
@@ -34,7 +34,7 @@ map.on('load', function() {
         'source-layer': 'building',
         'filter': ['==', 'extrude', 'true'],
         'type': 'fill-extrusion',
-        'minzoom': 15,
+        'minzoom': 12,
         'paint': {
             'fill-extrusion-color': '#aaa',
             'fill-extrusion-height': {
@@ -44,6 +44,26 @@ map.on('load', function() {
             'fill-extrusion-base': {
                 'type': 'identity',
                 'property': 'min_height'
+            },
+            'fill-extrusion-opacity': .5
+        }
+    });
+    map.addLayer({
+        'id': 'parcels',
+        'source': 'composite',
+        'source-layer': 'delta-parcels',
+        'filter': ['==', 'extrude', 'true'],
+        'type': 'fill-extrusion',
+        'minzoom': 12,
+        'paint': {
+            'fill-extrusion-color': '#230900',
+            'fill-extrusion-height': {
+                'type': 'identity',
+                'property': 'HoursFloodedProposed'
+            },
+            'fill-extrusion-base': {
+                'type': 'identity',
+                'property': 'HoursFloodedBaseline'
             },
             'fill-extrusion-opacity': .9
         }
