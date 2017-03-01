@@ -6,37 +6,12 @@ from swmmio.version_control.inp import INPDiff
 from swmmio.utils.dataframes import create_dataframeINP
 import os
 
-def create_shapefile_of_new_conduits(model1, model2, filename=None):
-    """
-    given a baseline model and a option, create a shapefile including only the
-    new conduits.
-    """
-
-    changes = INPDiff(model1, model2, section='[CONDUITS]')
-    df = pd.concat([changes.added, changes.altered])
-    new_conduit_ids = df.index.tolist()
-
-    if filename is None:
-        filename = os.path.join(os.path.dirname(model2.inp.path),
-                                'shapefiles',
-                                model2.inp.name + '_new_conduits.shp')
-
-    #create the containing directory if necessary
-    if not os.path.exists(os.path.dirname(filename)):
-        os.makedirs(os.path.dirname(filename))
-
-    model2.export_to_shapefile(element_type='conduit',
-                               filename=filename,
-                               subset=new_conduit_ids)
-
-
-
-
 def conduits_cost_estimate(conduit_df, additional_costs=None):
 
-    
+
     def calc_area(row):
-        """calculate the cross-sectional area of a sewer segment"""
+        """calculate the cross-sectional area of a sewer segment. If the segment
+        is multi-barrel, the area will reflect the total of all barrels"""
 
         if row.Shape == 'CIRCULAR':
             d = row.Geom1
@@ -45,10 +20,10 @@ def conduits_cost_estimate(conduit_df, additional_costs=None):
 
         if 'RECT' in row.Shape:
             #assume triangular bottom sections (geom3) deepens the excavated box
-            return (row.Geom1 + row.Geom3) * float(row.Geom2)
+            return (row.Geom1 + row.Geom3) * float(row.Geom2) * row.Barrels
         if row.Shape =='EGG':
             #assume geom1 is the span
-            return row.Geom1*1.5
+            return row.Geom1*1.5 * row.Barrels
 
     def get_unit_cost(row):
         cost_dict = {1.0:570,

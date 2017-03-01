@@ -6,7 +6,7 @@ from geojson import Point, LineString, Polygon, FeatureCollection, Feature
 import os, shutil
 
 
-def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None):
+def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
 
     try: import pyproj
     except ImportError:
@@ -15,9 +15,10 @@ def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None)
 
     #SET UP THE TO AND FROM COORDINATE PROJECTION
     pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
-    wgs = pyproj.Proj(proj='latlong', datum='WGS84', ellps='WGS84') #google maps, etc
+    wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84') #google maps, etc
 
     #CONVERT THE DF INTO JSON
+    df['Name'] = df.index #add a name column (we wont have the index)
     records = json.loads(df.to_json(orient='records'))
 
     #ITERATE THROUGH THE RECORDS AND CREATE GEOJSON OBJECTS
@@ -32,6 +33,7 @@ def create_geojson(df, inproj='epsg:2272', geomtype='linestring', filename=None)
         if geomtype == 'linestring':
             geometry = LineString(latlngs)
         elif geomtype == 'point':
+            # lnglats = [(latlngs[0][1], latlngs[0][0])] #needs to be reversed. Why??
             geometry = Point(latlngs)
         elif geomtype == 'polygon':
             geometry = Polygon([latlngs])
@@ -62,6 +64,8 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
         w = shapefile.Writer(shapefile.POINT)
     elif geomtype == 'line':
         w = shapefile.Writer(shapefile.POLYLINE)
+    elif geomtype == 'polygon':
+        w = shapefile.Writer(shapefile.POLYGON)
 
     #use the helper mode to ensure the # of records equals the # of shapes
     #(shapefile are made up of shapes and records, and need both to be valid)

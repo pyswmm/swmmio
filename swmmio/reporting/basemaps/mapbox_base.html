@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://www.mapbox.com/base/latest/base.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<!-- <div class='col12 clearfix'>
+  <div class='pill'>
+    <a href='#' class='col12 button' data-path="P:\02_Projects\SouthPhila\SE_SFR\MasterModels\Combinations\M03_R05_W05\Report\new_conduits.json">Pizza Dog</a>
+    <a href='#' class='col12 button' data-path='cool'>Penny Dog</a>
+    <a href='#' class='col12 button' data-path='coolded'>Charlotte Dog</a>
+  </div>
+</div> -->
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw';
+var map = new mapboxgl.Map({
+    style:'mapbox://styles/mapbox/dark-v9',
+    center: [-75.148946, 39.921685],
+    zoom: 15,
+    //pitch: 20,
+    //bearing: -17.6,
+    container: 'map',
+});
+
+//INSERT BBOX HERE
+//INSERT GEOJSON HERE ~~~~~
+var sewer_source, parcel_source;
+$('.button').click(function() {
+  var pth = $(this).data('path')
+  console.log(pth);
+
+  $.get(pth, function (newdata) {
+        map.getSource('sewer-data').setData(newdata);
+    });
+
+
+});
+
+map.on('load', function() {
+
+  //load the data into the map
+  sewer_source = map.addSource('sewer-data', {'type': 'geojson', 'data': conduits});
+  // parcel_source = map.addSource('parcel-data', {'type': 'geojson','data': parcels});
+  node_source = map.addSource('node-data', {'type': 'geojson','data': nodes});
+
+
+  map.addLayer({
+      "id": "sewer",
+      'type': 'line',
+      "source": "sewer-data",
+      'paint': {
+          'line-color': {
+              property: 'MaxQPerc',//'Geom1',
+              stops: [
+                // [1, '#343332'],//'#343332'],
+                // [6, '#64bab4']
+                [0.2, '#343332'],
+                [3, '#f91313']
+              ]
+        },
+          'line-opacity': 0.75,
+  	      'line-width':3,
+      }
+	});
+  map.addLayer({
+        "id": "sewer-hover",
+        'type': 'line',
+        "source": "sewer-data",
+        'paint': {
+            'line-color': "#8384a4",
+            'line-opacity': 1,
+			'line-width':4,
+        },
+		'filter':["==", "'InletNode'", ""],
+    });
+
+    map.addLayer({
+        "id": "node",
+        'type': 'circle',
+        "source": "node-data",
+        'paint': {
+            'circle-color': 'rgb(220, 50, 60)',
+            'circle-opacity': 0.75,
+    	      'circle-radius':6,
+        }
+  	});
+
+  // map.addLayer({
+  //     "id": "parcel-extrusion",
+  //     'type': 'fill-extrusion',
+  //     "source": "parcel-data",
+  //     'paint': {
+  //         'fill-extrusion-color': {
+  //             property: 'HoursFlooded',
+  //             stops: [
+  //               [0.0833, '#343332'],
+  //               [2.0, '#f91313']
+  //             ]
+  //           },
+  //           'fill-extrusion-height': {
+  //               property: 'HoursFlooded',
+  //               stops: [
+  //                 [0.0833, 0],
+  //                 [2.0, 200]
+  //               ]
+  //           },
+  //         'fill-extrusion-opacity': 0.85,
+  //     }
+	// });
+
+
+    // When a click event occurs near a polygon, open a popup at the location of
+    // the feature, with description HTML from its properties.
+    map.on('click', function (e) {
+
+		//create a buffer to forgive those clumsy clicks
+		var x = e.point.x;
+		var y = e.point.y;
+		var clickbox = [[x-10, y-10], [x+10, y+10]]
+
+        var features = map.queryRenderedFeatures(clickbox, { layers: ['sewer'] });
+        if (!features.length) {
+			      map.setFilter("sewer-hover", ["==", "Name", ""]);
+            return;
+        }
+
+        var feature = features[0];
+        console.log(feature)
+
+		//highlight whats been clicked
+		map.setFilter("sewer-hover", ["==", "Name", feature.properties.Name]);
+		var props = feature.properties
+		var cap = props.MaxQ / props.MaxQPerc //capacity
+        var html_message = [props.InletNode,
+                            'Peak Flow: ' + props.MaxQ + 'cfs',
+							'Capacity: '+ Math.round(cap * 100) / 100 + 'cfs',
+                            'Geom1: ' + props.Geom1,
+							'Shape: '+ props.Shape,
+							];
+
+        var popup = new mapboxgl.Popup()
+            .setLngLat(map.unproject(e.point))
+            .setHTML(html_message.join('<br>'))
+            .addTo(map);
+    });
+    // Use the same approach as above to indicate that the symbols are clickable
+    // by changing the cursor style to 'pointer'
+    map.on('mousemove', function (e) {
+        var features = map.queryRenderedFeatures(e.point, { layers: ['sewer'] });
+        if (features.length==0) {
+            return;
+        }
+        map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+    });
+
+});
+
+</script>
+</body>
+</html>
