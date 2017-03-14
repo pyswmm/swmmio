@@ -270,6 +270,10 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     pass in two inp file paths and produce a spreadsheet showing the differences
     found in each of the INP sections. These differences should then be used
     whenever we need to rebuild this model from the baseline reference model.
+
+
+    Note: this should be split into a func that creates a overall model "diff"
+    that can then be written as a BI file or used programmatically
     """
 
     allsections_a = funcs.complete_inp_headers(inpA)
