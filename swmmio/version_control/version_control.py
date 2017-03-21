@@ -68,7 +68,8 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
     Inputs:
         baseline_dir -> path to directory containing the baseline SWMM5 model
         rsn_dir ->      path to directory containing subdirectories for each RSN
-                        containing directories for each IP within the network.
+                        containing directories for each IP within the network
+        combi_dir ->    target directory in which child models will be created
         version_id ->   identifier for a given version (optional)
         comments ->     comments tracked within build instructions log for
                         each model scenario (optional)
