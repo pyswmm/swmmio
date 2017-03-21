@@ -4,7 +4,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 #path to the SWMM5 executable used within the run_models module
-if os.name = 'posix':
+if os.name == 'posix':
     SWMM_ENGINE_PATH = os.path.join(ROOT_DIR, 'lib', 'linux', 'swmm5')
 else:
     SWMM_ENGINE_PATH = os.path.join(ROOT_DIR, 'lib', 'windows', 'swmm5_22.exe')
