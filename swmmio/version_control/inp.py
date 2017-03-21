@@ -17,7 +17,7 @@ problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
 class BuildInstructions(object):
     """
-    similar to the Change object, this object contains information used to
+    similar to the INPDiff object, this object contains information used to
     generate an inp based on 'serialized' (though human readable, inp-esque)
     build instructions files. This object is meant to neatly encapsulate things.
 
