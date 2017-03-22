@@ -14,7 +14,8 @@ import pandas as pd
 
 
 def batch_reports(project_dir, results_file,
-                  additional_costs=None, join_data=None):
+                  additional_costs=None, join_data=None,
+                  report_dirname='Report_AllParcels'):
 
     #combine the segments and options (combinations) into one iterable
     SEGMENTS_DIR = os.path.join(project_dir, 'Segments')
@@ -33,9 +34,9 @@ def batch_reports(project_dir, results_file,
 
     paths = (SEGMENTS_DIR,COMBOS_DIR)
     #result file header
-    # cols = 'MODEL,COST,FLOOD_VOL_MG,PARCEL_FLOOD_HRS,FLOOD_VOL_REDUCED_MG,PARCEL_FLOOD_HRS_REDUCED,PARCEL_HRS_REDUCED_DELTA_THRESH'
-    # with open(results_file, 'a') as f:
-    #     f.write(cols + '\n')
+    cols = 'MODEL,COST,FLOOD_VOL_MG,PARCEL_FLOOD_HRS,FLOOD_VOL_REDUCED_MG,PARCEL_FLOOD_HRS_REDUCED,PARCEL_HRS_REDUCED_DELTA_THRESH'
+    with open(results_file, 'a') as f:
+        f.write(cols + '\n')
 
     for path, dirs, files in chain.from_iterable(os.walk(path) for path in paths):
 
@@ -50,26 +51,26 @@ def batch_reports(project_dir, results_file,
                                                         additional_costs,
                                                         join_data)
 
-                # #write to the log
-                # model_id = os.path.splitext(f)[0]
-                # with open(results_file, 'a') as f:
-                #
-                #     stats = (model_id, impact_rpt.cost_estimate,
-                #              frpt.flood_vol_mg, frpt.parcel_hrs_flooded,
-                #              baserpt.flood_vol_mg - frpt.flood_vol_mg,
-                #              baserpt.parcel_hrs_flooded - frpt.parcel_hrs_flooded,
-                #              impact_rpt.parcel_hours_reduced,
-                #              )
-                #     f.write('{},{},{},{},{},{},{}\n'.format(*stats))
+                #write to the log
+                model_id = os.path.splitext(f)[0]
+                with open(results_file, 'a') as f:
+
+                    stats = (model_id, impact_rpt.cost_estimate,
+                             frpt.flood_vol_mg, frpt.parcel_hrs_flooded,
+                             baserpt.flood_vol_mg - frpt.flood_vol_mg,
+                             baserpt.parcel_hrs_flooded - frpt.parcel_hrs_flooded,
+                             impact_rpt.parcel_hours_reduced,
+                             )
+                    f.write('{},{},{},{},{},{},{}\n'.format(*stats))
 
 
 
-                report_dir = os.path.join(alt.inp.dir, 'Report_AllParcels')
+                report_dir = os.path.join(alt.inp.dir, report_dirname)
                 if not os.path.exists(report_dir):os.mkdir(report_dir)
 
                 #write the report files
-                # impact_rpt.write(report_dir)
-                # impact_rpt.generate_figures(report_dir, parcel_shp_df)
+                impact_rpt.write(report_dir)
+                impact_rpt.generate_figures(report_dir, parcel_shp_df)
                 serialize.encode_report(impact_rpt, os.path.join(report_dir, 'rpt.json'))
 
 

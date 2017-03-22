@@ -162,7 +162,7 @@ Consider the simplified situaiton where a city is interested in solving a floodi
 
 To be comprehensive, implementation scenarios should be modeled for combinations of these options; it may be more cost-effective, for example, to build relief sewers on one block of Street A and Street B in combination, rather than two blocks on either street independently.
 
-swmmio aciheves this within the version_control module. The `create_combinations()` function builds models for every logical combinations of the segmented flood mitigation models. In the example above, models for the following scenarios will be created:
+swmmio achieves this within the version_control module. The `create_combinations()` function builds models for every logical combinations of the segmented flood mitigation models. In the example above, models for the following scenarios will be created:
 *  A1 with B1
 *  A1 with B2
 *  A2 with B1
@@ -237,6 +237,3 @@ The `create_combinations()` function can also be used to in the same way to prop
 
 
 TO BE CONTINUED...
-
-### Acknowledgments
-For use in generating animations of SWMM models, thanks to [images2gif.py](https://gist.github.com/jonschoning/7216290)
