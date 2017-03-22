@@ -54,7 +54,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
 
 	title -> string, to be written in top left of PNG
 
-	annotation -> string, to be written in bnottom left of PNG
+	annotation -> string, to be written in bottom left of PNG
 
 	file_path -> stirng, file path where png should be drawn. if not specified,
 		a PIL Image object is return (nice for IPython notebooks)

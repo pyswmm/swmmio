@@ -17,7 +17,7 @@ problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
 class BuildInstructions(object):
     """
-    similar to the Change object, this object contains information used to
+    similar to the INPDiff object, this object contains information used to
     generate an inp based on 'serialized' (though human readable, inp-esque)
     build instructions files. This object is meant to neatly encapsulate things.
 
@@ -270,6 +270,10 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     pass in two inp file paths and produce a spreadsheet showing the differences
     found in each of the INP sections. These differences should then be used
     whenever we need to rebuild this model from the baseline reference model.
+
+
+    Note: this should be split into a func that creates a overall model "diff"
+    that can then be written as a BI file or used programmatically
     """
 
     allsections_a = funcs.complete_inp_headers(inpA)
