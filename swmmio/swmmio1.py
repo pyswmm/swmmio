@@ -4,12 +4,13 @@ import re
 import os
 from time import ctime
 import pandas as pd
-from .utils import functions, spatial
+import functions
+import spatial
 import glob
 import math
 import geojson
-from .utils import text as txt
-from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+import text as txt
+from dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 from definitions import *
 
 class Model(object):
@@ -63,6 +64,7 @@ class Model(object):
 
 			self._nodes_df = None
 			self._conduits_df = None
+                        self._orifices_df = None
 			self._subcatchments_df = None
 
 	def rpt_is_valid(self , verbose=False):
@@ -192,6 +194,52 @@ class Model(object):
 		df['UpstreamInvert'] = df.InletNodeInvert + df.InletOffset
 		df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
 		df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
+
+		self._conduits_df = df
+
+		return df
+
+	def orifices(self):
+
+		"""
+		collect all useful and available data related model orifices and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._orifices_df is not None:
+			return self._orifices_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		conduits_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
+		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
+		conduits_df = conduits_df.join(xsections_df)
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+
+		#if rpt:
+			#create a dictionary holding data from an rpt file, if provided
+		#	link_flow_df = create_dataframeRPT(rpt.path, "Link Flow Summary")
+		#	conduits_df = conduits_df.join(link_flow_df)
+
+		#add conduit coordinates
+		#the xys.map() junk is to unpack a nested list
+                verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = conduits_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
+
+		#add conduit up/down inverts and calculate slope
+		#elevs = self.nodes()[['InvertElev']]
+		#df = pd.merge(df, elevs, left_on='InletNode', right_index=True, how='left')
+		#df = df.rename(index=str, columns={"InvertElev": "InletNodeInvert"})
+		#df = pd.merge(df, elevs, left_on='OutletNode', right_index=True, how='left')
+		#df = df.rename(index=str, columns={"InvertElev": "OutletNodeInvert"})
+		#df['UpstreamInvert'] = df.InletNodeInvert + df.InletOffset
+		#df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
+		#df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
 		self._conduits_df = df
 
