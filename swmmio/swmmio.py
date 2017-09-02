@@ -4,13 +4,12 @@ import re
 import os
 from time import ctime
 import pandas as pd
-import functions
-import spatial
+from .utils import functions, spatial
 import glob
 import math
 import geojson
-import text as txt
-from dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+from .utils import text as txt
+from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 from definitions import *
 
 class Model(object):
