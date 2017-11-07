@@ -63,7 +63,7 @@ class Model(object):
 
 			self._nodes_df = None
 			self._conduits_df = None
-                        self._orifices_df = None
+			self._orifices_df = None
 			self._subcatchments_df = None
 
 	def rpt_is_valid(self , verbose=False):
@@ -215,17 +215,15 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
-		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
-		orifices_df = conduits_df.join(xsections_df)
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
 
 		#add conduit coordinates
 		#the xys.map() junk is to unpack a nested list
-                verts = create_dataframeINP(inp.path, '[VERTICES]')
-		xys = conduits_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
-		df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = orifices_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
 
-		self._conduits_df = df
+		self._orifices_df = df
 
 		return df
 
