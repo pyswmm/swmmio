@@ -63,6 +63,7 @@ class Model(object):
 
 			self._nodes_df = None
 			self._conduits_df = None
+                        self._orifices_df = None
 			self._subcatchments_df = None
 
 	def rpt_is_valid(self , verbose=False):
@@ -192,6 +193,37 @@ class Model(object):
 		df['UpstreamInvert'] = df.InletNodeInvert + df.InletOffset
 		df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
 		df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
+
+		self._conduits_df = df
+
+		return df
+
+	def orifices(self):
+
+		"""
+		collect all useful and available data related model orifices and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._orifices_df is not None:
+			return self._orifices_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
+		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
+		orifices_df = conduits_df.join(xsections_df)
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+
+		#add conduit coordinates
+		#the xys.map() junk is to unpack a nested list
+                verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = conduits_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
 		self._conduits_df = df
 
