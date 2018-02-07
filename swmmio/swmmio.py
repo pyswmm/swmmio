@@ -64,6 +64,7 @@ class Model(object):
 			self._nodes_df = None
 			self._conduits_df = None
 			self._orifices_df = None
+			self._weirs_df = None
 			self._subcatchments_df = None
 
 	def rpt_is_valid(self , verbose=False):
@@ -224,6 +225,36 @@ class Model(object):
 		df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
 
 		self._orifices_df = df
+
+		return df
+
+	def weirs(self):
+
+		"""
+		collect all useful and available data related model weirs and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._weirs_df is not None:
+			return self._weirs_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		#BUG why can't comment_cols=False work here?
+		weirs_df = create_dataframeINP(inp.path, "[WEIRS]")[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+
+		#add conduit coordinates
+		#the xys.map() junk is to unpack a nested list
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = weirs_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
+
+		self._weirs_df = df
 
 		return df
 
