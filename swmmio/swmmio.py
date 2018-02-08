@@ -65,6 +65,7 @@ class Model(object):
 			self._conduits_df = None
 			self._orifices_df = None
 			self._weirs_df = None
+			self._pumps_df = None
 			self._subcatchments_df = None
 
 	def rpt_is_valid(self , verbose=False):
@@ -255,6 +256,34 @@ class Model(object):
 		df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
 
 		self._weirs_df = df
+
+		return df
+
+	def pumps(self):
+
+		"""
+		collect all useful and available data related model pumps and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._pumps_df is not None:
+			return self._pumps_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+
+		#add conduit coordinates
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = pumps_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
+
+		self._pumps_df = df
 
 		return df
 
