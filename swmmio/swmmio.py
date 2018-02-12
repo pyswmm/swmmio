@@ -173,7 +173,7 @@ class Model(object):
 		conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
 		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
 		conduits_df = conduits_df.join(xsections_df)
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		if rpt:
 			#create a dictionary holding data from an rpt file, if provided
@@ -217,7 +217,7 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
 		#the xys.map() junk is to unpack a nested list
@@ -247,7 +247,7 @@ class Model(object):
 		#create dataframes of relevant sections from the INP
 		#BUG why can't comment_cols=False work here?
 		weirs_df = create_dataframeINP(inp.path, "[WEIRS]")[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
 		#the xys.map() junk is to unpack a nested list
@@ -276,7 +276,7 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
-		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
 		verts = create_dataframeINP(inp.path, '[VERTICES]')
