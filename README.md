@@ -1,5 +1,5 @@
 # SWMMIO
-![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
+![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
 SWMMIO is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
 
