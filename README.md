@@ -43,16 +43,16 @@ subs = mymodel.subcatchments()
 nodes.head()
 ```
 <table border=1 class=dataframe><thead><tr style=text-align:right><th><th>InvertElev<th>MaxDepth<th>SurchargeDepth<th>PondedArea<th>Type<th>AvgDepth<th>MaxNodeDepth<th>MaxHGL<th>MaxDay_depth<th>MaxHr_depth<th>HoursFlooded<th>MaxQ<th>MaxDay_flood<th>MaxHr_flood<th>TotalFloodVol<th>MaximumPondDepth<th>X<th>Y<th>coords<tr><th>Name<th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><tbody><tr><th>S42A_10.N_4<td>13.506673<td>6.326977<td>5.0<td>110.0<td>JUNCTION<td>0.69<td>6.33<td>19.83<td>0<td>12:01<td>0.01<td>0.20<td>0.0<td>11:52<td>0.000<td>6.33<td>2689107.0<td>227816.000<td>[(2689107.0, 227816.0)]<tr><th>D70_ShunkStreet_Trunk_43<td>8.508413<td>2.493647<td>5.0<td>744.0<td>JUNCTION<td>0.04<td>0.23<td>8.74<td>0<td>12:14<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>2691329.5<td>223675.813<td>[(2691329.5, 223675.813)]<tr><th>TD61_1_2_90<td>5.150000<td>15.398008<td>0.0<td>0.0<td>JUNCTION<td>0.68<td>15.40<td>20.55<td>0<td>11:55<td>0.01<td>19.17<td>0.0<td>11:56<td>0.000<td>15.40<td>2698463.5<td>230905.720<td>[(2698463.5, 230905.72)]<tr><th>D66_36.D.7.C.1_19<td>19.320000<td>3.335760<td>5.0<td>6028.0<td>JUNCTION<td>0.57<td>3.38<td>22.70<td>0<td>12:00<td>0.49<td>6.45<td>0.0<td>11:51<td>0.008<td>3.38<td>2691999.0<td>230309.563<td>[(2691999.0, 230309.563)]</table>
-```python
 
+```python
 #write to a csv
 nodes.to_csv('/path/mynodes.csv')
 
 #calculate average and weighted average impervious
 avg_imperviousness = subs.PercImperv.mean()
 weighted_avg_imp = (subs.Area * subs.PercImperv).sum() / len(subs)
-
 ```
+
 ### Generating Graphics
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized if your model includes output data (a .rpt file should accompany the .inp).
 
@@ -60,6 +60,7 @@ Create an image (.png) visualization of the model. By default, pipe stress and n
 from swmmio.graphics import swmm_graphics as sg
 sg.draw_model(mymodel)
 ```
+
 ![Default Draw Output](docs/img/default_draw.png?raw=true "Sewer Stress, Node Flooding")
 
 Use pandas to calculate some interesting stats, and generate a image to highlight
