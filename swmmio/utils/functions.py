@@ -84,7 +84,7 @@ def merge_dicts(*dict_args):
     precedence goes to key value pairs in latter dicts.
     '''
     result = {}
-    for dictionary in dict_args:
+	for dictionary in dict_args:
 		if dictionary:
 			result.update(dictionary)
     return result
