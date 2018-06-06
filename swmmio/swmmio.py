@@ -148,11 +148,14 @@ class Model(object):
 	def _get_scenario(self):
 		"""get a descrition of the model scenario by reading the raingage data"""
 		rg = create_dataframeINP(self.inp.path, '[RAINGAGES]')
-		storms = rg.DataSourceName.unique()
-		if len(storms) > 1:
-			return ', '.join(storms[:3]) + '...'
+		if len(rg) > 0:
+			storms = rg.DataSourceName.unique()
+			if len(storms) > 1:
+				return ', '.join(storms[:3]) + '...'
+			else:
+				return '{}'.format(storms[0])
 		else:
-			return '{}'.format(storms[0])
+			return 'No Scenario'
 
 	def conduits(self):
 
