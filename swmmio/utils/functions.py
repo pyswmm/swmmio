@@ -79,15 +79,15 @@ def complete_rpt_headers (rptfilepath):
     return {'headers':foundheaders, 'order':order}
 
 def merge_dicts(*dict_args):
-    '''
-    Given any number of dicts, shallow copy and merge into a new dict,
-    precedence goes to key value pairs in latter dicts.
-    '''
-    result = {}
+	'''
+	Given any number of dicts, shallow copy and merge into a new dict,
+	precedence goes to key value pairs in latter dicts.
+	'''
+	result = {}
 	for dictionary in dict_args:
 		if dictionary:
 			result.update(dictionary)
-    return result
+	return result
 
 def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
