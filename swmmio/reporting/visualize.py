@@ -1,7 +1,7 @@
 import os, shutil
 import pandas as pd
 from swmmio.version_control.inp import INPDiff
-from definitions import *
+from swmmio.definitions import *
 
 
 def create_map(model1, model2=None, bbox=None, crs=None, filename=None,

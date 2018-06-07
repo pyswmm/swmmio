@@ -1,4 +1,4 @@
-from definitions import *
+from swmmio.definitions import *
 import shutil
 
 #THIS STUFF IS INCOMPLETE/ MAYBE BROKEN

@@ -10,7 +10,7 @@ import math
 import geojson
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
-from definitions import *
+from swmmio.definitions import *
 
 class Model(object):
 

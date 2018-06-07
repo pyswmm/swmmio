@@ -1,5 +1,5 @@
 #graphical functions for SWMM files
-from definitions import *
+from swmmio.definitions import *
 from swmmio.damage import parcels as pdamage
 from swmmio.graphics import config, options
 from swmmio.graphics.constants import * #constants
