@@ -22,7 +22,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 	"""
 	#unpack and update the options
 	ops = du.default_draw_options()
-	for key, value in kwargs.iteritems():
+	for key, value in kwargs.items():
 		ops.update({key:value})
 	#return ops
 	width = ops['width']
@@ -63,8 +63,8 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 		if userStartDT < simStartDT or userEndDT > simEndDT or timeStepMod != 0 or userEndDT < userStartDT:
 			#user has entered fault date times either by not being within the
 			#availble data in the rpt or by starting at something that doesn't fit the timestep
-			print "PROBLEM WITH DATETIME ENTERED. Make sure it fits within data and start time rest on factor of timestep in minutes."
-			print "userStartDT = ", userStartDT, "\nuserEndDT = ", userEndDT, "\nsimStartDT = ", simStartDT, "\nsimEndDT = ", simEndDT, "\nTIMESTEP = ", rpt.timeStepMin
+			print("PROBLEM WITH DATETIME ENTERED. Make sure it fits within data and start time rest on factor of timestep in minutes.")
+			print("userStartDT = ", userStartDT, "\nuserEndDT = ", userEndDT, "\nsimStartDT = ", simStartDT, "\nsimEndDT = ", simEndDT, "\nTIMESTEP = ", rpt.timeStepMin)
 			return None
 
 	currentT = datetime.strptime(startDtime, "%b-%d-%Y %H:%M:%S") #SWMM dtime format needed
@@ -81,7 +81,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 	if not os.path.isfile(byteLocDictionaryFName):
 
 		#this is a heavy operation, allow a few minutes
-		print "generating byte dictionary..."
+		print("generating byte dictionary...")
 		#conduitByteLocationDict = rpt.createByteLocDict("Link Results")
 		rpt.createByteLocDict("Link Results")
 		rpt.createByteLocDict("Node Results")
@@ -96,7 +96,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 		rpt.elementByteLocations = pickle.load( open(byteLocDictionaryFName, 'r') )
 		#rpt.byteLocDict = conduitByteLocationDict
 
-	print "Started Drawing at " + strftime("%b-%d-%Y %H:%M:%S")
+	print("Started Drawing at " + strftime("%b-%d-%Y %H:%M:%S"))
 	log = "Started Drawing at " + strftime("%b-%d-%Y %H:%M:%S") + "\n\nErrors:\n\n"
 	drawCount = 0
 	conduitErrorCount = 0
@@ -116,7 +116,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 
 		#DRAW THE CONDUITS
 		if ops['conduitSymb']:
-			for id, conduit in conduitDicts.iteritems():
+			for id, conduit in conduitDicts.items():
 				#coordPair = coordPairDict['coordinates']
 				if conduit.coordinates: #this prevents draws if no flow is supplied (RDII and such)
 
@@ -125,11 +125,11 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 
 					drawCount += 1
 
-				if drawCount > 0 and drawCount % 2000 == 0: print str(drawCount) + " pipes drawn - simulation time = " + currentTstr
+				if drawCount > 0 and drawCount % 2000 == 0: print(str(drawCount) + " pipes drawn - simulation time = " + currentTstr)
 
 		#DRAW THE NODES
 		if ops['nodeSymb']:
-			for id, node in nodeDicts.iteritems():
+			for id, node in nodeDicts.items():
 				if node.coordinates: #this prevents draws if no flow is supplied (RDII and such)
 					su.drawNode(node, nodeDict, draw, rpt=rpt, dTime=currentTstr, options=ops['nodeSymb'], xplier=xplier)
 					drawCount += 1
@@ -153,7 +153,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 		imgPath = os.path.join(tempImgDir, image)
 		frames.append(Image.open(imgPath))
 
-	print "building gif with " + str(len(glob.glob1(tempImgDir, "*.png"))) + " frames..."
+	print("building gif with " + str(len(glob.glob1(tempImgDir, "*.png"))) + " frames...")
 	if not imgName: imgName = inp.name
 	gifFile = os.path.join(imgDir, imgName) + ".gif"
 	frameDuration = 1.0 / float(ops['fps'])
@@ -165,7 +165,7 @@ def animateModel(model, startDtime=None, endDtime=None, **kwargs):
 	with open(os.path.join(imgDir, "log.txt"), 'w') as logFile:
 		logFile.write(log)
 
-	print "Draw Count =" + str(drawCount)
-	print "Video saved to:\n\t" + gifFile
+	print("Draw Count =" + str(drawCount))
+	print("Video saved to:\n\t" + gifFile)
 
 	os.startfile(gifFile)#this doesn't seem to work

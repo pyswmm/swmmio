@@ -16,7 +16,7 @@ def run_simple(inp_path, swmm_eng=SWMM_ENGINE_PATH):
     """
     run a model once as is.
     """
-    print 'running {} with {}'.format(inp_path, swmm_eng)
+    print('running {} with {}'.format(inp_path, swmm_eng))
     #inp_path = model.inp.path
     rpt_path = os.path.splitext(inp_path)[0] + '.rpt'
 
@@ -32,7 +32,7 @@ def run_hot_start_sequence(inp_path, swmm_eng=SWMM_ENGINE_PATH):
 
     # if not os.path.exists(hotstart1) and not os.path.exists(hotstart2):
     #create new model inp with params to save hotstart1
-    print 'create new model inp with params to save hotstart1'
+    print('create new model inp with params to save hotstart1')
     s = pd.Series(['SAVE HOTSTART "{}"'.format(hotstart1)])
     hot1_df = pd.DataFrame(s, columns=['[FILES]'])
     model = replace_inp_section(model.inp.path, '[FILES]', hot1_df)
@@ -42,7 +42,7 @@ def run_hot_start_sequence(inp_path, swmm_eng=SWMM_ENGINE_PATH):
 
     # if os.path.exists(hotstart1) and not os.path.exists(hotstart2):
     #create new model inp with params to use hotstart1 and save hotstart2
-    print 'with params to use hotstart1 and save hotstart2'
+    print('with params to use hotstart1 and save hotstart2')
     s = pd.Series(['USE HOTSTART "{}"'.format(hotstart1), 'SAVE HOTSTART "{}"'.format(hotstart2)])
     hot2_df = pd.DataFrame(s, columns=['[FILES]'])
     model = replace_inp_section(model.inp.path, '[FILES]', hot2_df)
@@ -50,7 +50,7 @@ def run_hot_start_sequence(inp_path, swmm_eng=SWMM_ENGINE_PATH):
 
     # if os.path.exists(hotstart2):
     #create new model inp with params to use hotstart2 and not save anything
-    print 'params to use hotstart2 and not save anything'
+    print('params to use hotstart2 and not save anything')
     s = pd.Series(['USE HOTSTART "{}"'.format(hotstart2)])
     hot3_df = pd.DataFrame(s, columns=['[FILES]'])
 

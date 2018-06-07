@@ -136,7 +136,7 @@ def annotate_streets(df, img, text_col):
 
 	#confirm font file location
 	if not os.path.exists(config.font_file):
-		print 'Error loading defautl font. Check your config.font_file'
+		print('Error loading defautl font. Check your config.font_file')
 		return None
 
 	unique_sts = df[text_col].unique()
@@ -244,13 +244,13 @@ def _annotateMap (canvas, model, model2=None, currentTstr = None, options=None, 
 	#Buid the title and files list (handle 1 or two input models)
 	#this is hideous, or elegant?
 	files = title = results_string = symbology_string = annotationTxt = ""
-	files = '\n'.join([m.rpt.path for m in filter(None, [model, model2])])
-	title = ' to '.join([m.inp.name for m in filter(None, [model, model2])])
-	symbology_string = ', '.join([s['title'] for s in filter(None, [nodeSymb, conduitSymb, parcelSymb])])
+	files = '\n'.join([m.rpt.path for m in [_f for _f in [model, model2] if _f]])
+	title = ' to '.join([m.inp.name for m in [_f for _f in [model, model2] if _f]])
+	symbology_string = ', '.join([s['title'] for s in [_f for _f in [nodeSymb, conduitSymb, parcelSymb] if _f]])
 	title += "\n" + symbology_string
 
 	#collect results
-	for result, value in results.iteritems():
+	for result, value in results.items():
 		results_string += '\n' + result + ": " + str(value)
 
 	#compile the annotation text

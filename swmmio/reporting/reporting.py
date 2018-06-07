@@ -262,7 +262,7 @@ class ComparisonReport(object):
 
     def __str__(self):
         """print friendly"""
-        catz = filter(None, self.flood_comparison.Category.unique())
+        catz = [_f for _f in self.flood_comparison.Category.unique() if _f]
         a = ['{}: {}'.format(c, self.impact[c]) for c in catz]
         files = [self.baseline_report.model.inp.path,
                  self.alt_report.model.inp.path]

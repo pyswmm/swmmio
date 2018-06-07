@@ -11,7 +11,7 @@ class sectionheadersTest(unittest.TestCase):
             #print f.read(1000)
             text = f.read()
             for hpair in swmm_headers.inpHeaderList:
-                print hpair[0][:200]
+                print(hpair[0][:200])
                 matched_an_inp_header = False
                 #hpair[0]
                 if hpair[0] in text:

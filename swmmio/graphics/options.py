@@ -1,5 +1,5 @@
 from definitions import PARCEL_FEATURES, GEODATABASE
-from constants import *
+from .constants import *
 
 font_file = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
 basemap_options = {
