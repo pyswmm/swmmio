@@ -130,7 +130,7 @@ class Model(object):
 			filename = os.path.join(self.inp.dir, self.inp.name + '.html')
 
 		with open(BETTER_BASEMAP_PATH, 'r') as bm:
-			with open(filename, 'wb') as newmap:
+			with open(filename, 'w') as newmap:
 				for line in bm:
 					if '//INSERT GEOJSON HERE ~~~~~' in line:
 						newmap.write('conduits = {};\n'.format(geojson.dumps(geo_conduits)))

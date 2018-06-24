@@ -25,6 +25,7 @@ inp_header_dict = {
     '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
     '[Polygons]':'Name X Y',
     '[REPORT]':'Param Status',
+    '[TAGS]':'ElementType Name Tag',
     #'[CURVES]':'Name Type X-Value Y-Value',
     #'[TIMESERIES]':'Name Date Time Value'
 }
