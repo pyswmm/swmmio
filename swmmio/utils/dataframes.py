@@ -63,15 +63,21 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
             df[';'] = ';'
 
     os.remove(tempfilepath)
-
+    
     return df
 
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
-    x1 = round(nodexys.at[row.InletNode, 'X'], 4)
-    y1 = round(nodexys.at[row.InletNode, 'Y'], 4)
-    x2 = round(nodexys.at[row.OutletNode, 'X'], 4)
-    y2 = round(nodexys.at[row.OutletNode, 'Y'], 4)
+
+    #cast IDs to string
+    inlet_id = str(row.InletNode)
+    outlet_id =str(row.OutletNode)
+    xys_str = nodexys.rename(index=str)
+
+    x1 = round(xys_str.at[inlet_id, 'X'], 4)
+    y1 = round(xys_str.at[inlet_id, 'Y'], 4)
+    x2 = round(xys_str.at[outlet_id, 'X'], 4)
+    y2 = round(xys_str.at[outlet_id, 'Y'], 4)
     if None in [x1, x2, y1, y2]:
         print(row.name, 'problem, no coords')
     #grab any extra verts, place in between up/dwn nodes
