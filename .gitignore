@@ -8,3 +8,7 @@ private/
 /*.egg-info
 notes/
 .DS_Store
+notebooks/
+__pycache__/
+.cache/
+.pytest_cache/

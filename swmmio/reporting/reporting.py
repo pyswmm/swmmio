@@ -14,7 +14,7 @@ from swmmio import swmmio
 import os
 import math
 import pandas as pd
-from definitions import *
+from swmmio.defs.config import *
 import json, geojson
 import shutil
 
