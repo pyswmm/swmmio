@@ -1,0 +1,319 @@
+[TITLE]
+ SW 1 0 9A1 'BROWARD COUNTY Multi FAMILY SITE - Runoff example # 46'A2 'RUNO
+
+[OPTIONS]
+FLOW_UNITS           CFS
+INFILTRATION         GREEN_AMPT
+FLOW_ROUTING         KINWAVE
+START_DATE           06/01/1977
+START_TIME           15:55:00
+REPORT_START_DATE    06/01/1977
+REPORT_START_TIME    15:55:00
+END_DATE             06/01/1977
+END_TIME             18:50:00
+SWEEP_START          01/01
+SWEEP_END            12/31
+DRY_DAYS             7
+REPORT_STEP          00:15:00
+WET_STEP             00:01:00
+DRY_STEP             00:15:00
+ROUTING_STEP         0:00:30 
+ALLOW_PONDING        NO
+INERTIAL_DAMPING     NONE
+VARIABLE_STEP        0.75
+LENGTHENING_STEP     0
+MIN_SURFAREA         12.566
+NORMAL_FLOW_LIMITED  BOTH
+SKIP_STEADY_STATE    NO
+FORCE_MAIN_EQUATION  H-W
+LINK_OFFSETS         DEPTH
+MIN_SLOPE            0
+
+[FILES]
+SAVE RUNOFF "RUNOFF46.INT"
+
+[EVAPORATION]
+;;Type       Parameters
+;;---------- ----------
+MONTHLY      0.09   0.11   0.14   0.17   0.18   0.17   0.17   0.16   0.14   0.13   0.11   0.09  
+
+[RAINGAGES]
+;;               Rain      Time   Snow   Data      
+;;Name           Type      Intrvl Catch  Source    
+;;-------------- --------- ------ ------ ----------
+GAGE1            INTENSITY 0.08333 1.0    TIMESERIES RainSeries1     
+
+[SUBCATCHMENTS]
+;;                                                 Total    Pcnt.             Pcnt.    Curb     Snow    
+;;Name           Raingage         Outlet           Area     Imperv   Width    Slope    Length   Pack    
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- --------
+CA-1             GAGE1            P001             4.999    39.0     600.0    2.7      0                        
+CA-7             GAGE1            P005             1.599    48.6     200.0    2.7      0                        
+CA-8             GAGE1            P009             4.565    46.7     500.0    2.7      0                        
+CA-11            GAGE1            P011             3.58     47.0     600.0    2.7      0                        
+
+[SUBAREAS]
+;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
+;;-------------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
+CA-1             0.015      0.41       0.06       0.2        25         OUTLET    
+CA-7             0.015      0.41       0.06       0.2        25         OUTLET    
+CA-8             0.015      0.41       0.06       0.2        25         OUTLET    
+CA-11            0.015      0.41       0.06       0.2        25         OUTLET    
+
+[INFILTRATION]
+;;Subcatchment   Suction    HydCon     IMDmax    
+;;-------------- ---------- ---------- ----------
+CA-1             5.0        0.3        0.06      
+CA-7             5.0        0.3        0.06      
+CA-8             5.0        0.3        0.06      
+CA-11            5.0        0.3        0.06      
+
+[JUNCTIONS]
+;;               Invert     Max.       Init.      Surcharge  Ponded    
+;;Name           Elev.      Depth      Depth      Depth      Area      
+;;-------------- ---------- ---------- ---------- ---------- ----------
+; Runoff Node
+P001             1.10       20.00      0.00       0          0         
+; Runoff Node
+P009             3.60       20.00      0.00       0          0         
+; Runoff Node
+P011             2.89       20.00      0.00       0          0         
+
+[OUTFALLS]
+;;               Invert     Outfall    Stage/Table      Tide
+;;Name           Elev.      Type       Time Series      Gate
+;;-------------- ---------- ---------- ---------------- ----
+Outlet           0.00       FREE                        NO
+
+[STORAGE]
+;;               Invert   Max.     Init.    Shape      Shape                      Ponded   Evap.   
+;;Name           Elev.    Depth    Depth    Curve      Params                     Area     Frac.    Infiltration Parameters
+;;-------------- -------- -------- -------- ---------- -------- -------- -------- -------- -------- -----------------------
+; Runoff Node
+P005             1.58     20.00    0.00     FUNCTIONAL 1000     0        0        0        0        1        100      0.12    
+
+[CONDUITS]
+;;               Inlet            Outlet                      Manning    Inlet      Outlet     Init.      Max.      
+;;Name           Node             Node             Length     N          Offset     Offset     Flow       Flow      
+;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------
+P001             P001             Outlet           220.0      0.015      0.0        0.0        0          0         
+P005             P005             P001             240.0      0.015      0.0        0.0        0          0         
+P009             P009             P005             505.0      0.024      0.0        0.0        0          0         
+P011             P011             P005             655.0      0.024      0.0        0.0        0          0         
+
+[XSECTIONS]
+;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels   
+;;-------------- ------------ ---------------- ---------- ---------- ---------- ----------
+P001             CIRCULAR     4.0              0          0          0          1                    
+P005             CIRCULAR     3.0              0          0          0          1                    
+P009             CIRCULAR     2.25             0          0          0          1                    
+P011             CIRCULAR     2.5              0          0          0          1                    
+
+[LOSSES]
+;;Link           Inlet      Outlet     Average    Flap Gate 
+;;-------------- ---------- ---------- ---------- ----------
+
+[POLLUTANTS]
+;;               Mass   Rain       GW         I&I        Decay      Snow  Co-Pollut.       Co-Pollut.
+;;Name           Units  Concen.    Concen.    Concen.    Coeff.     Only  Name             Fraction  
+;;-------------- ------ ---------- ---------- ---------- ---------- ----- ---------------- ----------
+COD              MG/L   5          0          0          0          NO   
+TOT.SOL          MG/L   5          0          0          0          NO   
+TOT.NIT          MG/L   0.3        0          0          0          NO   
+TSS              MG/L   5          0          0          0          NO   
+O-PO4-P          MG/L   0.002      0          0          0          NO   
+atrazine         UG/L   0.0        0.0        0.0        0.0        NO   
+
+[LANDUSES]
+;;               Cleaning   Fraction   Last      
+;;Name           Interval   Available  Cleaned   
+;;-------------- ---------- ---------- ----------
+HOUSING          1          .5         1         
+
+[COVERAGES]
+;;Subcatchment   Land Use         Percent   
+;;-------------- ---------------- ----------
+CA-1             HOUSING          100       
+CA-7             HOUSING          100       
+CA-8             HOUSING          100       
+CA-11            HOUSING          100       
+
+[LOADINGS]
+;;Subcatchment   Pollutant        Loading   
+;;-------------- ---------------- ----------
+
+[BUILDUP]
+;;LandUse        Pollutant        Function   Coeff1     Coeff2     Coeff3     Normalizer
+;;-------------- ---------------- ---------- ---------- ---------- ---------- ----------
+HOUSING          COD              POWER      100000     1          3          AREA      
+HOUSING          TOT.SOL          POWER      100000     1          3.5        AREA      
+HOUSING          TOT.NIT          POWER      100000     1          1.1        AREA      
+HOUSING          TSS              POWER      100        1          3.5        AREA      
+HOUSING          O-PO4-P          POWER      100        1          1.002      AREA      
+HOUSING          atrazine         NONE       0.0        0.0        0.0        AREA      
+
+[WASHOFF]
+;;                                                                 Cleaning   BMP       
+;;Land Use       Pollutant        Function   Coeff1     Coeff2     Effic.     Effic.    
+;;-------------- ---------------- ---------- ---------- ---------- ---------- ----------
+HOUSING          COD              EXP        2          1.4        35         0         
+HOUSING          TOT.SOL          EXP        20         1.5        40         0         
+HOUSING          TOT.NIT          EXP        0.5        1.5        45         0         
+HOUSING          TSS              EXP        2          1.5        40         0         
+HOUSING          O-PO4-P          EXP        1          1.6        25         0         
+HOUSING          atrazine         EMC        1          0.0        0.0        0.0       
+
+[TREATMENT]
+;;Node           Pollutant        Function  
+;;-------------- ---------------- ----------
+P005             COD              R = 0.01 * exp( 0.10 * HRT)
+P005             TOT.SOL          R = 0.01 * exp( 0.10 * HRT)
+P005             TOT.NIT          R = 0.01 * exp( 0.10 * HRT)
+P005             TSS              R = 0.01 * exp( 0.10 * HRT)
+P005             O-PO4-P          R = 0.01 * exp( 0.10 * HRT)
+P005             atrazine         R = 0.01 * exp( 0.10 * HRT)
+
+[TIMESERIES]
+;;Name           Date       Time       Value     
+;;-------------- ---------- ---------- ----------
+RainSeries1      06/01/1977 15:55      0.00000   
+RainSeries1                 16:00      4.14000   
+RainSeries1                 16:05      3.25000   
+RainSeries1                 16:10      1.75000   
+RainSeries1                 16:15      2.68000   
+RainSeries1      06/01/1977 16:20      2.13000   
+RainSeries1                 16:25      0.61000   
+RainSeries1                 16:30      0.00000   
+RainSeries1                 16:35      0.00000   
+RainSeries1                 16:40      0.00000   
+RainSeries1      06/01/1977 16:45      0.00000   
+RainSeries1                 16:50      0.00000   
+RainSeries1                 16:55      0.00000   
+RainSeries1                 17:00      0.00000   
+RainSeries1                 17:05      0.00000   
+RainSeries1      06/01/1977 17:10      0.00000   
+RainSeries1                 17:15      0.00000   
+RainSeries1                 17:20      0.00000   
+RainSeries1                 17:25      0.00000   
+RainSeries1                 17:30      0.09000   
+RainSeries1      06/01/1977 17:35      0.00000   
+RainSeries1                 17:40      0.11000   
+RainSeries1                 17:45      0.15000   
+RainSeries1                 17:50      0.20000   
+RainSeries1                 17:55      0.29000   
+RainSeries1      06/01/1977 18:00      0.17000   
+RainSeries1                 18:05      0.06000   
+RainSeries1                 18:10      0.02000   
+RainSeries1                 18:15      0.09000   
+RainSeries1                 18:20      1.12000   
+RainSeries1      06/01/1977 18:25      0.15000   
+RainSeries1                 18:30      0.18000   
+RainSeries1                 18:35      0.11000   
+RainSeries1                 18:40      0.09000   
+RainSeries1                 18:45      0.00000   
+RainSeries1      06/01/1977 18:50      0.02000   
+RainSeries1                 18:55      0.00000   
+RainSeries1                 19:00      0.13000   
+RainSeries1                 19:05      0.29000   
+RainSeries1                 19:10      0.33000   
+RainSeries1      06/01/1977 19:15      0.28000   
+RainSeries1                 19:20      0.57000   
+RainSeries1                 19:25      0.92000   
+RainSeries1                 19:30      0.64000   
+RainSeries1                 19:35      0.84000   
+RainSeries1      06/01/1977 19:40      0.55000   
+RainSeries1                 19:45      0.20000   
+RainSeries1                 19:50      0.09000   
+RainSeries1                 19:55      0.09000   
+RainSeries1                 20:00      0.00000   
+RainSeries1      06/01/1977 20:05      0.00000   
+RainSeries1                 20:10      0.00000   
+RainSeries1                 20:15      0.02000   
+RainSeries1                 20:20      0.00000   
+RainSeries1                 20:25      0.00000   
+RainSeries1      06/01/1977 20:30      0.02000   
+RainSeries1                 20:35      0.07000   
+RainSeries1                 20:40      0.22000   
+RainSeries1                 20:45      0.20000   
+RainSeries1                 20:50      0.26000   
+RainSeries1      06/01/1977 20:55      0.40000   
+RainSeries1                 21:00      0.35000   
+RainSeries1                 21:05      0.26000   
+RainSeries1                 21:10      0.02000   
+RainSeries1                 21:15      0.18000   
+RainSeries1      06/01/1977 21:20      0.17000   
+RainSeries1                 21:25      0.24000   
+RainSeries1                 21:30      0.26000   
+RainSeries1                 21:35      0.11000   
+RainSeries1                 21:40      0.24000   
+RainSeries1      06/01/1977 21:45      0.29000   
+RainSeries1                 21:50      0.09000   
+RainSeries1                 21:55      0.15000   
+RainSeries1                 22:00      0.37000   
+RainSeries1                 22:05      0.26000   
+RainSeries1      06/01/1977 22:10      0.20000   
+RainSeries1                 22:15      0.26000   
+RainSeries1                 22:20      0.33000   
+RainSeries1                 22:25      0.31000   
+RainSeries1                 22:30      0.31000   
+RainSeries1      06/01/1977 22:35      0.17000   
+RainSeries1                 22:40      0.02000   
+RainSeries1                 22:45      0.13000   
+RainSeries1                 22:50      0.00000   
+RainSeries1                 22:55      0.00000   
+
+[REPORT]
+INPUT      YES
+CONTROLS   NO
+SUBCATCHMENTS ALL
+NODES ALL
+LINKS ALL
+
+[TAGS]
+Subcatch  CA-1             CA              
+Subcatch  CA-7             CA              
+Subcatch  CA-8             CA              
+Subcatch  CA-11            CA              
+
+[MAP]
+DIMENSIONS -30.887 -30.887 648.618 648.618
+Units      None
+
+[COORDINATES]
+;;Node           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+P001             100.000            100.000           
+P009             498.395            215.716           
+P011             400.000            400.000           
+Outlet           500.000            500.000           
+P005             200.000            200.000           
+
+[VERTICES]
+;;Link           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+
+[Polygons]
+;;Subcatchment   X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+CA-1             116.458            244.792           
+CA-1             -1.273             362.523           
+CA-1             -119.004           244.792           
+CA-1             -1.273             127.061           
+CA-7             289.834            406.322           
+CA-7             172.103            524.053           
+CA-7             54.372             406.322           
+CA-7             172.103            288.591           
+CA-8             706.583            85.415            
+CA-8             588.852            203.146           
+CA-8             471.121            85.415            
+CA-8             588.852            -32.316           
+CA-11            765.811            392.323           
+CA-11            648.080            510.054           
+CA-11            530.349            392.323           
+CA-11            648.080            274.592           
+
+[SYMBOLS]
+;;Gage           X-Coord            Y-Coord           
+;;-------------- ------------------ ------------------
+GAGE1            361.632            267.406           
+

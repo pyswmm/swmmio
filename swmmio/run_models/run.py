@@ -6,7 +6,7 @@ from swmmio.utils.modify_model import replace_inp_section
 from swmmio.utils import dataframes
 from swmmio.run_models import defs
 from swmmio.swmmio import Model
-from definitions import SWMM_ENGINE_PATH
+from swmmio.defs.config import SWMM_ENGINE_PATH
 
 
 #path to the SWMM5 Engine

@@ -1,4 +1,4 @@
-from definitions import FONT_PATH
+from swmmio.defs.config import FONT_PATH
 
 class _dotdict(dict):
     """dot.notation access to dictionary attributes"""

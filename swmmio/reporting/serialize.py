@@ -5,7 +5,7 @@ from pandas.io.json import json_normalize
 from swmmio.utils import spatial
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.reporting.reporting import FloodReport
-from definitions import *
+from swmmio.defs.config import *
 import geojson
 
 

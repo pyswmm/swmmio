@@ -1,4 +1,4 @@
-from definitions import ROOT_DIR
+from swmmio.defs.config import ROOT_DIR
 import geojson
 import json
 import pandas as pd
