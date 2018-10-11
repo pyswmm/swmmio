@@ -63,8 +63,8 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
             df[';'] = ';'
 
     os.remove(tempfilepath)
-    
-    return df
+
+    return df.rename(index=str)
 
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """

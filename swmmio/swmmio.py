@@ -199,6 +199,9 @@ class Model(object):
 		df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
 		df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
+
 		self._conduits_df = df
 
 		return df
@@ -220,6 +223,9 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
+		if orifices_df.empty:
+			return pd.DataFrame()
+
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
@@ -227,7 +233,8 @@ class Model(object):
 		verts = create_dataframeINP(inp.path, '[VERTICES]')
 		xys = orifices_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
 		df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
-
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
 		self._orifices_df = df
 
 		return df
@@ -248,8 +255,11 @@ class Model(object):
 		rpt = self.rpt
 
 		#create dataframes of relevant sections from the INP
-		#BUG why can't comment_cols=False work here?
-		weirs_df = create_dataframeINP(inp.path, "[WEIRS]")[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
+		weirs_df = create_dataframeINP(inp.path, "[WEIRS]")#[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
+		if weirs_df.empty:
+			return pd.DataFrame()
+
+		weirs_df = weirs_df[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
@@ -257,6 +267,8 @@ class Model(object):
 		verts = create_dataframeINP(inp.path, '[VERTICES]')
 		xys = weirs_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
 		df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
 
 		self._weirs_df = df
 
@@ -279,12 +291,17 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
+		if pumps_df.empty:
+			return pd.DataFrame()
+
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
 
 		#add conduit coordinates
 		verts = create_dataframeINP(inp.path, '[VERTICES]')
 		xys = pumps_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
 		df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
 
 		self._pumps_df = df
 
@@ -334,7 +351,7 @@ class Model(object):
 
 		xys = all_nodes.apply(lambda r: nodexy(r), axis=1)
 		all_nodes = all_nodes.assign(coords = xys)
-
+		all_nodes = all_nodes.rename(index=str)
 		self._nodes_df = all_nodes
 
 		return all_nodes
