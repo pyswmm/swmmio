@@ -1,0 +1,9 @@
+# Build dependencies
+#python
+pytest
+pillow==3.0.0
+numpy
+pandas
+pyshp
+geojson
+# Run dependencies
