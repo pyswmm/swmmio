@@ -9,7 +9,7 @@ import os
 import shutil
 import math
 from itertools import chain
-from swmmio.definitions import *
+from swmmio.defs.config import *
 import pandas as pd
 
 

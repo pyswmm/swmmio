@@ -19,8 +19,8 @@ PARCEL_FEATURES = r'PWD_PARCELS_SHEDS_PPORT'
 REPORT_DIR_NAME = r'Report'
 
 #path to the basemap file used to create custom basemaps
-BASEMAP_PATH = os.path.join(ROOT_DIR,'reporting','basemaps','index.html')
-BETTER_BASEMAP_PATH = os.path.join(ROOT_DIR,'reporting','basemaps','mapbox_base.html')
+BASEMAP_PATH = os.path.join(ROOT_DIR,'swmmio','reporting','basemaps','index.html')
+BETTER_BASEMAP_PATH = os.path.join(ROOT_DIR,'swmmio','reporting','basemaps','mapbox_base.html')
 
 #path to the basemap file used to create custom basemaps
-FONT_PATH = os.path.join(ROOT_DIR,'graphics','fonts','Verdana.ttf')
+FONT_PATH = os.path.join(ROOT_DIR,'swmmio','graphics','fonts','Verdana.ttf')

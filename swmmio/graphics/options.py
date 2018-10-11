@@ -1,5 +1,5 @@
-from swmmio.definitions import PARCEL_FEATURES, GEODATABASE
-from .constants import *
+from swmmio.defs.config import PARCEL_FEATURES, GEODATABASE
+from constants import *
 
 font_file = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"
 basemap_options = {

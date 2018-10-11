@@ -2,9 +2,9 @@ from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 
 def random_alphanumeric(n=6):
-	import random
-	chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-	return ''.join(random.choice(chars) for i in range(n))
+    import random
+    chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    return ''.join(random.choice(chars) for i in range(n))
 
 
 def complete_inp_headers (inpfilepath):
@@ -67,8 +67,8 @@ def complete_rpt_headers (rptfilepath):
                 buff3line.popleft()
 
             if ('***********'in buff3line[0] and
-				'***********'in buff3line[2] and
-				len(buff3line[1].strip()) > 0):
+                '***********'in buff3line[2] and
+                len(buff3line[1].strip()) > 0):
                 h = buff3line[1].strip()
                 order.append(h)
                 if h in rpt_header_dict:
@@ -79,47 +79,47 @@ def complete_rpt_headers (rptfilepath):
     return {'headers':foundheaders, 'order':order}
 
 def merge_dicts(*dict_args):
-	'''
-	Given any number of dicts, shallow copy and merge into a new dict,
-	precedence goes to key value pairs in latter dicts.
-	'''
-	result = {}
-	for dictionary in dict_args:
-		if dictionary:
-			result.update(dictionary)
-	return result
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+        if dictionary:
+            result.update(dictionary)
+    return result
 
 def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
-	"""
-	trace up and down a SWMM model given a start node and optionally an
-	stop node.
-	"""
+    """
+    trace up and down a SWMM model given a start node and optionally an
+    stop node.
+    """
 
-	traced_nodes = [startnode] #include the starting node
-	traced_conduits = []
+    traced_nodes = [startnode] #include the starting node
+    traced_conduits = []
 
-	def trace(node_id):
-		for conduit, data in conduits.iterrows():
-			if mode == 'up' and data.OutletNode == node_id and conduit not in traced_conduits:
+    def trace(node_id):
+        for conduit, data in conduits.iterrows():
+            if mode == 'up' and data.OutletNode == node_id and conduit not in traced_conduits:
 
-				traced_nodes.append(data.InletNode)
-				traced_conduits.append(conduit)
+                traced_nodes.append(data.InletNode)
+                traced_conduits.append(conduit)
 
-				if stopnode and data.InletNode == stopnode:
-					break
-				trace(data.InletNode)
+                if stopnode and data.InletNode == stopnode:
+                    break
+                trace(data.InletNode)
 
-			if mode == 'down' and data.InletNode == node_id and conduit not in traced_conduits:
-				traced_nodes.append(data.OutletNode)
-				traced_conduits.append(conduit)
+            if mode == 'down' and data.InletNode == node_id and conduit not in traced_conduits:
+                traced_nodes.append(data.OutletNode)
+                traced_conduits.append(conduit)
 
-				if stopnode and data.OutletNode == stopnode:
-					break
-				trace(data.OutletNode)
+                if stopnode and data.OutletNode == stopnode:
+                    break
+                trace(data.OutletNode)
 
-	#kickoff the trace
-	print(("Starting trace {} from {}".format(mode, startnode)))
-	trace(startnode)
-	print(("Traced {0} nodes from {1}".format(len(traced_nodes), startnode)))
-	return {'nodes':traced_nodes, 'conduits':traced_conduits}
+    #kickoff the trace
+    print ("Starting trace {} from {}".format(mode, startnode))
+    trace(startnode)
+    print ("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
+    return {'nodes':traced_nodes, 'conduits':traced_conduits}
