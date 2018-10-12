@@ -120,11 +120,11 @@ def bi_is_current(build_instr_file):
     #parents = baseline.update(alternatives)
     # print meta['Parent Models']['Baseline']
     # print alternatives
-    for inp, revisiondate in baseline.iteritems():
+    for inp, revisiondate in baseline.items():
         if modification_date(inp) != revisiondate:
             return False
 
-    for inp, revisiondate in alternatives.iteritems():
+    for inp, revisiondate in alternatives.items():
         if modification_date(inp) != revisiondate:
             return False
 

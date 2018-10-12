@@ -38,8 +38,8 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
     if not tempfilepath:
         #if this head (section) was not found in the textfile, return a
         #blank dataframe with the appropriate schema
-        print 'header "{}" not found in "{}"'.format(section, inp_path)
-        print 'returning empty dataframe'
+        print('header "{}" not found in "{}"'.format(section, inp_path))
+        print('returning empty dataframe')
         headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
         blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
         return blank_df
@@ -64,16 +64,22 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 
     os.remove(tempfilepath)
 
-    return df
+    return df.rename(index=str)
 
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
-    x1 = round(nodexys.at[row.InletNode, 'X'], 4)
-    y1 = round(nodexys.at[row.InletNode, 'Y'], 4)
-    x2 = round(nodexys.at[row.OutletNode, 'X'], 4)
-    y2 = round(nodexys.at[row.OutletNode, 'Y'], 4)
+
+    #cast IDs to string
+    inlet_id = str(row.InletNode)
+    outlet_id =str(row.OutletNode)
+    xys_str = nodexys.rename(index=str)
+
+    x1 = round(xys_str.at[inlet_id, 'X'], 4)
+    y1 = round(xys_str.at[inlet_id, 'Y'], 4)
+    x2 = round(xys_str.at[outlet_id, 'X'], 4)
+    y2 = round(xys_str.at[outlet_id, 'Y'], 4)
     if None in [x1, x2, y1, y2]:
-        print row.name, 'problem, no coords'
+        print(row.name, 'problem, no coords')
     #grab any extra verts, place in between up/dwn nodes
     res =  [(x1, y1)]
     if row.name in verticies.index:
@@ -82,7 +88,7 @@ def get_link_coords(row, nodexys, verticies):
         if isinstance(xs, list) and isinstance(ys, list):
             #if more than one vert for this link exists, arrays are returned
             #from verticies.get_value(). it then needs to be zipped up
-            res = res + zip(xs, ys)
+            res = res + list(zip(xs, ys))
         else:
             res = res + [(xs, ys)]
 
@@ -104,7 +110,7 @@ def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
                                                 element_id=element_id)
 
     if not tempfilepath:
-        print 'header "{}" not found in "{}"'.format(section, rpt_path)
+        print('header "{}" not found in "{}"'.format(section, rpt_path))
         return None
 
     if headerdefs['headers'][section] == 'blob':

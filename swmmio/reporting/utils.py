@@ -23,7 +23,7 @@ def insert_in_file_2(key, string, newfile):
 
     #start writing that thing
     key = '{}{}{}'.format('{{', key, '}}') #Django style
-    print key
+    print(key)
     with open(newfile, 'r') as newmap:
         for line in newmap:
             if key in line:

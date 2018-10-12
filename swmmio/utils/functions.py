@@ -119,7 +119,7 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
                 trace(data.OutletNode)
 
     #kickoff the trace
-    print "Starting trace {} from {}".format(mode, startnode)
+    print ("Starting trace {} from {}".format(mode, startnode))
     trace(startnode)
-    print "Traced {0} nodes from {1}".format(len(traced_nodes), startnode)
+    print ("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
     return {'nodes':traced_nodes, 'conduits':traced_conduits}

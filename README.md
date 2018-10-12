@@ -1,4 +1,7 @@
 # SWMMIO
+
+[![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio)
+
 ![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
 SWMMIO is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
@@ -8,7 +11,7 @@ SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) 
 
 
 ### Dependencies
-*  [pillow](http://python-pillow.org/): 3.0.0
+*  [pillow](http://python-pillow.org/)
 *  [matplotlib](http://matplotlib.org/)
 *  [numpy](http://www.numpy.org/)
 *  [pandas](https://github.com/pydata/pandas)
@@ -19,10 +22,6 @@ SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) 
 Before installation, it's recommended to first activate a [virtualenv](https://github.com/pypa/virtualenv) to not crowd your system's package library. If you don't use any of the dependencies listed above, this step is less important. SWMMIO can be installed via pip in your command line:
 
 ```bash
-#on Windows:
-python -m pip install swmmio
-
-#on Unix-type systems, i do this:
 pip install swmmio
 ```
 
