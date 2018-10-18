@@ -6,12 +6,11 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
 install_requires = [
-    # 'pillow==3.0.0',
     'Pillow',
     'numpy',
     'pandas',
