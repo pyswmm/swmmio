@@ -14,6 +14,7 @@ DATA_PATH = os.path.abspath(os.path.dirname(__file__))
 
 # Test models paths
 MODEL_FULL_FEATURES_PATH = os.path.join(DATA_PATH, 'model_full_features.inp')
+MODEL_FULL_FEATURES__NET_PATH = os.path.join(DATA_PATH, 'model_full_features_network.inp')
 MODEL_BROWARD_COUNTY_PATH = os.path.join(DATA_PATH, 'RUNOFF46_SW5.INP')
 
 #version control test models

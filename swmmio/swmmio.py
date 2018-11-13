@@ -7,6 +7,7 @@ import pandas as pd
 import glob
 import math
 from .utils import spatial
+from .utils import functions
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 from .defs.config import *
@@ -60,7 +61,8 @@ class Model(object):
 			self._weirs_df = None
 			self._pumps_df = None
 			self._subcatchments_df = None
-			
+			self._network = None
+
 	def rpt_is_valid(self , verbose=False):
 		"""
 		Return true if the .rpt file exists and has a revision date more
@@ -101,14 +103,18 @@ class Model(object):
 		To be removed in v0.4.0. Use swmmio.reporting.visualize.create_map()
 		'''
 		def wrn():
-			w = "Depreciated. Use swmmio.reporting.visualize.create_map() instead"
+			w = '''to_map is no longer supported! Use
+			swmmio.reporting.visualize.create_map() instead'''
 			warnings.warn(w, DeprecationWarning)
-			return self.nodes().loc[node]
 
 		with warnings.catch_warnings():
 			warnings.simplefilter("always")
 			wrn()
 
+	# def conduits(self):
+	# 	return self.conduits
+
+	# @property
 	def conduits(self):
 
 		"""
@@ -340,6 +346,17 @@ class Model(object):
 		with warnings.catch_warnings():
 			warnings.simplefilter("always")
 			wrn()
+
+	@property
+	def network(self):
+		'''
+		Networkx MultiDiGraph representation of the model
+		'''
+		if self._network is None:
+			G = functions.model_to_networkx(self, drop_cycles=False)
+			self._network = G
+
+		return self._network
 
 
 	def export_to_shapefile(self, shpdir, prj=None):
