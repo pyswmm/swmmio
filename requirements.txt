@@ -6,4 +6,5 @@ numpy
 pandas
 pyshp
 geojson
+networkx
 # Run dependencies

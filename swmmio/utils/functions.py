@@ -1,11 +1,79 @@
 from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
+import pandas as pd
 
 def random_alphanumeric(n=6):
     import random
     chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     return ''.join(random.choice(chars) for i in range(n))
 
+
+def model_to_networkx(model, drop_cycles=True):
+    from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT
+    '''
+    Networkx MultiDiGraph representation of the model
+    '''
+    from geojson import Point, LineString
+    try:
+        import networkx as nx
+    except ImportError:
+        raise ImportError('networkx module needed. get this package here: ',
+                        'https://pypi.python.org/pypi/networkx')
+
+    def multidigraph_from_edges(edges, source, target):
+        '''
+        create a MultiDiGraph from a dataframe of edges, using the row index
+        as the key in the MultiDiGraph
+        '''
+        us = edges[source]
+        vs = edges[target]
+        keys = edges.index
+        data = edges.drop([source, target], axis=1)
+        d_dicts = data.to_dict(orient='records')
+
+        G = nx.MultiDiGraph()
+
+        G.add_edges_from(zip(us, vs, keys, d_dicts))
+
+        return G
+
+    # parse swmm model results with swmmio, concat all links into one dataframe
+    nodes = model.nodes()
+    if model.rpt is not None:
+        inflow_cols = [
+            'MaxLatInflow',
+            'MaxTotalInflow',
+            'LatInflowV',
+            'TotalInflowV',
+            'FlowBalErrorPerc']
+        flows = create_dataframeRPT(
+            model.rpt.path, "Node Inflow Summary")[inflow_cols]
+        nodes = nodes.join(flows)
+
+    conduits = model.conduits()
+    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()])
+    links['facilityid'] = links.index
+
+    # create a nx.MultiDiGraph from the combined model links, add node data, set CRS
+    G = multidigraph_from_edges(links, 'InletNode', target='OutletNode')
+    G.add_nodes_from(zip(nodes.index, nodes.to_dict(orient='records')))
+
+    # create geojson geometry objects for each graph element
+    for u, v, k, coords in G.edges(data='coords', keys=True):
+        if coords:
+            G[u][v][k]['geometry'] = LineString(coords)
+    for n, coords in G.nodes(data='coords'):
+        if coords:
+            G.node[n]['geometry'] = Point(coords)
+
+    if drop_cycles:
+        # remove cycles
+        cycles = list(nx.simple_cycles(G))
+        if len(cycles) > 0:
+            print('cycles detected and removed: {}'.format(cycles))
+            G.remove_edges_from(cycles)
+
+    return G
 
 def complete_inp_headers (inpfilepath):
     """
