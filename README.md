@@ -28,7 +28,7 @@ pip install swmmio
 ### Basic Usage
 The `swmmio.Model()` class provides the basic endpoint for interfacing with SWMM models. To get started, save a SWMM5 model (.inp) in a directory with its report file (.rpt). A few examples:   
 ```python
-from swmmio import swmmio
+import swmmio
 
 #instantiate a swmmio model object
 mymodel = swmmio.Model('/path/to/directory with swmm files')
@@ -95,7 +95,7 @@ For example, climate change impacts can be investigated by creating a set of mod
 
 ```python
 import os, shutil
-from swmmio import swmmio
+import swmmio
 from swmmio.utils.modify_model import replace_inp_section
 from swmmio.utils.dataframes import create_dataframeINP
 
@@ -129,7 +129,19 @@ while rise <= 5:
 
 ```
 
+### Access Model Network
+The `swmmio.Model` class returns a Networkx MultiDiGraph representation of the model via that `network` parameter:
+```python
 
+#access the model as a Networkx MutliDiGraph
+G = model.network
+
+#iterate through links
+for u, v, key, data in model.network.edges(data=True, keys=True):
+
+        print (key, data['Geom1'])
+        # do stuff with the network
+```  
 
 ### Running Models
 Using the command line tool, individual SWMM5 models can be run by invoking the swmmio module in your shell as such:
