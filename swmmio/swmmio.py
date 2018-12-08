@@ -486,5 +486,110 @@ class inp(SWMMIOFile):
 	#make sure INP has been saved in the GUI before using this
 
 	def __init__(self, filePath):
+		self._conduits_df = None
+		self._junctions_df = None
+		self._outfalls_df = None
 		#is this class necessary anymore?
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
+
+	@property
+	def conduits(self):
+		"""
+        Get/set conduits section of the INP file.
+
+        :return: Conduits section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+
+		>>> import swmmio
+		>>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+		>>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+		>>> model.conduits
+		...
+		...		  InletNode OutletNode  Length  ManningN  InletOffset  OutletOffset  \
+		...	Name
+		...	C1:C2        J1         J2  244.63      0.01            0             0
+		...	C2.1         J2         J3  666.00      0.01            0             0
+		...	1             1          4  400.00      0.01            0             0
+		...	2             4          5  400.00      0.01            0             0
+		...	3             5         J1  400.00      0.01            0             0
+		...	4             3          4  400.00      0.01            0             0
+		...	5             2          5  400.00      0.01            0             0
+		...	       InitFlow  MaxFlow
+		...	Name
+		...	C1:C2         0        0
+		...	C2.1          0        0
+		...	1             0        0
+		...	2             0        0
+		...	3             0        0
+		...	4             0        0
+		...	5             0        0
+        """
+		if self._conduits_df is None:
+			self._conduits_df = create_dataframeINP(self.path, "[CONDUITS]", comment_cols=False)
+		return self._conduits_df
+	@conduits.setter
+	def conduits(self, df):
+		"""Set inp.conduits DataFrame."""
+		self._conduits_df = df
+
+	@property
+	def junctions(self):
+		"""
+        Get/set junctions section of the INP file.
+
+        :return: junctions section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+
+		>>> import swmmio
+		>>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+		>>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+		>>> model.junctions
+		...
+		...	      InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+			Name
+			J1        20.728        15          0               0           0
+			J3         6.547        15          0               0           0
+			1          0.000         0          0               0           0
+			2          0.000         0          0               0           0
+			3          0.000         0          0               0           0
+			4          0.000         0          0               0           0
+			5          0.000         0          0               0           0
+        """
+		if self._junctions_df is None:
+			self._junctions_df = create_dataframeINP(self.path, "[JUNCTIONS]", comment_cols=False)
+		return self._junctions_df
+	@junctions.setter
+	def junctions(self, df):
+		"""Set inp.junctions DataFrame."""
+		self._junctions_df = df
+
+	@property
+	def outfalls(self):
+		"""
+        Get/set outfalls section of the INP file.
+
+        :return: outfalls section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+
+		>>> import swmmio
+		>>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+		>>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+		>>> model.outfalls
+		...
+				InvertElev OutfallType StageOrTimeseries  TideGate
+		Name
+		J4             0        FREE                NO       NaN
+        """
+		if self._outfalls_df is None:
+			self._outfalls_df = create_dataframeINP(self.path, "[OUTFALLS]", comment_cols=False)
+		return self._outfalls_df
+	@outfalls.setter
+	def outfalls(self, df):
+		"""Set inp.outfalls DataFrame."""
+		self._outfalls_df = df
