@@ -83,8 +83,8 @@ def get_link_coords(row, nodexys, verticies):
     #grab any extra verts, place in between up/dwn nodes
     res =  [(x1, y1)]
     if row.name in verticies.index:
-        xs = verticies.ix[row.name, 'X'].tolist()
-        ys = verticies.ix[row.name, 'Y'].tolist()
+        xs = verticies.loc[row.name, 'X'].tolist()
+        ys = verticies.loc[row.name, 'Y'].tolist()
         if isinstance(xs, list) and isinstance(ys, list):
             #if more than one vert for this link exists, arrays are returned
             #from verticies.get_value(). it then needs to be zipped up

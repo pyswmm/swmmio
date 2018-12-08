@@ -13,3 +13,4 @@ notebooks/
 __pycache__/
 .cache/
 .pytest_cache/
+_build/

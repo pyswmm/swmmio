@@ -155,15 +155,15 @@ class INPDiff(object):
             #duplicate indicies are rows that have changes, isolate these
             changed_ids = changes_with_dupes.index.get_duplicates()
 
-            added = df2.ix[added_ids]
+            added = df2.ix[added_ids].copy()
             added['Comment'] = 'Added'# from model {}'.format(model2.inp.path)
             added['Origin'] = model2.inp.path
 
-            altered = df2.ix[changed_ids]
+            altered = df2.ix[changed_ids].copy()
             altered['Comment'] = 'Altered'# in model {}'.format(model2.inp.path)
             altered['Origin'] = model2.inp.path
 
-            removed = df1.ix[removed_ids]
+            removed = df1.ix[removed_ids].copy()
             #comment out the removed elements
             #removed.index = ["; " + str(x) for x in removed.index]
             removed['Comment'] = 'Removed'# in model {}'.format(model2.inp.path)
