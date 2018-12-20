@@ -492,6 +492,20 @@ class inp(SWMMIOFile):
 		#is this class necessary anymore?
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
 
+		self._sections = [self._conduits_df, self._junctions_df, self._outfalls_df]
+
+	def save(self, target_path=None):
+		'''
+		Save the inp file to disk. File will be overwritten unless a target_path
+		is provided
+		'''
+		from swmmio.utils.modify_model import replace_inp_section
+		target_path = target_path if target_path is not None else self.path
+
+		for section in self._sections:
+			if section is not None:
+				replace_inp_section()
+
 	@property
 	def conduits(self):
 		"""
