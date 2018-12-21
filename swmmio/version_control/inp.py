@@ -149,21 +149,21 @@ class INPDiff(object):
             #find where elements were changed (but kept with same ID)
             common_ids = df1.index.difference(removed_ids) #original - removed = in common
             #both dfs concatenated, with matched indices for each element
-            full_set = pd.concat([df1.ix[common_ids], df2.ix[common_ids]])
+            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]])
             #drop dupes on the set, all things that did not changed should have 1 row
             changes_with_dupes = full_set.drop_duplicates()
             #duplicate indicies are rows that have changes, isolate these
             changed_ids = changes_with_dupes.index.get_duplicates()
 
-            added = df2.ix[added_ids].copy()
+            added = df2.loc[added_ids].copy()
             added['Comment'] = 'Added'# from model {}'.format(model2.inp.path)
             added['Origin'] = model2.inp.path
 
-            altered = df2.ix[changed_ids].copy()
+            altered = df2.loc[changed_ids].copy()
             altered['Comment'] = 'Altered'# in model {}'.format(model2.inp.path)
             altered['Origin'] = model2.inp.path
 
-            removed = df1.ix[removed_ids].copy()
+            removed = df1.loc[removed_ids].copy()
             #comment out the removed elements
             #removed.index = ["; " + str(x) for x in removed.index]
             removed['Comment'] = 'Removed'# in model {}'.format(model2.inp.path)

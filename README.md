@@ -67,16 +67,16 @@ what's interesting or important for your project:
 
 ```python
 #isolate nodes that have flooded for more than 30 minutes
-flooded_series = nodes.ix[nodes.HoursFlooded>0.5, 'TotalFloodVol']
+flooded_series = nodes.loc[nodes.HoursFlooded>0.5, 'TotalFloodVol']
 flood_vol = sum(flooded_series) #total flood volume (million gallons)
 flooded_count = len(flooded_series) #count of flooded nodes
 
 #highlight these nodes in a graphic
 nodes['draw_color'] = '#787882' #grey, default node color
-nodes.ix[nodes.HoursFlooded>0.5, 'draw_color'] = '#751167' #purple, flooded nodes
+nodes.loc[nodes.HoursFlooded>0.5, 'draw_color'] = '#751167' #purple, flooded nodes
 
 #set the radius of flooded nodes as a function of HoursFlooded
-nodes.ix[nodes.HoursFlooded>1, 'draw_size'] = nodes.ix[nodes.HoursFlooded>1, 'HoursFlooded'] * 12
+nodes.loc[nodes.HoursFlooded>1, 'draw_size'] = nodes.loc[nodes.HoursFlooded>1, 'HoursFlooded'] * 12
 
 #make the conduits grey, sized as function of their geometry
 conds['draw_color'] = '#787882'
@@ -97,7 +97,7 @@ For example, climate change impacts can be investigated by creating a set of mod
 import os, shutil
 import swmmio
 from swmmio.utils.modify_model import replace_inp_section
-from swmmio.utils.dataframes import create_dataframeINP
+from swmmio import create_dataframeINP
 
 #initialize a baseline model object
 baseline = swmmio.Model(r'path\to\baseline.inp')
