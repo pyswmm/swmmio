@@ -1,6 +1,27 @@
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                MODEL_BROWARD_COUNTY_PATH, MODEL_XSECTION_ALT_01)
-from swmmio import swmmio
+import swmmio
+
+
+def test_create_dataframeRPT():
+    m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+
+    depth_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Depth Summary")
+    flood_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Flooding Summary")
+    inflo_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Inflow Summary")
+
+    print ('\n', depth_summ)
+    print (inflo_summ)
+    print (flood_summ)
+
+    assert(inflo_summ.loc['J3', 'TotalInflowV'] == 6.1)
+    assert(inflo_summ.loc['J1', 'MaxTotalInflow'] == 3.52)
+
+    assert(depth_summ.loc['J3', 'MaxNodeDepth'] == 1.64)
+    assert(depth_summ.loc['4', 'MaxNodeDepth'] == 0.87)
+
+    # need to ensure indicies are strings always
+    assert(flood_summ.loc[5, 'TotalFloodVol'] == 0)
 
 
 def test_conduits_dataframe():

@@ -97,7 +97,7 @@ For example, climate change impacts can be investigated by creating a set of mod
 import os, shutil
 import swmmio
 from swmmio.utils.modify_model import replace_inp_section
-from swmmio.utils.dataframes import create_dataframeINP
+from swmmio import create_dataframeINP
 
 #initialize a baseline model object
 baseline = swmmio.Model(r'path\to\baseline.inp')
