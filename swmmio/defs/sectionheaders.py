@@ -23,8 +23,15 @@ inp_header_dict = {
     '[DWF]':'Node Parameter AverageValue TimePatterns',
     '[RAINGAGES]':'Name RainType TimeIntrv SnowCatch DataSourceType DataSourceName',
     '[INFILTRATION]':'Subcatchment Suction HydCon IMDmax',
+<<<<<<< HEAD
     '[POLYGONS]':'Name X Y',
     '[REPORT]':'Param Status',
+=======
+    '[Polygons]':'Name X Y',
+    '[REPORT]':'Param Status',
+    '[TAGS]':'ElementType Name Tag',
+    '[MAP]': 'x1 y1 x2 y2'
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
     #'[CURVES]':'Name Type X-Value Y-Value',
     #'[TIMESERIES]':'Name Date Time Value'
 }
@@ -39,8 +46,14 @@ rpt_header_dict={
     'Cross Section Summary':'Name Shape DFull AreaFull HydRad MaxW NumBarrels FullFlow',
     'Subcatchment Runoff Summary':'Name TotalPrecip TotalRunon TotalEvap TotalInfil TotalRunoffIn TotalRunoffMG PeakRunoff RunoffCoeff',
     'Node Flooding Summary':'Name HoursFlooded MaxQ MaxDay MaxHr TotalFloodVol MaximumPondDepth',
+<<<<<<< HEAD
     'Node Inflow Summary':'Name Type MaxLatInflow MaxTotalInflow MaxDay MaxHr LatInflowV TotalInflowV',
     'Node Surcharge Summary':'Name Type HourSurcharged MaxHeightAboveCrown MinDepthBelowRim',
+=======
+    'Node Inflow Summary':'Name Type MaxLatInflow MaxTotalInflow MaxDay MaxHr LatInflowV TotalInflowV FlowBalErrorPerc XXX',
+    'Node Surcharge Summary':'Name Type HourSurcharged MaxHeightAboveCrown MinDepthBelowRim',
+    'Storage Volume Summary':'Name AvgVolume AvgPctFull EvapPctLoss ExfilPctLoss MaxVolume MaxPctFull MaxDay MaxFullHr MaxOutflow',
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
     'Node Depth Summary':'Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr',
     'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc',
     'Subcatchment Results':     'Date Time PrecipInchPerHour LossesInchPerHr RunoffCFS',

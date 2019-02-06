@@ -10,7 +10,11 @@ def search_for_duplicates(inp_path, verbose = False):
     """
     headers = funcs.complete_inp_headers(inp_path)['headers']
     dups_found = False
+<<<<<<< HEAD
     for header, cols, in headers.iteritems():
+=======
+    for header, cols, in headers.items():
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         if cols != 'blob':
 
             df = dataframes.create_dataframeINP(inp_path, section=header)
@@ -18,11 +22,19 @@ def search_for_duplicates(inp_path, verbose = False):
             n_unique = len(elements.unique()) #number of unique elements
             n_total = len(elements) #total number of elements
             if verbose:
+<<<<<<< HEAD
                 print '{} -> (uniques, total) -> ({}, {})'.format(header, n_unique , n_total)
 
             if n_unique != n_total:
                 dups = ', '.join(df[df.index.duplicated()].index.unique().tolist())
                 print 'duplicate found in {}\nsection: {}\n{}'.format(inp_path, header, dups)
+=======
+                print('{} -> (uniques, total) -> ({}, {})'.format(header, n_unique , n_total))
+
+            if n_unique != n_total:
+                dups = ', '.join(df[df.index.duplicated()].index.unique().tolist())
+                print('duplicate found in {}\nsection: {}\n{}'.format(inp_path, header, dups))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
                 dups_found = True
 
     return dups_found

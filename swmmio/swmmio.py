@@ -4,6 +4,7 @@ import re
 import os
 from time import ctime
 import pandas as pd
+<<<<<<< HEAD
 from .utils import functions, spatial
 import glob
 import math
@@ -11,16 +12,32 @@ import geojson
 from .utils import text as txt
 from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 from definitions import *
+=======
+import glob
+import math
+from .utils import spatial
+from .utils import functions
+from .utils import text as txt
+from .utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+from .defs.config import *
+import warnings
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 class Model(object):
 
-	#Class representing a complete SWMM model incorporating its INP and RPT
-	#files and data
+	def __init__(self, in_file_path):
 
+<<<<<<< HEAD
 	def __init__(self, in_file_path):
 
 		#can init with a directory containing files, or the specific inp file
 		"""
+=======
+		"""
+		Class representing a complete SWMM model incorporating its INP and RPT
+		files and data
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 		initialize a swmmio.Model object by pointing it to a directory containing
 		a single INP (and optionally an RPT file with matching filename) or by
 		pointing it directly to an .inp file.
@@ -29,16 +46,23 @@ class Model(object):
 		inp_path = None
 		if os.path.isdir(in_file_path):
 			#a directory was passed in
+<<<<<<< HEAD
 			#print 'is dir = {}'.format(in_file_path)
+=======
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 			inps_in_dir = glob.glob1(in_file_path, "*.inp")
 			if len(inps_in_dir) == 1:
 				#there is only one INP in this directory -> good.
 				inp_path = os.path.join(in_file_path, inps_in_dir[0])
+<<<<<<< HEAD
 				#print 'only 1 inp found = {}'.format(inp_path)
+=======
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 		elif os.path.splitext(in_file_path)[1] == '.inp':
 			#an inp was passed in
 			inp_path = in_file_path
+<<<<<<< HEAD
 			#print 'is inp path = {}'.format(in_file_path)
 
 		if inp_path:
@@ -52,6 +76,17 @@ class Model(object):
 			self.organized_conduit_data = None
 			self.bbox = None #to remember how the model data was clipped
 			self.scenario = self._get_scenario()
+=======
+
+		if inp_path:
+			wd = os.path.dirname(inp_path) #working dir
+			name = os.path.splitext(os.path.basename(inp_path))[0]
+			self.name = name
+			self.inp = inp(inp_path) #inp object
+			self.rpt = None #until we can confirm it initializes properly
+			self.bbox = None #to remember how the model data was clipped
+			self.scenario = '' #self._get_scenario()
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 			#try to initialize a companion RPT object
 			rpt_path = os.path.join(wd, name + '.rpt')
@@ -59,6 +94,7 @@ class Model(object):
 				try:
 					self.rpt = rpt(rpt_path)
 				except:
+<<<<<<< HEAD
 					print '{}.rpt failed to initialize'.format(name)
 
 			self._nodes_df = None
@@ -77,6 +113,30 @@ class Model(object):
 			return False
 
 
+=======
+					print('{}.rpt failed to initialize'.format(name))
+
+			self._nodes_df = None
+			self._conduits_df = None
+			self._orifices_df = None
+			self._weirs_df = None
+			self._pumps_df = None
+			self._subcatchments_df = None
+			self._network = None
+
+	def rpt_is_valid(self , verbose=False):
+		"""
+		Return true if the .rpt file exists and has a revision date more
+		recent than the .inp file. If the inp has an modified date later than
+		the rpt, assume that the rpt should be regenerated
+		"""
+
+		if self.rpt is None:
+			if verbose:
+				print('{} does not have an rpt file'.format(self.name))
+			return False
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 		#check if the rpt has ERRORS output from SWMM
 		with open (self.rpt.path) as f:
 			#jump to 500 bytes before the end of file
@@ -91,8 +151,13 @@ class Model(object):
 		inp_mod_time = os.path.getmtime(self.inp.path)
 
 		if verbose:
+<<<<<<< HEAD
 			print "{}.rpt: modified {}".format(self.name, ctime(rpt_mod_time))
 			print "{}.inp: modified {}".format(self.name, ctime(inp_mod_time))
+=======
+			print("{}.rpt: modified {}".format(self.name, ctime(rpt_mod_time)))
+			print("{}.inp: modified {}".format(self.name, ctime(inp_mod_time)))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 		if inp_mod_time > rpt_mod_time:
 			#inp datetime modified greater than rpt datetime modified
@@ -101,6 +166,7 @@ class Model(object):
 			return True
 
 	def to_map(self, filename=None, inproj='epsg:2272'):
+<<<<<<< HEAD
 
 		conds = self.conduits()
 		nodes = self.nodes()
@@ -154,6 +220,26 @@ class Model(object):
 
 	def conduits(self):
 
+=======
+		'''
+		To be removed in v0.4.0. Use swmmio.reporting.visualize.create_map()
+		'''
+		def wrn():
+			w = '''to_map is no longer supported! Use
+			swmmio.reporting.visualize.create_map() instead'''
+			warnings.warn(w, DeprecationWarning)
+
+		with warnings.catch_warnings():
+			warnings.simplefilter("always")
+			wrn()
+
+	# def conduits(self):
+	# 	return self.conduits
+
+	# @property
+	def conduits(self):
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 		"""
 		collect all useful and available data related model conduits and
 		organize in one dataframe.
@@ -171,7 +257,11 @@ class Model(object):
 		conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
 		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
 		conduits_df = conduits_df.join(xsections_df)
+<<<<<<< HEAD
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
+=======
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 		if rpt:
 			#create a dictionary holding data from an rpt file, if provided
@@ -194,6 +284,12 @@ class Model(object):
 		df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
 		df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
+<<<<<<< HEAD
+=======
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 		self._conduits_df = df
 
 		return df
@@ -215,6 +311,7 @@ class Model(object):
 
 		#create dataframes of relevant sections from the INP
 		orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
+<<<<<<< HEAD
 		xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
 		orifices_df = conduits_df.join(xsections_df)
 		coords_df = create_dataframeINP(inp.path, "[COORDINATES]").drop_duplicates()
@@ -308,23 +405,240 @@ class Model(object):
 		returns a node object given its ID"""
 		if not self.organized_node_data:
 			self.organized_node_data = self.organizeNodeData()
+=======
+		if orifices_df.empty:
+			return pd.DataFrame()
 
-		n = self.organized_node_data['node_objects'][node]
-		subcats_inp = self.inp.createDictionary("[SUBCATCHMENTS]")
-		subcats_rpt = self.rpt.createDictionary('Subcatchment Runoff Summary')
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
+		#add conduit coordinates
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = orifices_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
+		self._orifices_df = df
+
+<<<<<<< HEAD
 		n.nodes_upstream = functions.trace_from_node(self, node, mode='up')['nodes']
 		n.subcats_direct = [k for k,v in subcats_inp.items() if v[1]==node]
 		n.subcats_upstream = [k for k,v in subcats_inp.items() if v[1] in n.nodes_upstream]
+=======
+		return df
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+	def weirs(self):
+
+		"""
+		collect all useful and available data related model weirs and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._weirs_df is not None:
+			return self._weirs_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+<<<<<<< HEAD
+	def export_to_shapefile(self, shpdir, prj=None):
+		"""
+		export the model data into a shapefile. element_type dictates which type
+		of data will be included.
+
+		default projection is PA State Plane - untested on other cases
+		"""
+
+		#CREATE THE CONDUIT shp
+		conds = self.conduits()
+		conds_path = os.path.join(shpdir, self.inp.name + '_conduits.shp')
+		spatial.write_shapefile(conds, conds_path, prj=prj)
+
+		#CREATE THE NODE shp
+		nodes = self.nodes()
+		nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
+		spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
+
+=======
+		#create dataframes of relevant sections from the INP
+		weirs_df = create_dataframeINP(inp.path, "[WEIRS]")
+		if weirs_df.empty:
+			return pd.DataFrame()
+
+		weirs_df = weirs_df[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
+
+		#add conduit coordinates
+		#the xys.map() junk is to unpack a nested list
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = weirs_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
+
+		self._weirs_df = df
+
+		return df
+
+	def pumps(self):
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+		"""
+		collect all useful and available data related model pumps and
+		organize in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._pumps_df is not None:
+			return self._pumps_df
+
+<<<<<<< HEAD
+	def __init__(self, file_path):
+
+		#file name and path variables
+		self.path = file_path
+		self.name = os.path.splitext(os.path.basename(file_path))[0]
+		self.dir = os.path.dirname(file_path)
+		self.file_size = os.path.getsize(file_path)
+=======
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+		#create dataframes of relevant sections from the INP
+		pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
+		if pumps_df.empty:
+			return pd.DataFrame()
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")#.drop_duplicates()
+
+		#add conduit coordinates
+		verts = create_dataframeINP(inp.path, '[VERTICES]')
+		xys = pumps_df.apply(lambda r: get_link_coords(r,coords_df,verts), axis=1)
+		df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
+		df.InletNode = df.InletNode.astype(str)
+		df.OutletNode = df.OutletNode.astype(str)
+
+		self._pumps_df = df
+
+<<<<<<< HEAD
+		with open(self.path) as f:
+			start = None
+			end = None
+			l = 0 #line bytes index
+			for line in f:
+=======
+		return df
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+	def nodes(self, bbox=None, subset=None):
+
+		"""
+		collect all useful and available data related model nodes and organize
+		in one dataframe.
+		"""
+
+		#check if this has been done already and return that data accordingly
+		if self._nodes_df is not None and bbox==self.bbox:
+			return self._nodes_df
+
+		#parse out the main objects of this model
+		inp = self.inp
+		rpt = self.rpt
+
+<<<<<<< HEAD
+	def createDictionary (self, sectionTitle = defaultSection):
+=======
+		#create dataframes of relevant sections from the INP
+		juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
+		outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
+		storage_df = create_dataframeINP(inp.path, "[STORAGE]")
+		coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
+
+		#concatenate the DFs and keep only relevant cols
+		all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
+		cols =['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
+		all_nodes = all_nodes[cols]
+
+		if rpt:
+			#add results data if a rpt file was found
+			depth_summ = create_dataframeRPT(rpt.path, "Node Depth Summary")
+			flood_summ = create_dataframeRPT(rpt.path, "Node Flooding Summary")
+
+			#join the rpt data (index on depth df, suffixes for common cols)
+			rpt_df = depth_summ.join(flood_summ,lsuffix='_depth',rsuffix='_flood')
+			all_nodes = all_nodes.join(rpt_df) #join to the all_nodes df
+
+		all_nodes = all_nodes.join(coords_df[['X', 'Y']])
+		def nodexy(row):
+			if math.isnan(row.X) or math.isnan(row.Y):
+				return None
+			else:
+				return [(row.X, row.Y)]
+
+		xys = all_nodes.apply(lambda r: nodexy(r), axis=1)
+		all_nodes = all_nodes.assign(coords = xys)
+		all_nodes = all_nodes.rename(index=str)
+		self._nodes_df = all_nodes
+
+		return all_nodes
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+	def subcatchments(self):
+		"""
+		collect all useful and available data related subcatchments and organize
+		in one dataframe.
+		"""
+		subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]")
+		subs = subs.drop([';', 'Comment', 'Origin'], axis=1)
+
+<<<<<<< HEAD
+		#preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
+		preppedTempFilePath = txt.extract_section_from_file(self.path, sectionTitle)
+		if not preppedTempFilePath:
+			return None #if nothing was found, do nothing
+=======
+		if self.rpt:
+			flw = create_dataframeRPT(self.rpt.path, 'Subcatchment Runoff Summary')
+			subs = subs.join(flw)
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+			#more accurate runoff calculations
+			subs['RunoffAcFt'] = subs.TotalRunoffIn/ 12.0 * subs.Area
+			subs['RunoffMGAccurate'] = subs.RunoffAcFt / 3.06888785
+
+		self._subcatchments_df = subs
+
+		return subs
 
 
-		n.drainage_area_direct = sum([float(x) for x in [v[2] for k,v in subcats_inp.items() if k in n.subcats_direct]])
-		n.drainage_area_upstream = sum([float(x) for x in [v[2] for k,v in subcats_inp.items() if k in n.subcats_upstream]])
+	def node(self, node, conduit=None):
+		'''
+		To be removed in v0.4.0
+		'''
+		def wrn():
+			w = "Depreciated. Use model.nodes().loc['{}'] instead".format(node)
+			warnings.warn(w, DeprecationWarning)
+			return self.nodes().loc[node]
 
-		n.runoff_upstream_mg = sum([float(x) for x in [v[5] for k,v
-								in subcats_rpt.items() if k in n.subcats_upstream]])
-		n.runoff_upstream_cf = n.runoff_upstream_mg*1000000/7.48
-		return n
+		with warnings.catch_warnings():
+			warnings.simplefilter("always")
+			wrn()
+
+	@property
+	def network(self):
+		'''
+		Networkx MultiDiGraph representation of the model
+		'''
+		if self._network is None:
+			G = functions.model_to_networkx(self, drop_cycles=False)
+			self._network = G
+
+		return self._network
 
 
 	def export_to_shapefile(self, shpdir, prj=None):
@@ -345,6 +659,8 @@ class Model(object):
 		nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
 		spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
 
+<<<<<<< HEAD
+=======
 
 class SWMMIOFile(object):
 
@@ -360,8 +676,9 @@ class SWMMIOFile(object):
 
 
 	def findByteRangeOfSection(self, startStr):
-
-		#returns the start and end "byte" location of substrings in a text file
+		'''
+		returns the start and end "byte" location of substrings in a text file
+		'''
 
 		with open(self.path) as f:
 			start = None
@@ -369,64 +686,33 @@ class SWMMIOFile(object):
 			l = 0 #line bytes index
 			for line in f:
 
-				#if start and len(line) <= 3 and (l - start) > 100:
 				if start and line.strip() == "" and (l - start) > 100:
-					#LOGIC ^ if start exists (was found) and the current line length is 3 or
-					#less (length of /n ) and we're more than 100 bytes from the start location
-					#then we are at the first "blank" line after our start section (aka the end of the section)
+					# LOGIC: if start exists (was found) and the current line
+					# length is 3 or less (length of /n ) and we're more than
+					# 100 bytes from the start location then we are at the first
+					# "blank" line after our start section (aka the end of the
+					# section)
 					end = l
 					break
 
 				if (startStr in line) and (not start):
 					start = l
 
-				l += len(line) + len("\n") #increment length (bytes?) of current position
+				#increment length (bytes?) of current position
+				l += len(line) + len("\n")
 
 		return [start, end]
 
-	def createDictionary (self, sectionTitle = defaultSection):
 
-		"""
-		Help info about this method.
-		"""
-
-		#preppedTempFilePath = self.readSectionAndCleanHeaders(sectionTitle) #pull relevant section and clean headers
-		preppedTempFilePath = txt.extract_section_from_file(self.path, sectionTitle)
-		if not preppedTempFilePath:
-			return None #if nothing was found, do nothing
-
-		passedHeaders = False
-
-		with open(preppedTempFilePath) as file:
-			the_dict = {}
-			for line in file:
-
-				if len(line) <=3 and not ";" in line: break
-				if not passedHeaders:
-					passedHeaders = True
-					continue
-
-				#check if line is commented out (having a semicolon before anything else) and skip accordingly
-				if ";" == line.replace(" ", "")[0]:
-					continue #omit this entire line
-
-				line = line.split(";")[0] #don't look at anything to right of a semicolon (aka a comment)
-
-				line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
-				rowdata = line.replace("\n", "").split(" ")
-				the_dict[str(rowdata[0])] = rowdata[1:] #create dictionary row with key and array of remaing stuff on line as the value
-
-		os.remove(preppedTempFilePath)
-
-		return the_dict
-
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 class rpt(SWMMIOFile):
 
-	#creates an accessible SWMM .rpt object, inherits from SWMMIO object
-	defaultImageDir = r"P:\Tools\Pipe Capacity Graphics\Scripts\image"
+	'''
+	An accessible SWMM .rpt object
+	'''
 	def __init__(self, filePath):
 
-		SWMMIOFile.__init__(self, filePath) #run the superclass init
+		SWMMIOFile.__init__(self, filePath)
 
 		with open (filePath) as f:
 			for line in f:
@@ -450,7 +736,9 @@ class rpt(SWMMIOFile):
 					date = line.split("Analysis begun on:  ")[1].replace("\n", "")
 
 		self.dateOfAnalysis = date
+		self.elementByteLocations = {"Link Results":{}, "Node Results":{}}
 
+<<<<<<< HEAD
 		#assign the header list
 		#self.headerList = swmm_headers.rptHeaderList
 		self.byteLocDict = None #populated if necessary elsewhere (LEGACY, can prob remove)
@@ -495,17 +783,21 @@ class rpt(SWMMIOFile):
 		self.byteLocDict = id_byteDict
 		self.elementByteLocations.update({sectionTitle:id_byteDict})
 		return id_byteDict
+=======
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 	def returnDataAtDTime(self, id, dtime, sectionTitle="Link Results", startByte=0):
+		'''
+		return data from time series in RPT file
+		'''
 
-		#this is a slow ass function, when the file is big - can we improve this?
 		byteLocDict = self.elementByteLocations[sectionTitle]
 		if byteLocDict:
 			startByte = byteLocDict[id]
 
 		elif startByte == 0:
 			startByte = self.findByteRangeOfSection(sectionTitle)[0]
-			print 'startByte ' + str(startByte)
+			print('startByte ' + str(startByte))
 
 		with open(self.path) as f:
 
@@ -528,7 +820,10 @@ class inp(SWMMIOFile):
 	def __init__(self, filePath):
 		#is this class necessary anymore?
 		SWMMIOFile.__init__(self, filePath) #run the superclass init
+<<<<<<< HEAD
 
 
 
 #end
+=======
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33

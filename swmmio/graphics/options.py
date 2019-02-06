@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from definitions import PARCEL_FEATURES, GEODATABASE
+=======
+from swmmio.defs.config import PARCEL_FEATURES, GEODATABASE
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 from constants import *
 
 font_file = r"C:\Data\Code\Fonts\Raleway-Regular.ttf"

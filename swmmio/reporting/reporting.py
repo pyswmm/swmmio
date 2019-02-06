@@ -14,7 +14,11 @@ from swmmio import swmmio
 import os
 import math
 import pandas as pd
+<<<<<<< HEAD
 from definitions import *
+=======
+from swmmio.defs.config import *
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 import json, geojson
 import shutil
 
@@ -99,9 +103,15 @@ class ComparisonReport(object):
         self.alt_report = alt_report
 
         #sort out the new and "altered" conduits
+<<<<<<< HEAD
         self.newconduits = altmodel.conduits().ix[new_cond_ids]
         self.newconduits.ix[conduitdiff.altered.index, 'Category'] = 'Replaced'
         self.newconduits.ix[conduitdiff.added.index, 'Category'] = 'Proposed'
+=======
+        self.newconduits = altmodel.conduits().loc[new_cond_ids]
+        self.newconduits.loc[conduitdiff.altered.index, 'Category'] = 'Replaced'
+        self.newconduits.loc[conduitdiff.added.index, 'Category'] = 'Proposed'
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         self.new_ix = self.newconduits.index
 
         #human readable name
@@ -216,8 +226,13 @@ class ComparisonReport(object):
         pth = os.path.join(rpt_dir, '00 Proposed Infrastructure.png')
         conduits['draw_color'] = '#bebeb4' #default color
         conduits['draw_size'] = conduits.Geom1
+<<<<<<< HEAD
         conduits.ix[self.new_ix, 'draw_color'] = '#1414e6' #new cond col
         conduits.ix[self.new_ix,'draw_size'] = conduits.ix[self.new_ix,'Geom1']*2
+=======
+        conduits.loc[self.new_ix, 'draw_color'] = '#1414e6' #new cond col
+        conduits.loc[self.new_ix,'draw_size'] = conduits.loc[self.new_ix,'Geom1']*2
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         sg.draw_model(conduits=conduits, nodes=altmodel.nodes(), bbox=bbox,
                       title=self.name, annotation=files, file_path=pth)
 
@@ -262,7 +277,11 @@ class ComparisonReport(object):
 
     def __str__(self):
         """print friendly"""
+<<<<<<< HEAD
         catz = filter(None, self.flood_comparison.Category.unique())
+=======
+        catz = [_f for _f in self.flood_comparison.Category.unique() if _f]
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         a = ['{}: {}'.format(c, self.impact[c]) for c in catz]
         files = [self.baseline_report.model.inp.path,
                  self.alt_report.model.inp.path]

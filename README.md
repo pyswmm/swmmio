@@ -1,5 +1,13 @@
 # SWMMIO
+<<<<<<< HEAD
 ![Kool Pic](docs/img/impact_of_option.png?raw=true "Impact of Option")
+=======
+
+[![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master) 
+[![Build Status](https://travis-ci.com/aerispaha/swmmio.svg?branch=master)](https://travis-ci.com/aerispaha/swmmio)
+
+![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 SWMMIO is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
 
@@ -8,7 +16,11 @@ SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) 
 
 
 ### Dependencies
+<<<<<<< HEAD
 *  [pillow](http://python-pillow.org/): 3.0.0
+=======
+*  [pillow](http://python-pillow.org/)
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 *  [matplotlib](http://matplotlib.org/)
 *  [numpy](http://www.numpy.org/)
 *  [pandas](https://github.com/pydata/pandas)
@@ -19,6 +31,7 @@ SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) 
 Before installation, it's recommended to first activate a [virtualenv](https://github.com/pypa/virtualenv) to not crowd your system's package library. If you don't use any of the dependencies listed above, this step is less important. SWMMIO can be installed via pip in your command line:
 
 ```bash
+<<<<<<< HEAD
 #on Windows:
 python -m pip install swmmio
 
@@ -31,6 +44,16 @@ The `swmmio.Model()` class provides the basic endpoint for interfacing with SWMM
 ```python
 from swmmio import swmmio
 
+=======
+pip install swmmio
+```
+
+### Basic Usage
+The `swmmio.Model()` class provides the basic endpoint for interfacing with SWMM models. To get started, save a SWMM5 model (.inp) in a directory with its report file (.rpt). A few examples:   
+```python
+import swmmio
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 #instantiate a swmmio model object
 mymodel = swmmio.Model('/path/to/directory with swmm files')
 
@@ -43,16 +66,26 @@ subs = mymodel.subcatchments()
 nodes.head()
 ```
 <table border=1 class=dataframe><thead><tr style=text-align:right><th><th>InvertElev<th>MaxDepth<th>SurchargeDepth<th>PondedArea<th>Type<th>AvgDepth<th>MaxNodeDepth<th>MaxHGL<th>MaxDay_depth<th>MaxHr_depth<th>HoursFlooded<th>MaxQ<th>MaxDay_flood<th>MaxHr_flood<th>TotalFloodVol<th>MaximumPondDepth<th>X<th>Y<th>coords<tr><th>Name<th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><th><tbody><tr><th>S42A_10.N_4<td>13.506673<td>6.326977<td>5.0<td>110.0<td>JUNCTION<td>0.69<td>6.33<td>19.83<td>0<td>12:01<td>0.01<td>0.20<td>0.0<td>11:52<td>0.000<td>6.33<td>2689107.0<td>227816.000<td>[(2689107.0, 227816.0)]<tr><th>D70_ShunkStreet_Trunk_43<td>8.508413<td>2.493647<td>5.0<td>744.0<td>JUNCTION<td>0.04<td>0.23<td>8.74<td>0<td>12:14<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>NaN<td>2691329.5<td>223675.813<td>[(2691329.5, 223675.813)]<tr><th>TD61_1_2_90<td>5.150000<td>15.398008<td>0.0<td>0.0<td>JUNCTION<td>0.68<td>15.40<td>20.55<td>0<td>11:55<td>0.01<td>19.17<td>0.0<td>11:56<td>0.000<td>15.40<td>2698463.5<td>230905.720<td>[(2698463.5, 230905.72)]<tr><th>D66_36.D.7.C.1_19<td>19.320000<td>3.335760<td>5.0<td>6028.0<td>JUNCTION<td>0.57<td>3.38<td>22.70<td>0<td>12:00<td>0.49<td>6.45<td>0.0<td>11:51<td>0.008<td>3.38<td>2691999.0<td>230309.563<td>[(2691999.0, 230309.563)]</table>
+<<<<<<< HEAD
 ```python
 
+=======
+
+```python
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 #write to a csv
 nodes.to_csv('/path/mynodes.csv')
 
 #calculate average and weighted average impervious
 avg_imperviousness = subs.PercImperv.mean()
 weighted_avg_imp = (subs.Area * subs.PercImperv).sum() / len(subs)
+<<<<<<< HEAD
 
 ```
+=======
+```
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 ### Generating Graphics
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized if your model includes output data (a .rpt file should accompany the .inp).
 
@@ -62,21 +95,37 @@ sg.draw_model(mymodel)
 ```
 ![Default Draw Output](docs/img/default_draw.png?raw=true "Sewer Stress, Node Flooding")
 
+<<<<<<< HEAD
+=======
+![Default Draw Output](docs/img/default_draw.png?raw=true "Sewer Stress, Node Flooding")
+
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 Use pandas to calculate some interesting stats, and generate a image to highlight
 what's interesting or important for your project:
 
 ```python
 #isolate nodes that have flooded for more than 30 minutes
+<<<<<<< HEAD
 flooded_series = nodes.ix[nodes.HoursFlooded>0.5, 'TotalFloodVol']
+=======
+flooded_series = nodes.loc[nodes.HoursFlooded>0.5, 'TotalFloodVol']
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 flood_vol = sum(flooded_series) #total flood volume (million gallons)
 flooded_count = len(flooded_series) #count of flooded nodes
 
 #highlight these nodes in a graphic
 nodes['draw_color'] = '#787882' #grey, default node color
+<<<<<<< HEAD
 nodes.ix[nodes.HoursFlooded>0.5, 'draw_color'] = '#751167' #purple, flooded nodes
 
 #set the radius of flooded nodes as a function of HoursFlooded
 nodes.ix[nodes.HoursFlooded>1, 'draw_size'] = nodes.ix[nodes.HoursFlooded>1, 'HoursFlooded'] * 12
+=======
+nodes.loc[nodes.HoursFlooded>0.5, 'draw_color'] = '#751167' #purple, flooded nodes
+
+#set the radius of flooded nodes as a function of HoursFlooded
+nodes.loc[nodes.HoursFlooded>1, 'draw_size'] = nodes.loc[nodes.HoursFlooded>1, 'HoursFlooded'] * 12
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 #make the conduits grey, sized as function of their geometry
 conds['draw_color'] = '#787882'
@@ -95,7 +144,11 @@ For example, climate change impacts can be investigated by creating a set of mod
 
 ```python
 import os, shutil
+<<<<<<< HEAD
 from swmmio import swmmio
+=======
+import swmmio
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 from swmmio.utils.modify_model import replace_inp_section
 from swmmio.utils.dataframes import create_dataframeINP
 
@@ -129,7 +182,23 @@ while rise <= 5:
 
 ```
 
+<<<<<<< HEAD
 
+=======
+### Access Model Network
+The `swmmio.Model` class returns a Networkx MultiDiGraph representation of the model via that `network` parameter:
+```python
+
+#access the model as a Networkx MutliDiGraph
+G = model.network
+
+#iterate through links
+for u, v, key, data in model.network.edges(data=True, keys=True):
+
+        print (key, data['Geom1'])
+        # do stuff with the network
+```  
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 ### Running Models
 Using the command line tool, individual SWMM5 models can be run by invoking the swmmio module in your shell as such:

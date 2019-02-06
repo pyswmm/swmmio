@@ -4,7 +4,19 @@ private.py
 private/
 # Setuptools distribution folder.
 /dist/
+<<<<<<< HEAD
+=======
+/build/
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
 notes/
 .DS_Store
+<<<<<<< HEAD
+=======
+notebooks/
+__pycache__/
+.cache/
+.pytest_cache/
+_build/
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33

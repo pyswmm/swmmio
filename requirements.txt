@@ -1,0 +1,10 @@
+# Build dependencies
+#python
+pytest
+pillow
+numpy
+pandas
+pyshp
+geojson
+networkx
+# Run dependencies

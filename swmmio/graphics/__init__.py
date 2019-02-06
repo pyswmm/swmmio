@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from definitions import FONT_PATH
+=======
+from swmmio.defs.config import FONT_PATH
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
 class _dotdict(dict):
     """dot.notation access to dictionary attributes"""

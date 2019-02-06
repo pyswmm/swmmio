@@ -211,7 +211,11 @@ def extract_section_from_rpt(filepath, sectionheader, element_id=None, cleanhead
                     elem_start_string = ' '.join(["<<<", sectionheader.split()[0], element_id, ">>>"])
 
                     if element_id and elem_start_string in line:
+<<<<<<< HEAD
                         print 'element_id found: {}'.format(line)
+=======
+                        print('element_id found: {}'.format(line))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
                         #if we should look for an element_id and it
                         #is in the current line
                         elementstartfound = True

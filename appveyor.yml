@@ -1,0 +1,38 @@
+#matrix:
+#  fast_finish: true
+
+#branches:
+#  only:
+#    - master
+#    - /dev-.*/
+
+environment:
+  matrix:
+    # For Python versions available on Appveyor, see
+    # http://www.appveyor.com/docs/installed-software#python
+    # The list here is complete (excluding Python 2.6, which
+    # isn't covered by this document) at the time of writing.
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python36"
+
+install:
+  - "%PYTHON%\\python setup.py develop"
+  - "%PYTHON%\\python.exe -m pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt -q"
+
+build: off
+
+test_script:
+
+  - "%PYTHON%\\Scripts\\pytest %APPVEYOR_BUILD_FOLDER%"
+
+  # Asserting pep8 formatting checks (using autopep8 tool)
+  # - ps: |
+  #     $output = C:\\Python36\\Scripts\\autopep8 -d --recursive .
+  #     if($output)
+  #     {
+  #         echo $output;
+  #         $host.SetShouldExit(1)
+  #         Write-Host "autopep8 failed:
+  #         Please this command locally:
+  #         'autopep8 -i -a -r .'"
+  #     }

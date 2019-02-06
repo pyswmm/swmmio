@@ -1,5 +1,9 @@
 #graphical functions for SWMM files
+<<<<<<< HEAD
 from definitions import *
+=======
+from swmmio.defs.config import *
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 from swmmio.damage import parcels as pdamage
 from swmmio.graphics import config, options
 from swmmio.graphics.constants import * #constants

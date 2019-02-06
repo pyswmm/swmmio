@@ -9,7 +9,11 @@ import os
 import shutil
 import math
 from itertools import chain
+<<<<<<< HEAD
 from definitions import *
+=======
+from swmmio.defs.config import *
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 import pandas as pd
 
 
@@ -44,7 +48,11 @@ def batch_reports(project_dir, results_file,
             if '.inp' in f:
                 inp_path = os.path.join(path,f)
                 alt = Model(inp_path)
+<<<<<<< HEAD
                 print 'reporting on {}'.format(alt.name)
+=======
+                print('reporting on {}'.format(alt.name))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
                 #generate the reports
                 frpt = reporting.FloodReport(alt, parcel_node_join_df)
                 impact_rpt = reporting.ComparisonReport(baserpt, frpt,
@@ -97,7 +105,11 @@ def batch_cost_estimates(baseline_dir, segments_dir, options_dir, results_file,
                 costsdf = functions.estimate_cost_of_new_conduits(baseline, alt,
                                                                   supplemental_cost_data)
                 cost_estimate = costsdf.TotalCostEstimate.sum() / math.pow(10, 6)
+<<<<<<< HEAD
                 print '{}: ${}M'.format(alt.name, round(cost_estimate,1))
+=======
+                print('{}: ${}M'.format(alt.name, round(cost_estimate,1)))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
                 model_id = os.path.splitext(f)[0]
                 with open(results_file, 'a') as res:
@@ -131,13 +143,21 @@ def batch_post_process(options_dir, baseline_dir, log_dir, bbox=None, overwrite=
         current_dir = os.path.join(options_dir, folder)
         report_dir = os.path.join(current_dir, REPORT_DIR_NAME)
         if not overwrite and os.path.exists(report_dir):
+<<<<<<< HEAD
             print 'skipping {}'.format(folder)
+=======
+            print('skipping {}'.format(folder))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
             continue
 
         else:
             #generate the report
             current_model = Model(current_dir)
+<<<<<<< HEAD
             print 'Generating report for {}'.format(current_model.inp.name)
+=======
+            print('Generating report for {}'.format(current_model.inp.name))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
             #reporting.generate_figures(baseline, current_model, bbox=bbox, imgDir=report_dir, verbose=True)
             report = reporting.Report(baseline, current_model)
             report.write(report_dir)

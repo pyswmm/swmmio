@@ -52,7 +52,11 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
         bi.metadata['Parent Models']['Baseline'] = {baseinp:vc_utils.modification_date(baseinp)}
         bi.metadata['Log'].update({version_id:comments})
         bi.save(vc_directory, version_id+'.txt')
+<<<<<<< HEAD
         print 'rebuilding {} with changes to baseline'.format(model.name)
+=======
+        print('rebuilding {} with changes to baseline'.format(model.name))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         bi.build(baseline_dir, model.inp.path) #overwrite old inp
 
 
@@ -92,6 +96,7 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
     #identify all scenarios (cartesian product of sets of IPs between each RSN)
     #then isolate child scenarios with atleast 2 parents (sets with one parent
     #are already modeled as IPs within the RSNs)
+<<<<<<< HEAD
     all_scenarios = [filter(None, s) for s in itertools.product(*IPs)]
     child_scenarios = [s for s in all_scenarios if len(s) > 1]
 
@@ -100,6 +105,16 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
     print ('Found {} implementation phases among {} networks:\n{}\n'
            'This yeilds {} combined scenarios ({} total)'.format(len(IP_dirs),
             len(RSN_dirs),str_IPs,len(child_scenarios),len(all_scenarios) - 1))
+=======
+    all_scenarios = [[_f for _f in s if _f] for s in itertools.product(*IPs)]
+    child_scenarios = [s for s in all_scenarios if len(s) > 1]
+
+    #notify user of what was initially found
+    str_IPs = '\n'.join([', '.join([_f for _f in i if _f]) for i in IPs])
+    print(('Found {} implementation phases among {} networks:\n{}\n'
+           'This yeilds {} combined scenarios ({} total)'.format(len(IP_dirs),
+            len(RSN_dirs),str_IPs,len(child_scenarios),len(all_scenarios) - 1)))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
 
     # ==========================================================================
     # UPDATE/CREATE THE PARENT MODEL BUILD INSTRUCTIONS
@@ -109,7 +124,11 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
         vc_dir = os.path.join(ip_dir, 'vc')
 
         if not os.path.exists(vc_dir):
+<<<<<<< HEAD
             print 'creating new build instructions for {}'.format(ip_model.name)
+=======
+            print('creating new build instructions for {}'.format(ip_model.name))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
             inp.create_inp_build_instructions(baseinp, ip_model.inp.path,
                                               vc_dir,
                                               version_id, comments)
@@ -120,7 +139,11 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
             if not vc_utils.bi_is_current(latest_bi):
                 #revision date of the alt doesn't match the newest build
                 #instructions for this 'imp_level', so we should refresh it
+<<<<<<< HEAD
                 print 'updating build instructions for {}'.format(ip_model.name)
+=======
+                print('updating build instructions for {}'.format(ip_model.name))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
                 inp.create_inp_build_instructions(baseinp, ip_model.inp.path,
                                                   vc_dir, version_id,
                                                   comments)
@@ -144,7 +167,11 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
             os.mkdir(new_dir)
             newinppath = os.path.join(new_dir, newcombi + '.inp')
 
+<<<<<<< HEAD
             print 'creating new child model: {}'.format(newcombi)
+=======
+            print('creating new child model: {}'.format(newcombi))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
             new_build_instructions = sum(build_instrcts)
             new_build_instructions.save(vc_dir, version_id+'.txt')
             new_build_instructions.build(baseline_dir, newinppath)
@@ -157,7 +184,11 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
             if not vc_utils.bi_is_current(latest_bi):
                 #revision date of the alt doesn't match the newest build
                 #instructions for this 'imp_level', so we should refresh it
+<<<<<<< HEAD
                 print 'updating child build instructions for {}'.format(newcombi)
+=======
+                print('updating child build instructions for {}'.format(newcombi))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
                 newinppath = os.path.join(new_dir, newcombi + '.inp')
                 new_build_instructions = sum(build_instrcts)
                 new_build_instructions.save(vc_dir, version_id+'.txt')

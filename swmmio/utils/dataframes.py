@@ -38,8 +38,13 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
     if not tempfilepath:
         #if this head (section) was not found in the textfile, return a
         #blank dataframe with the appropriate schema
+<<<<<<< HEAD
         print 'header "{}" not found in "{}"'.format(section, inp_path)
         print 'returning empty dataframe'
+=======
+        print('header "{}" not found in "{}"'.format(section, inp_path))
+        print('returning empty dataframe')
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
         blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
         return blank_df
@@ -57,6 +62,14 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
             headerlist = headerlist + [';', 'Comment', 'Origin']
         df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
                              index_col=0, names = headerlist, comment=comment_str)
+<<<<<<< HEAD
+
+        if comment_cols:
+            #add new blank comment column after a semicolon column
+            df[';'] = ';'
+
+    os.remove(tempfilepath)
+=======
 
         if comment_cols:
             #add new blank comment column after a semicolon column
@@ -64,8 +77,38 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 
     os.remove(tempfilepath)
 
-    return df
+    return df.rename(index=str)
 
+def get_link_coords(row, nodexys, verticies):
+    """for use in an df.apply, to get coordinates of a conduit/link """
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
+
+    #cast IDs to string
+    inlet_id = str(row.InletNode)
+    outlet_id =str(row.OutletNode)
+    xys_str = nodexys.rename(index=str)
+
+    x1 = round(xys_str.at[inlet_id, 'X'], 4)
+    y1 = round(xys_str.at[inlet_id, 'Y'], 4)
+    x2 = round(xys_str.at[outlet_id, 'X'], 4)
+    y2 = round(xys_str.at[outlet_id, 'Y'], 4)
+    if None in [x1, x2, y1, y2]:
+        print(row.name, 'problem, no coords')
+    #grab any extra verts, place in between up/dwn nodes
+    res =  [(x1, y1)]
+    if row.name in verticies.index:
+        xs = verticies.loc[row.name, 'X'].tolist()
+        ys = verticies.loc[row.name, 'Y'].tolist()
+        if isinstance(xs, list) and isinstance(ys, list):
+            #if more than one vert for this link exists, arrays are returned
+            #from verticies.get_value(). it then needs to be zipped up
+            res = res + list(zip(xs, ys))
+        else:
+            res = res + [(xs, ys)]
+
+    res = res + [(x2, y2)]
+
+<<<<<<< HEAD
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
     x1 = round(nodexys.get_value(row.InletNode, 'X'), 4)
@@ -88,6 +131,8 @@ def get_link_coords(row, nodexys, verticies):
 
     res = res + [(x2, y2)]
 
+=======
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
     return [res] #nest in a list to force a series to be returned in a df.apply
 
 def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
@@ -104,7 +149,11 @@ def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
                                                 element_id=element_id)
 
     if not tempfilepath:
+<<<<<<< HEAD
         print 'header "{}" not found in "{}"'.format(section, rpt_path)
+=======
+        print('header "{}" not found in "{}"'.format(section, rpt_path))
+>>>>>>> 20c5e0571a9e48d405822dc963669df8811e6d33
         return None
 
     if headerdefs['headers'][section] == 'blob':
