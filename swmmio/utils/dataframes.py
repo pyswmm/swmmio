@@ -3,6 +3,7 @@ from swmmio.utils import functions as funcs
 import pandas as pd
 import os
 
+
 def create_dataframeBI(bi_path, section='[CONDUITS]'):
     """
     given a path to a biuld instructions file, create a dataframe of data in a
@@ -19,6 +20,7 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
     os.remove(tempfilepath) #clean up
 
     return df
+
 
 def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
                          comment_str=';', comment_cols=True):
@@ -66,6 +68,7 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 
     return df.rename(index=str)
 
+
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
 
@@ -95,6 +98,7 @@ def get_link_coords(row, nodexys, verticies):
     res = res + [(x2, y2)]
 
     return [res] #nest in a list to force a series to be returned in a df.apply
+
 
 def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
     """

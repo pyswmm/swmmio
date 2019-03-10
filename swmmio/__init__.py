@@ -7,5 +7,5 @@ __author__ = 'Adam Erispaha'
 __copyright__ = 'Copyright (c) 2016'
 __licence__ = ''
 
-from .swmmio import *
+from .core import *
 from swmmio.utils.dataframes import create_dataframeBI, create_dataframeRPT, create_dataframeINP

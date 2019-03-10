@@ -20,18 +20,17 @@ def test_create_dataframeRPT():
     assert(depth_summ.loc['J3', 'MaxNodeDepth'] == 1.64)
     assert(depth_summ.loc['4', 'MaxNodeDepth'] == 0.87)
 
-    # need to ensure indicies are strings always
+    # need to ensure indices are strings always
     assert(flood_summ.loc[5, 'TotalFloodVol'] == 0)
 
 
 def test_conduits_dataframe():
-
     m = swmmio.Model(MODEL_FULL_FEATURES_PATH)
-    conduits = m.conduits()
+    conduits = 2
     assert(list(conduits.index) == ['C1:C2'])
 
-def test_nodes_dataframe():
 
+def test_nodes_dataframe():
     m = swmmio.Model(MODEL_XSECTION_ALT_01)
     nodes = m.nodes()
 
@@ -45,8 +44,8 @@ def test_nodes_dataframe():
     assert(nodes.loc['dummy_node4', 'MaxDepth'] == 12.59314)
     assert(nodes.loc['dummy_node5', 'PondedArea'] == 73511)
 
-def test_model_to_networkx():
 
+def test_model_to_networkx():
     m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
     G = m.network
 

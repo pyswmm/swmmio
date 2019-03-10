@@ -2,6 +2,7 @@ from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 import pandas as pd
 
+
 def random_alphanumeric(n=6):
     import random
     chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -75,6 +76,8 @@ def model_to_networkx(model, drop_cycles=True):
 
     return G
 
+
+# Todo: use an OrderedDict instead of a dict and a "order" list
 def complete_inp_headers (inpfilepath):
     """
     creates a dictionary with all the headers found in an INP file
@@ -88,7 +91,7 @@ def complete_inp_headers (inpfilepath):
                     header section keys and their respective cleaned column headers
             'order' ->
                     an array of section headers found in the INP file
-                    that perserves the original order
+                    that preserves the original order
     """
     foundheaders= {}
     order = []
@@ -104,6 +107,7 @@ def complete_inp_headers (inpfilepath):
                     foundheaders.update({h:'blob'})
 
     return {'headers':foundheaders, 'order':order}
+
 
 def complete_rpt_headers (rptfilepath):
     """
@@ -146,6 +150,7 @@ def complete_rpt_headers (rptfilepath):
 
     return {'headers':foundheaders, 'order':order}
 
+
 def merge_dicts(*dict_args):
     '''
     Given any number of dicts, shallow copy and merge into a new dict,
@@ -157,10 +162,11 @@ def merge_dicts(*dict_args):
             result.update(dictionary)
     return result
 
+
 def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
     """
-    trace up and down a SWMM model given a start node and optionally an
+    trace up and down a SWMM model given a start node and optionally a
     stop node.
     """
 
