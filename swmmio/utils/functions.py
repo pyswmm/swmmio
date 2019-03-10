@@ -78,7 +78,7 @@ def model_to_networkx(model, drop_cycles=True):
 
 
 # Todo: use an OrderedDict instead of a dict and a "order" list
-def complete_inp_headers (inpfilepath):
+def complete_inp_headers(inpfilepath):
     """
     creates a dictionary with all the headers found in an INP file
     (which varies based on what the user has defined in a given model)
@@ -93,23 +93,23 @@ def complete_inp_headers (inpfilepath):
                     an array of section headers found in the INP file
                     that preserves the original order
     """
-    foundheaders= {}
+    foundheaders = {}
     order = []
-    #print inp_header_dict
+    # print inp_header_dict
     with open(inpfilepath) as f:
         for line in f:
             if '[' and ']' in line:
                 h = line.strip()
                 order.append(h)
                 if h in inp_header_dict:
-                    foundheaders.update({h:inp_header_dict[h]})
+                    foundheaders.update({h: inp_header_dict[h]})
                 else:
-                    foundheaders.update({h:'blob'})
+                    foundheaders.update({h: 'blob'})
 
-    return {'headers':foundheaders, 'order':order}
+    return {'headers': foundheaders, 'order': order}
 
 
-def complete_rpt_headers (rptfilepath):
+def complete_rpt_headers(rptfilepath):
     """
     creates a dictionary with all the headers found in an RPT file
     (which varies based on what the user has defined in a given model)
@@ -124,7 +124,7 @@ def complete_rpt_headers (rptfilepath):
                     an array of section headers found in the RPT file
                     that perserves the original order
     """
-    foundheaders= {}
+    foundheaders = {}
     order = []
     with open(rptfilepath) as f:
         buff3line = deque()

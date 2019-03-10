@@ -559,8 +559,8 @@ class inp(SWMMIOFile):
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
         >>> model.inp.junctions
               InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
-            Name
-            J3         6.547        15          0               0           0
+        Name
+        J3         6.547        15          0               0           0
         1         17.000         0          0               0           0
         2         17.000         0          0               0           0
         3         16.500         0          0               0           0
@@ -591,7 +591,7 @@ class inp(SWMMIOFile):
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
         >>> model.inp.outfalls
-                InvertElev OutfallType StageOrTimeseries  TideGate
+              InvertElev OutfallType StageOrTimeseries  TideGate
         Name
         J4             0        FREE                NO       NaN
         """
