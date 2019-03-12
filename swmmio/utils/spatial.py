@@ -11,8 +11,8 @@ def change_crs(series, in_crs, to_crs):
     """
     Change the projection of a series of coordinates
     :param series:
+    :param to_crs:
     :param in_crs:
-    :param to_proj:
     :return: series of reprojected coordinates
     >>> import swmmio
     >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -59,6 +59,41 @@ def change_crs(series, in_crs, to_crs):
             return get_xys(series)
         else:
             return get_xys([series])
+
+
+def coords_series_to_geometry(coords, geomtype='linestring', format='geojson'):
+    """
+    Convert a series of coords (list of list(s)) to a series of geometry objects.
+    :param coords: series of lists of xy coordinates
+    :param format: format of geometry objects to be created ('geojson', 'shapely')
+    :return: series of geometry objects
+    >>> import swmmio
+    >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    >>> nodes = model.nodes()
+    >>> geoms = coords_series_to_geometry(nodes['coords'], geomtype='point')
+    >>> geoms.iloc[0]
+    {"coordinates": [2748073.3060000003, 1117746.087], "type": "Point"}
+    """
+
+    # detect whether LineString or Point should be used
+    geomtype = geomtype.lower()
+    if geomtype == 'linestring':
+        geoms = [LineString(latlngs) for latlngs in coords]
+    elif geomtype == 'point':
+        geoms = [Point(latlngs[0]) for latlngs in coords]
+    elif geomtype == 'polygon':
+        geoms = [Polygon([latlngs]) for latlngs in coords]
+
+    if format.lower() == 'shape':
+        # convert to shapely objects
+        try:
+            from shapely.geometry import shape
+        except ImportError:
+            raise ImportError('shapely module needed. Install it via GeoPandas with conda: ',
+                              'conda install geopandas')
+        geoms = [shape(g) for g in geoms]
+
+    return pd.Series(index=coords.index, name='geometry', data=geoms)
 
 
 def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):

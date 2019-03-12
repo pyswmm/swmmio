@@ -42,7 +42,6 @@ class ModelSection(object):
         conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
         xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
         conduits_df = conduits_df.join(xsections_df)
-        coords_df = self.model._coordinates_df()
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
@@ -50,9 +49,7 @@ class ModelSection(object):
             conduits_df = conduits_df.join(link_flow_df)
 
         # add conduit coordinates
-        # the xys.map() junk is to unpack a nested list
-        verts = create_dataframeINP(inp.path, '[VERTICES]')
-        xys = conduits_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
+        xys = conduits_df.apply(lambda r: get_link_coords(r, inp.coordinates, inp.vertices), axis=1)
         df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
         # add conduit up/down inverts and calculate slope
