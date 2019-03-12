@@ -3,7 +3,8 @@ from swmmio.tests.data import MODEL_FULL_FEATURES_XY
 import json
 import pandas as pd
 from geojson import Point, LineString, Polygon, FeatureCollection, Feature
-import os, shutil
+import os
+import shutil
 
 
 def change_crs(series, in_crs, to_crs):
@@ -39,7 +40,7 @@ def change_crs(series, in_crs, to_crs):
 
     # SET UP THE TO AND FROM COORDINATE PROJECTION
     in_proj = pyproj.Proj(in_crs, preserve_units=True)
-    to_proj = pyproj.Proj(to_crs)# to_crs)  # google maps, etc
+    to_proj = pyproj.Proj(to_crs)
 
     # convert coords in coordinates, vertices, and polygons inp sections
     # transform to the typical 'WGS84' coord system
@@ -88,7 +89,6 @@ def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
         if geomtype == 'linestring':
             geometry = LineString(latlngs)
         elif geomtype == 'point':
-            # lnglats = [(latlngs[0][1], latlngs[0][0])] #needs to be reversed. Why??
             geometry = Point(latlngs)
         elif geomtype == 'polygon':
             geometry = Polygon([latlngs])
@@ -146,9 +146,9 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
 
 def read_shapefile(shp_path):
     """
-	Read a shapefile into a Pandas dataframe with a 'coords' column holding
-	the geometry information. This uses the pyshp package
-	"""
+        Read a shapefile into a Pandas dataframe with a 'coords' column holding
+        the geometry information. This uses the pyshp package
+        """
     import shapefile
 
     # read file, parse out the records and shapes

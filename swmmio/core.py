@@ -13,11 +13,9 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES
 import warnings
 
 
-
 class Model(object):
 
-    def __init__(self, in_file_path):
-
+    def __init__(self, in_file_path, crs=None):
         """
         Class representing a complete SWMM model incorporating its INP and RPT
         files and data
@@ -47,7 +45,7 @@ class Model(object):
             self.rpt = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
             self.scenario = ''  # self._get_scenario()
-            self.crs = None  # coordinate reference system
+            self.crs = crs  # coordinate reference system
 
             # try to initialize a companion RPT object
             rpt_path = os.path.join(wd, name + '.rpt')
@@ -115,7 +113,6 @@ class Model(object):
             wrn()
 
     def conduits(self):
-
         """
         collect all useful and available data related model conduits and
         organize in one dataframe.
@@ -133,7 +130,6 @@ class Model(object):
         conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
         xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
         conduits_df = conduits_df.join(xsections_df)
-        coords_df = self.inp.coordinates
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
@@ -141,9 +137,7 @@ class Model(object):
             conduits_df = conduits_df.join(link_flow_df)
 
         # add conduit coordinates
-        # the xys.map() junk is to unpack a nested list
-        verts = self.inp.vertices
-        xys = conduits_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
+        xys = conduits_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
         df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
         # add conduit up/down inverts and calculate slope
@@ -164,7 +158,6 @@ class Model(object):
         return df
 
     def orifices(self):
-
         """
         collect all useful and available data related model orifices and
         organize in one dataframe.
@@ -183,11 +176,8 @@ class Model(object):
         if orifices_df.empty:
             return pd.DataFrame()
 
-        coords_df = self.inp.coordinates
-
         # add conduit coordinates
-        verts = self.inp.vertices
-        xys = orifices_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
+        xys = orifices_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
         df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
@@ -196,7 +186,6 @@ class Model(object):
         return df
 
     def weirs(self):
-
         """
         collect all useful and available data related model weirs and
         organize in one dataframe.
@@ -216,12 +205,9 @@ class Model(object):
             return pd.DataFrame()
 
         weirs_df = weirs_df[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
-        coords_df = self.inp.coordinates  # .drop_duplicates()
 
         # add conduit coordinates
-        # the xys.map() junk is to unpack a nested list
-        verts = self.inp.vertices
-        xys = weirs_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
+        xys = weirs_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
         df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
@@ -231,7 +217,6 @@ class Model(object):
         return df
 
     def pumps(self):
-
         """
         collect all useful and available data related model pumps and
         organize in one dataframe.
@@ -250,11 +235,8 @@ class Model(object):
         if pumps_df.empty:
             return pd.DataFrame()
 
-        coords_df = self.inp.coordinates
-
         # add conduit coordinates
-        verts = self.inp.vertices
-        xys = pumps_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
+        xys = pumps_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
         df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
@@ -264,7 +246,6 @@ class Model(object):
         return df
 
     def nodes(self, bbox=None, subset=None):
-
         """
         collect all useful and available data related model nodes and organize
         in one dataframe.
@@ -282,7 +263,6 @@ class Model(object):
         juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
         outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
         storage_df = create_dataframeINP(inp.path, "[STORAGE]")
-        coords_df = self.inp.coordinates
 
         # concatenate the DFs and keep only relevant cols
         all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
@@ -295,10 +275,11 @@ class Model(object):
             flood_summ = create_dataframeRPT(rpt.path, "Node Flooding Summary")
 
             # join the rpt data (index on depth df, suffixes for common cols)
-            rpt_df = depth_summ.join(flood_summ, lsuffix='_depth', rsuffix='_flood')
+            rpt_df = depth_summ.join(
+                flood_summ, lsuffix='_depth', rsuffix='_flood')
             all_nodes = all_nodes.join(rpt_df)  # join to the all_nodes df
 
-        all_nodes = all_nodes.join(coords_df[['X', 'Y']])
+        all_nodes = all_nodes.join(self.inp.coordinates[['X', 'Y']])
 
         def nodexy(row):
             if math.isnan(row.X) or math.isnan(row.Y):
@@ -323,7 +304,8 @@ class Model(object):
         polygons_df = self.inp.polygons
 
         if self.rpt:
-            flw = create_dataframeRPT(self.rpt.path, 'Subcatchment Runoff Summary')
+            flw = create_dataframeRPT(
+                self.rpt.path, 'Subcatchment Runoff Summary')
             subs = subs.join(flw)
 
             # more accurate runoff calculations
@@ -369,27 +351,26 @@ class Model(object):
         :return: True
         Example:
         >>> import swmmio
-        >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY)
-        >>> m.crs = "+init=EPSG:2272"
+        >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="+init=EPSG:2272")
         >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates
                       X          Y
         Name                      
-        J3    42.365958 -74.866424
-        1     42.368292 -74.870614
-        2     42.367916 -74.867615
-        3     42.368527 -74.869387
-        4     42.368089 -74.869024
-        5     42.367709 -74.868888
-        J2    42.366748 -74.868458
-        J4    42.365966 -74.864787
-        J1    42.366968 -74.868861
+        J3   -74.866424  42.365958
+        1    -74.870614  42.368292
+        2    -74.867615  42.367916
+        3    -74.869387  42.368527
+        4    -74.869024  42.368089
+        5    -74.868888  42.367709
+        J2   -74.868458  42.366748
+        J4   -74.864787  42.365966
+        J1   -74.868861  42.366968
         >>> m.inp.vertices
                        X          Y
         Name                       
-        C1:C2  42.366833 -74.868703
-        C2.1   42.366271 -74.868034
-        C2.1   42.365974 -74.867305
+        C1:C2 -74.868703  42.366833
+        C2.1  -74.868034  42.366271
+        C2.1  -74.867305  42.365974
         """
         try:
             import pyproj

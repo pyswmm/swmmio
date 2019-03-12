@@ -9,7 +9,8 @@ def test_create_dataframeRPT():
     m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
 
     depth_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Depth Summary")
-    flood_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Flooding Summary")
+    flood_summ = swmmio.create_dataframeRPT(
+        m.rpt.path, "Node Flooding Summary")
     inflo_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Inflow Summary")
 
     print('\n', depth_summ)
@@ -28,7 +29,7 @@ def test_create_dataframeRPT():
 
 def test_conduits_dataframe():
     m = swmmio.Model(MODEL_FULL_FEATURES_PATH)
-    conduits = 2
+    conduits = m.conduits()
     assert (list(conduits.index) == ['C1:C2'])
 
 
@@ -59,7 +60,9 @@ def test_model_to_networkx():
 def test_coordinates():
     m = swmmio.Model(MODEL_FULL_FEATURES_XY)
     coordinates = m.inp.coordinates
-    print(coordinates)
+    # coordinates.to_csv(df_test_coordinates_csv)
     test_coords = pd.read_csv(df_test_coordinates_csv, index_col=0)
-    assert(coordinates.equals(None))
 
+    assert(coordinates.equals(test_coords))
+
+    # change projection
