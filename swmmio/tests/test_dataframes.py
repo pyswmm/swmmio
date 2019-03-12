@@ -56,6 +56,9 @@ def test_model_to_networkx():
     assert (G['J1']['J2']['C1:C2']['Length'] == 244.63)
     assert (round(G.node['J2']['InvertElev'], 3) == 13.0)
 
+    links = m.links()
+    assert(len(links) == len(G.edges()))
+
 
 def test_coordinates():
     m = swmmio.Model(MODEL_FULL_FEATURES_XY)

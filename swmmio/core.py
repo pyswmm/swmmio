@@ -60,6 +60,7 @@ class Model(object):
             self._orifices_df = None
             self._weirs_df = None
             self._pumps_df = None
+            self._links_df = None
             self._subcatchments_df = None
             self._network = None
 
@@ -243,6 +244,19 @@ class Model(object):
 
         self._pumps_df = df
 
+        return df
+
+    def links(self):
+        """
+        create a DataFrame containing all link objects in the model including conduits, pumps, weirs, and orifices.
+        :return: dataframe containing all link objects in the model
+        """
+        if self._links_df is not None:
+            return self._links_df
+
+        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()])
+        df['facilityid'] = df.index
+        self._links_df = df
         return df
 
     def nodes(self, bbox=None, subset=None):
