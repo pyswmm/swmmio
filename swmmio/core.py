@@ -400,12 +400,16 @@ class Model(object):
         if self.crs is None:
             raise AttributeError('CRS of model object not set')
 
-        self.inp.coordinates = spatial.change_crs(self.inp.coordinates, self.crs, *args, **kwargs)
-        self.inp.polygons = spatial.change_crs(self.inp.polygons, self.crs, *args, **kwargs)
-        self.inp.vertices = spatial.change_crs(self.inp.vertices, self.crs, *args, **kwargs)
+        if not self.inp.coordinates.empty:
+            self.inp.coordinates = spatial.change_crs(self.inp.coordinates, self.crs, *args, **kwargs)
+
+        if not self.inp.vertices.empty:
+            self.inp.vertices = spatial.change_crs(self.inp.vertices, self.crs, *args, **kwargs)
+
+        if not self.inp.polygons.empty:
+            self.inp.polygons = spatial.change_crs(self.inp.polygons, self.crs, *args, **kwargs)
+
         self.crs = args[0]
-
-
 
     def to_geojson(self, target_path=None):
         """

@@ -45,7 +45,7 @@ def change_crs(series, in_crs, to_crs):
     # transform to the typical 'WGS84' coord system
     def get_xys(xy_row):
         # need to reverse to lat/long after conversion
-        return [pyproj.transform(in_proj, to_proj, x, y)[::-1] for x, y in xy_row]
+        return [pyproj.transform(in_proj, to_proj, x, y) for x, y in xy_row]
 
     if isinstance(series, pd.Series):
         return series.apply(lambda row: get_xys(row))

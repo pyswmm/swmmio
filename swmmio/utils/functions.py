@@ -65,7 +65,7 @@ def model_to_networkx(model, drop_cycles=True):
             G[u][v][k]['geometry'] = LineString(coords)
     for n, coords in G.nodes(data='coords'):
         if coords:
-            G.node[n]['geometry'] = Point(coords)
+            G.node[n]['geometry'] = Point(coords[0])
 
     if drop_cycles:
         # remove cycles
@@ -74,6 +74,7 @@ def model_to_networkx(model, drop_cycles=True):
             print('cycles detected and removed: {}'.format(cycles))
             G.remove_edges_from(cycles)
 
+    G.graph['crs'] = model.crs
     return G
 
 
