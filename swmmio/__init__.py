@@ -9,3 +9,4 @@ __licence__ = ''
 
 from .core import *
 from swmmio.utils.dataframes import create_dataframeBI, create_dataframeRPT, create_dataframeINP
+from swmmio import *

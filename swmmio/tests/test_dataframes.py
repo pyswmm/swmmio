@@ -1,6 +1,8 @@
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
-                               MODEL_BROWARD_COUNTY_PATH, MODEL_XSECTION_ALT_01)
+                               MODEL_BROWARD_COUNTY_PATH, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
+                               MODEL_FULL_FEATURES_XY)
 import swmmio
+import pandas as pd
 
 
 def test_create_dataframeRPT():
@@ -52,3 +54,12 @@ def test_model_to_networkx():
     assert (G['J2']['J3']['C2.1']['Length'] == 666)
     assert (G['J1']['J2']['C1:C2']['Length'] == 244.63)
     assert (round(G.node['J2']['InvertElev'], 3) == 13.0)
+
+
+def test_coordinates():
+    m = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    coordinates = m.inp.coordinates
+    print(coordinates)
+    test_coords = pd.read_csv(df_test_coordinates_csv, index_col=0)
+    assert(coordinates.equals(None))
+

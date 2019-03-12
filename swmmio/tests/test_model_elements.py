@@ -16,10 +16,10 @@ def test_model_section(test_model):
 
     bayside = Model(MODEL_FULL_FEATURES__NET_PATH)
 
-    a = bayside.inp.junctions[1]
-    # print(a)
-    tsb_ids = [1213, 13131, 232131, 12313]
-    tsbs = bayside.conduits(data=['MaxDepth, MaxQ', 'geometry'])
+    a = bayside.inp.junctions
+    print(a)
+    # tsb_ids = [1213, 13131, 232131, 12313]
+    # tsbs = bayside.conduits(data=['MaxDepth, MaxQ', 'geometry'])
 
 
 def test_complete_headers(test_model):

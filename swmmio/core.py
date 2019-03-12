@@ -9,7 +9,9 @@ from swmmio.utils import spatial
 from swmmio.utils import functions
 from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
 from swmmio.defs.config import *
+from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
+
 
 
 class Model(object):
@@ -45,6 +47,7 @@ class Model(object):
             self.rpt = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
             self.scenario = ''  # self._get_scenario()
+            self.crs = None  # coordinate reference system
 
             # try to initialize a companion RPT object
             rpt_path = os.path.join(wd, name + '.rpt')
@@ -130,7 +133,7 @@ class Model(object):
         conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
         xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
         conduits_df = conduits_df.join(xsections_df)
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")  # .drop_duplicates()
+        coords_df = self.inp.coordinates
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
@@ -139,7 +142,7 @@ class Model(object):
 
         # add conduit coordinates
         # the xys.map() junk is to unpack a nested list
-        verts = create_dataframeINP(inp.path, '[VERTICES]')
+        verts = self.inp.vertices
         xys = conduits_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
         df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
@@ -180,10 +183,10 @@ class Model(object):
         if orifices_df.empty:
             return pd.DataFrame()
 
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
+        coords_df = self.inp.coordinates
 
         # add conduit coordinates
-        verts = create_dataframeINP(inp.path, '[VERTICES]')
+        verts = self.inp.vertices
         xys = orifices_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
         df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
@@ -213,11 +216,11 @@ class Model(object):
             return pd.DataFrame()
 
         weirs_df = weirs_df[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")  # .drop_duplicates()
+        coords_df = self.inp.coordinates  # .drop_duplicates()
 
         # add conduit coordinates
         # the xys.map() junk is to unpack a nested list
-        verts = create_dataframeINP(inp.path, '[VERTICES]')
+        verts = self.inp.vertices
         xys = weirs_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
         df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
@@ -247,10 +250,10 @@ class Model(object):
         if pumps_df.empty:
             return pd.DataFrame()
 
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")  # .drop_duplicates()
+        coords_df = self.inp.coordinates
 
         # add conduit coordinates
-        verts = create_dataframeINP(inp.path, '[VERTICES]')
+        verts = self.inp.vertices
         xys = pumps_df.apply(lambda r: get_link_coords(r, coords_df, verts), axis=1)
         df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
@@ -279,7 +282,7 @@ class Model(object):
         juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
         outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
         storage_df = create_dataframeINP(inp.path, "[STORAGE]")
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")
+        coords_df = self.inp.coordinates
 
         # concatenate the DFs and keep only relevant cols
         all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
@@ -317,6 +320,7 @@ class Model(object):
         """
         subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]")
         subs = subs.drop([';', 'Comment', 'Origin'], axis=1)
+        polygons_df = self.inp.polygons
 
         if self.rpt:
             flw = create_dataframeRPT(self.rpt.path, 'Subcatchment Runoff Summary')
@@ -357,6 +361,51 @@ class Model(object):
             self._network = G
 
         return self._network
+
+    def to_crs(self, *args, **kwargs):
+        """
+        Convert coordinate reference system of the model coordinates
+        :param target_crs:
+        :return: True
+        Example:
+        >>> import swmmio
+        >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY)
+        >>> m.crs = "+init=EPSG:2272"
+        >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
+        >>> m.inp.coordinates
+                      X          Y
+        Name                      
+        J3    42.365958 -74.866424
+        1     42.368292 -74.870614
+        2     42.367916 -74.867615
+        3     42.368527 -74.869387
+        4     42.368089 -74.869024
+        5     42.367709 -74.868888
+        J2    42.366748 -74.868458
+        J4    42.365966 -74.864787
+        J1    42.366968 -74.868861
+        >>> m.inp.vertices
+                       X          Y
+        Name                       
+        C1:C2  42.366833 -74.868703
+        C2.1   42.366271 -74.868034
+        C2.1   42.365974 -74.867305
+        """
+        try:
+            import pyproj
+        except ImportError:
+            raise ImportError('pyproj module needed. get this package here: ',
+                              'https://pypi.python.org/pypi/pyproj')
+
+        if self.crs is None:
+            raise AttributeError('CRS of model object not set')
+
+        self.inp.coordinates = spatial.change_crs(self.inp.coordinates, self.crs, *args, **kwargs)
+        self.inp.polygons = spatial.change_crs(self.inp.polygons, self.crs, *args, **kwargs)
+        self.inp.vertices = spatial.change_crs(self.inp.vertices, self.crs, *args, **kwargs)
+        self.crs = args[0]
+
+
 
     def to_geojson(self, target_path=None):
         """
@@ -494,10 +543,14 @@ class inp(SWMMIOFile):
         self._conduits_df = None
         self._junctions_df = None
         self._outfalls_df = None
+        self._coordinates_df = None
+        self._vertices_df = None
+        self._polygons_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
-        self._sections = [self._conduits_df, self._junctions_df, self._outfalls_df]
+        self._sections = [self._conduits_df, self._junctions_df, self._outfalls_df,
+                          self._coordinates_df, self._vertices_df, self._polygons_df]
 
     def save(self, target_path=None):
         '''
@@ -603,3 +656,51 @@ class inp(SWMMIOFile):
     def outfalls(self, df):
         """Set inp.outfalls DataFrame."""
         self._outfalls_df = df
+
+    @property
+    def coordinates(self):
+        """
+        Get/set coordinates section of model
+        :return: dataframe of model coordinates
+        """
+        if self._coordinates_df is not None:
+            return self._coordinates_df
+        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False)
+        return self._coordinates_df
+
+    @coordinates.setter
+    def coordinates(self, df):
+        """Set inp.coordinates DataFrame."""
+        self._coordinates_df = df
+
+    @property
+    def vertices(self):
+        """
+        get/set vertices section of model
+        :return: dataframe of model coordinates
+        """
+        if self._vertices_df is not None:
+            return self._vertices_df
+        self._vertices_df = create_dataframeINP(self.path, '[VERTICES]', comment_cols=False)
+        return self._vertices_df
+
+    @vertices.setter
+    def vertices(self, df):
+        """Set inp.vertices DataFrame."""
+        self._vertices_df = df
+
+    @property
+    def polygons(self):
+        """
+        get/set polygons section of model
+        :return: dataframe of model coordinates
+        """
+        if self._polygons_df is not None:
+            return self._polygons_df
+        self._polygons_df = create_dataframeINP(self.path, '[Polygons]', comment_cols=False)
+        return self._polygons_df
+
+    @polygons.setter
+    def polygons(self, df):
+        """Set inp.polygons DataFrame."""
+        self._polygons_df = df

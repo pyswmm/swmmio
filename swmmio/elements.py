@@ -42,7 +42,7 @@ class ModelSection(object):
         conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
         xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
         conduits_df = conduits_df.join(xsections_df)
-        coords_df = create_dataframeINP(inp.path, "[COORDINATES]")  # .drop_duplicates()
+        coords_df = self.model._coordinates_df()
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
