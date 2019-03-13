@@ -11,6 +11,8 @@ from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, ge
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
+import swmmio
+from swmmio.elements import ModelSection
 
 
 class Model(object):
@@ -217,34 +219,28 @@ class Model(object):
 
         return df
 
+    @property
     def pumps(self):
+
         """
         collect all useful and available data related model pumps and
         organize in one dataframe.
+        >>> import swmmio
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+        >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
+        >>> pumps = model.pumps()
+        >>> pumps[['PumpCurve', 'InitStatus']]
+             PumpCurve InitStatus
+        Name
+        C2    P1_Curve         ON
+        >>> pumps = model.pumps.to_gdf()
+        >>> pumps
         """
 
-        # check if this has been done already and return that data accordingly
-        if self._pumps_df is not None:
-            return self._pumps_df
+        pumps_df = ModelSection(self, 'pumps')
+        self._pumps_df = pumps_df
 
-        # parse out the main objects of this model
-        inp = self.inp
-        rpt = self.rpt
-
-        # create dataframes of relevant sections from the INP
-        pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
-        if pumps_df.empty:
-            return pd.DataFrame()
-
-        # add conduit coordinates
-        xys = pumps_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
-        df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
-        df.InletNode = df.InletNode.astype(str)
-        df.OutletNode = df.OutletNode.astype(str)
-
-        self._pumps_df = df
-
-        return df
+        return pumps_df
 
     def links(self):
         """
