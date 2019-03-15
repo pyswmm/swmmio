@@ -93,7 +93,7 @@ class ComparisonReport(object):
         proposed_flooding = alt_report.parcel_flooding
 
         conduitdiff = INPDiff(basemodel, altmodel, '[CONDUITS]')
-        new_cond_ids = pd.concat([conduitdiff.added, conduitdiff.altered]).index
+        new_cond_ids = pd.concat([conduitdiff.added, conduitdiff.altered], sort=True).index
 
         self.baseline_report = baseline_report
         self.alt_report = alt_report

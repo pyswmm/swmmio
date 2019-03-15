@@ -86,7 +86,7 @@ class BuildInstructions(object):
         with open (filepath, 'w') as f:
             vc_utils.write_meta_data(f, self.metadata)
             for section, change_obj in self.instructions.items():
-                section_df = pd.concat([change_obj.removed, change_obj.altered, change_obj.added])
+                section_df = pd.concat([change_obj.removed, change_obj.altered, change_obj.added], sort=True)
                 vc_utils.write_inp_section(f, allheaders=None, sectionheader=section,
                                            section_data=section_df, pad_top=False, na_fill='NaN')
 
@@ -118,7 +118,7 @@ class BuildInstructions(object):
                     new_section = basedf.drop(remove_ids)
 
                     #add elements
-                    new_section = pd.concat([new_section, changes.altered, changes.added])
+                    new_section = pd.concat([new_section, changes.altered, changes.added], sort=True)
                 else:
                     #section is not well understood or is problematic, just blindly copy
                     new_section = create_dataframeINP(basemodel.inp.path, section=section)
@@ -149,7 +149,7 @@ class INPDiff(object):
             #find where elements were changed (but kept with same ID)
             common_ids = df1.index.difference(removed_ids) #original - removed = in common
             #both dfs concatenated, with matched indices for each element
-            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]])
+            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]], sort=True)
             #drop dupes on the set, all things that did not changed should have 1 row
             changes_with_dupes = full_set.drop_duplicates()
             #duplicate indicies are rows that have changes, isolate these
@@ -307,7 +307,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
             if section not in problem_sections:
                 #calculate the changes in the current section
                 changes = INPDiff(modela, modelb, section)
-                data = pd.concat([changes.removed, changes.added, changes.altered])
+                data = pd.concat([changes.removed, changes.added, changes.altered], sort=True)
                 #vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False, na_fill='NaN') #na fill fixes SNOWPACK blanks spaces issue
 

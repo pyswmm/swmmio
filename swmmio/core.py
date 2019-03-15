@@ -250,7 +250,7 @@ class Model(object):
         if self._links_df is not None:
             return self._links_df
 
-        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()])
+        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
         df['facilityid'] = df.index
         self._links_df = df
         return df
@@ -275,7 +275,7 @@ class Model(object):
         storage_df = create_dataframeINP(inp.path, "[STORAGE]")
 
         # concatenate the DFs and keep only relevant cols
-        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
+        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
         cols = ['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
         all_nodes = all_nodes[cols]
 
