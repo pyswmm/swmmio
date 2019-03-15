@@ -14,6 +14,7 @@ environment:
     # isn't covered by this document) at the time of writing.
     - PYTHON: "C:\\Python27"
     - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python37"
 
 install:
   - "%PYTHON%\\python setup.py develop"
