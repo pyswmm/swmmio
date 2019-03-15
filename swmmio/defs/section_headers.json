@@ -1,0 +1,13 @@
+{
+  "junctions": ["Name", "Elevation", "MaxDepth", "InitDepth", "SurDepth", "Aponded"],
+  "outfalls": ["Name", "Elevation", "Type", "Stage Data", "Gated", "Route To"],
+  "conduits": {
+    "inp_sections": ["[CONDUITS]", "[XSECTIONS]"],
+    "rpt_sections": ["Link Flow Summary"],
+    "columns": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InletOffset", "OutletOffset", "InitFlow", "MaxFlow"]
+  },
+  "pumps": {
+    "inp_sections": ["[PUMPS]"],
+    "rpt_sections": ["Link Flow Summary"]
+  }
+}

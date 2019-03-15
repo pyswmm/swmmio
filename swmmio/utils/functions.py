@@ -2,6 +2,7 @@ from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 import pandas as pd
 
+
 def random_alphanumeric(n=6):
     import random
     chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
@@ -64,7 +65,7 @@ def model_to_networkx(model, drop_cycles=True):
             G[u][v][k]['geometry'] = LineString(coords)
     for n, coords in G.nodes(data='coords'):
         if coords:
-            G.node[n]['geometry'] = Point(coords)
+            G.node[n]['geometry'] = Point(coords[0])
 
     if drop_cycles:
         # remove cycles
@@ -73,9 +74,12 @@ def model_to_networkx(model, drop_cycles=True):
             print('cycles detected and removed: {}'.format(cycles))
             G.remove_edges_from(cycles)
 
+    G.graph['crs'] = model.crs
     return G
 
-def complete_inp_headers (inpfilepath):
+
+# Todo: use an OrderedDict instead of a dict and a "order" list
+def complete_inp_headers(inpfilepath):
     """
     creates a dictionary with all the headers found in an INP file
     (which varies based on what the user has defined in a given model)
@@ -88,24 +92,25 @@ def complete_inp_headers (inpfilepath):
                     header section keys and their respective cleaned column headers
             'order' ->
                     an array of section headers found in the INP file
-                    that perserves the original order
+                    that preserves the original order
     """
-    foundheaders= {}
+    foundheaders = {}
     order = []
-    #print inp_header_dict
+    # print inp_header_dict
     with open(inpfilepath) as f:
         for line in f:
             if '[' and ']' in line:
                 h = line.strip()
                 order.append(h)
                 if h in inp_header_dict:
-                    foundheaders.update({h:inp_header_dict[h]})
+                    foundheaders.update({h: inp_header_dict[h]})
                 else:
-                    foundheaders.update({h:'blob'})
+                    foundheaders.update({h: 'blob'})
 
-    return {'headers':foundheaders, 'order':order}
+    return {'headers': foundheaders, 'order': order}
 
-def complete_rpt_headers (rptfilepath):
+
+def complete_rpt_headers(rptfilepath):
     """
     creates a dictionary with all the headers found in an RPT file
     (which varies based on what the user has defined in a given model)
@@ -120,7 +125,7 @@ def complete_rpt_headers (rptfilepath):
                     an array of section headers found in the RPT file
                     that perserves the original order
     """
-    foundheaders= {}
+    foundheaders = {}
     order = []
     with open(rptfilepath) as f:
         buff3line = deque()
@@ -146,6 +151,7 @@ def complete_rpt_headers (rptfilepath):
 
     return {'headers':foundheaders, 'order':order}
 
+
 def merge_dicts(*dict_args):
     '''
     Given any number of dicts, shallow copy and merge into a new dict,
@@ -157,10 +163,11 @@ def merge_dicts(*dict_args):
             result.update(dictionary)
     return result
 
+
 def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
     """
-    trace up and down a SWMM model given a start node and optionally an
+    trace up and down a SWMM model given a start node and optionally a
     stop node.
     """
 
