@@ -21,7 +21,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
 
     if model2 is not None:
         changes = INPDiff(model1, model2, section='[CONDUITS]')
-        df = pd.concat([changes.added, changes.altered], sort=True)
+        df = pd.concat([changes.added, changes.altered])
         subset = df.index.tolist()
 
     # else:

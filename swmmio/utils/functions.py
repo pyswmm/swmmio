@@ -52,7 +52,7 @@ def model_to_networkx(model, drop_cycles=True):
         nodes = nodes.join(flows)
 
     conduits = model.conduits()
-    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()], sort=True)
+    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()])
     links['facilityid'] = links.index
 
     # create a nx.MultiDiGraph from the combined model links, add node data, set CRS
