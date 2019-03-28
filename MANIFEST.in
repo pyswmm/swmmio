@@ -3,3 +3,4 @@ include lib/windows/swmm5_22.exe
 include lib/linux/swmm5
 include swmmio/reporting/basemaps/*.html
 include swmmio/graphics/fonts/*.ttf
+include swmmio/defs/*.json

@@ -77,10 +77,11 @@ def get_link_coords(row, nodexys, verticies):
     outlet_id = str(row.OutletNode)
     xys_str = nodexys.rename(index=str)
 
-    x1 = round(xys_str.at[inlet_id, 'X'], 4)
-    y1 = round(xys_str.at[inlet_id, 'Y'], 4)
-    x2 = round(xys_str.at[outlet_id, 'X'], 4)
-    y2 = round(xys_str.at[outlet_id, 'Y'], 4)
+    x1 = xys_str.at[inlet_id, 'X']
+    y1 = xys_str.at[inlet_id, 'Y']
+    x2 = xys_str.at[outlet_id, 'X']
+    y2 = xys_str.at[outlet_id, 'Y']
+
     if None in [x1, x2, y1, y2]:
         print(row.name, 'problem, no coords')
     # grab any extra verts, place in between up/dwn nodes
