@@ -48,17 +48,17 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 
     if headerdefs['headers'][section] == 'blob':
         # return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=comment_str)
+        df = pd.read_csv(tempfilepath, delim_whitespace=False, comment=comment_str)
     elif section == '[CURVES]' or section == '[TIMESERIES]':
         # return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False)  # , index_col=0)#, skiprows=[0])
+        df = pd.read_csv(tempfilepath, delim_whitespace=False)  # , index_col=0)#, skiprows=[0])
     else:
         # this section header is recognized and will be organized into known columns
         headerlist = headerdefs['headers'][section].split()
         if comment_cols:
             headerlist = headerlist + [';', 'Comment', 'Origin']
-        df = pd.read_table(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                           index_col=0, names=headerlist, comment=comment_str)
+        df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
+                           index_col=0, names=headerlist, comment=comment_str)# , encoding='latin1')
 
         if comment_cols:
             # add new blank comment column after a semicolon column

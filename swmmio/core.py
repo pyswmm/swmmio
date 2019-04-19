@@ -160,30 +160,14 @@ class Model(object):
 
         return df
 
+    @property
     def orifices(self):
         """
         collect all useful and available data related model orifices and
         organize in one dataframe.
         """
 
-        # check if this has been done already and return that data accordingly
-        if self._orifices_df is not None:
-            return self._orifices_df
-
-        # parse out the main objects of this model
-        inp = self.inp
-        rpt = self.rpt
-
-        # create dataframes of relevant sections from the INP
-        orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
-        if orifices_df.empty:
-            return pd.DataFrame()
-
-        # add conduit coordinates
-        xys = orifices_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
-        df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
-        df.InletNode = df.InletNode.astype(str)
-        df.OutletNode = df.OutletNode.astype(str)
+        df = ModelSection(self, 'orifices')
         self._orifices_df = df
 
         return df
@@ -244,7 +228,8 @@ class Model(object):
 
     def links(self):
         """
-        create a DataFrame containing all link objects in the model including conduits, pumps, weirs, and orifices.
+        create a DataFrame containing all link objects in the model including
+        conduits, pumps, weirs, and orifices.
         :return: dataframe containing all link objects in the model
         """
         if self._links_df is not None:
@@ -365,7 +350,7 @@ class Model(object):
         >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates
                       X          Y
-        Name                      
+        Name
         J3   -74.866424  42.365958
         1    -74.870614  42.368292
         2    -74.867615  42.367916
@@ -377,7 +362,7 @@ class Model(object):
         J1   -74.868861  42.366968
         >>> m.inp.vertices
                        X          Y
-        Name                       
+        Name
         C1:C2 -74.868703  42.366833
         C2.1  -74.868034  42.366271
         C2.1  -74.867305  42.365974
@@ -538,14 +523,24 @@ class inp(SWMMIOFile):
         self._conduits_df = None
         self._junctions_df = None
         self._outfalls_df = None
+        self._storage_df = None
         self._coordinates_df = None
         self._vertices_df = None
         self._polygons_df = None
+        self._subcatchments_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
-        self._sections = [self._conduits_df, self._junctions_df, self._outfalls_df,
-                          self._coordinates_df, self._vertices_df, self._polygons_df]
+        self._sections = [
+                '[CONDUITS]',
+                '[JUNCTIONS]',
+                '[STORAGE]',
+                '[OUTFALLS]',
+                '[VERTICES]',
+                '[SUBCATCHMENTS]'
+            ]
+              # self._outfalls_df,
+              #             self._coordinates_df, self._vertices_df, self._polygons_df]
 
     def save(self, target_path=None):
         '''
@@ -553,11 +548,17 @@ class inp(SWMMIOFile):
         is provided
         '''
         from swmmio.utils.modify_model import replace_inp_section
+        import shutil
         target_path = target_path if target_path is not None else self.path
 
+        shutil.copyfile(self.path, target_path)
         for section in self._sections:
-            if section is not None:
-                replace_inp_section()
+            # reformate the [SECTION] to section (and _section_df)
+            sect_id = section.translate({ord(i): None for i in '[]'}).lower()
+            sect_id_private = f'_{sect_id}_df'
+            data = getattr(self, sect_id_private)
+            if data is not None:
+                replace_inp_section(target_path, section, data)
 
     @property
     def conduits(self):
@@ -651,6 +652,44 @@ class inp(SWMMIOFile):
     def outfalls(self, df):
         """Set inp.outfalls DataFrame."""
         self._outfalls_df = df
+
+    @property
+    def storage(self):
+        """
+        Get/set storage section of the INP file.
+
+        :return: storage section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._storage_df is None:
+            self._storage_df = create_dataframeINP(self.path, "[STORAGE]", comment_cols=False)
+        return self._storage_df
+
+    @storage.setter
+    def storage(self, df):
+        """Set inp.storage DataFrame."""
+        self._storage_df = df
+
+    @property
+    def subcatchments(self):
+        """
+        Get/set subcatchments section of the INP file.
+
+        :return: subcatchments section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._subcatchments_df is None:
+            self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False)
+        return self._subcatchments_df
+
+    @subcatchments.setter
+    def subcatchments(self, df):
+        """Set inp.subcatchments DataFrame."""
+        self._subcatchments_df = df
 
     @property
     def coordinates(self):

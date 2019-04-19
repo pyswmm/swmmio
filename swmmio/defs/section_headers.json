@@ -9,5 +9,9 @@
   "pumps": {
     "inp_sections": ["[PUMPS]"],
     "rpt_sections": ["Link Flow Summary"]
+  },
+  "orifices": {
+    "inp_sections": ["[ORIFICES]"],
+    "rpt_sections": ["Link Flow Summary"]
   }
 }

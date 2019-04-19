@@ -58,6 +58,7 @@ class ModelSection(object):
                 df_other = create_dataframeINP(self.inp.path, sect, comment_cols=False)
                 df = df.join(df_other)
 
+        # if there is an RPT available, grab relevant sections
         if self.rpt:
             for rpt_sect in self.config['rpt_sections']:
                 df = df.join(create_dataframeRPT(self.rpt.path, rpt_sect))
@@ -71,4 +72,3 @@ class ModelSection(object):
         df.OutletNode = df.OutletNode.astype(str)
 
         return df
-
