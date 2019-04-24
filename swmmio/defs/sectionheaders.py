@@ -6,6 +6,7 @@
 inp_header_dict = {
     '[TITLE]':'blob',
     '[OPTIONS]':'Name Value',
+    '[FILES]': 'Action FileType FileName',
     '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
     '[COORDINATES]': 'Name X Y',
     '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
@@ -13,8 +14,7 @@ inp_header_dict = {
     '[OUTFALLS]': 'Name InvertElev OutfallType StageOrTimeseries TideGate',
     '[STORAGE]': 'Name InvertElev MaxD InitDepth StorageCurve Coefficient Exponent Constant PondedArea EvapFrac SuctionHead Conductivity InitialDeficit',
     '[VERTICES]': 'Name X Y',
-    '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff',
-    '[PUMPS]':'Name',
+    '[WEIRS]': 'Name InletNode OutletNode WeirType CrestHeight DischCoeff FlapGate EndCon EndCoeff Surcharge  RoadWidth  RoadSurf',
     '[XSECTIONS]':'Link Shape Geom1 Geom2 Geom3 Geom4 Barrels',
     '[SUBCATCHMENTS]':'Name Raingage Outlet Area PercImperv Width PercSlope CurbLength SnowPack',
     '[SUBAREAS]':'Name N-Imperv N-Perv S-Imperv S-Perv PctZero RouteTo PctRouted',

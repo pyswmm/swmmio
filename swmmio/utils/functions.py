@@ -1,6 +1,7 @@
 from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 import pandas as pd
+from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
 
 
 def random_alphanumeric(n=6):
@@ -52,7 +53,7 @@ def model_to_networkx(model, drop_cycles=True):
         nodes = nodes.join(flows)
 
     conduits = model.conduits()
-    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()])
+    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()], sort=True)
     links['facilityid'] = links.index
 
     # create a nx.MultiDiGraph from the combined model links, add node data, set CRS
@@ -76,6 +77,48 @@ def model_to_networkx(model, drop_cycles=True):
 
     G.graph['crs'] = model.crs
     return G
+
+
+def find_invalid_links(model, link_type, drop=False):
+    nids = model.nodes().index
+    elems = getattr(model.inp, link_type)
+    invalids = elems.index[~(elems.InletNode.isin(nids) & elems.OutletNode.isin(nids))]
+    if drop:
+        df = elems.loc[elems.InletNode.isin(nids) & elems.OutletNode.isin(nids)]
+        setattr(model.inp, link_type, df)
+    return invalids.tolist()
+
+
+def drop_invalid_model_elements(model):
+    """
+    Identify references to elements in the model that are undefined and remove them from the
+    model. These should coincide with warnings/errors produced by SWMM5 when undefined elements
+    are referenced in links, subcatchments, and controls.
+    :param model: swmmio.Model
+    :return:
+    >>> import swmmio
+    >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
+    >>> drop_invalid_model_elements(m)
+    ['InvalidLink2', 'InvalidLink1']
+    >>> m.inp.conduits.index
+    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+    """
+
+    nids = model.nodes().index
+
+    # drop links with bad refs to inlet/outlet nodes
+    inv_conds = find_invalid_links(model, 'conduits', drop=True)
+    inv_pumps = find_invalid_links(model, 'pumps', drop=True)
+    inv_orifs = find_invalid_links(model, 'orifices', drop=True)
+    inv_weirs = find_invalid_links(model, 'weirs', drop=True)
+
+    invalids = inv_conds + inv_pumps + inv_orifs + inv_weirs
+
+    # drop other parts of bad links, subcatchments
+    model.inp.xsections = model.inp.xsections.loc[~model.inp.xsections.index.isin(invalids)]
+    model.inp.subcatchments = model.inp.subcatchments.loc[model.inp.subcatchments['Outlet'].isin(nids)]
+
+    return invalids
 
 
 # Todo: use an OrderedDict instead of a dict and a "order" list

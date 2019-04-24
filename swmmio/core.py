@@ -235,7 +235,7 @@ class Model(object):
         if self._links_df is not None:
             return self._links_df
 
-        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()])
+        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
         df['facilityid'] = df.index
         self._links_df = df
         return df
@@ -260,7 +260,7 @@ class Model(object):
         storage_df = create_dataframeINP(inp.path, "[STORAGE]")
 
         # concatenate the DFs and keep only relevant cols
-        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
+        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
         cols = ['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
         all_nodes = all_nodes[cols]
 
@@ -520,7 +520,13 @@ class inp(SWMMIOFile):
     # make sure INP has been saved in the GUI before using this
 
     def __init__(self, file_path):
+        self._options_df = None
+        self._files_df = None
         self._conduits_df = None
+        self._xsections_df = None
+        self._pumps_df = None
+        self._orifices_df = None
+        self._weirs_df = None
         self._junctions_df = None
         self._outfalls_df = None
         self._storage_df = None
@@ -532,15 +538,19 @@ class inp(SWMMIOFile):
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
         self._sections = [
+                '[OPTIONS]',
+                '[FILES]',
                 '[CONDUITS]',
+                '[XSECTIONS]',
+                '[PUMPS]',
+                '[ORIFICES]',
+                '[WEIRS]',
                 '[JUNCTIONS]',
                 '[STORAGE]',
                 '[OUTFALLS]',
                 '[VERTICES]',
                 '[SUBCATCHMENTS]'
             ]
-              # self._outfalls_df,
-              #             self._coordinates_df, self._vertices_df, self._polygons_df]
 
     def save(self, target_path=None):
         '''
@@ -559,6 +569,45 @@ class inp(SWMMIOFile):
             data = getattr(self, sect_id_private)
             if data is not None:
                 replace_inp_section(target_path, section, data)
+
+    @property
+    def options(self):
+        """
+        Get/set options section of the INP file.
+
+        :return: options section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._options_df is None:
+            self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False)
+        return self._options_df
+
+    @options.setter
+    def options(self, df):
+        """Set inp.options DataFrame."""
+        self._options_df = df
+
+    @property
+    def files(self):
+        """
+        Get/set files section of the INP file.
+
+        :return: files section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._files_df is None:
+            self._files_df = create_dataframeINP(self.path, "[FILES]", comment_cols=False)
+        return self._files_df.reset_index()
+
+    @files.setter
+    def files(self, df):
+        """Set inp.files DataFrame."""
+        first_col = df.columns[0]
+        self._files_df = df.set_index(first_col)
 
     @property
     def conduits(self):
@@ -592,6 +641,62 @@ class inp(SWMMIOFile):
     def conduits(self, df):
         """Set inp.conduits DataFrame."""
         self._conduits_df = df
+
+    @property
+    def xsections(self):
+        """
+        Get/set pumps section of the INP file.
+        """
+        if self._xsections_df is None:
+            self._xsections_df = create_dataframeINP(self.path, "[XSECTIONS]", comment_cols=False)
+        return self._xsections_df
+
+    @xsections.setter
+    def xsections(self, df):
+        """Set inp.xsections DataFrame."""
+        self._xsections_df = df
+
+    @property
+    def pumps(self):
+        """
+        Get/set pumps section of the INP file.
+        """
+        if self._pumps_df is None:
+            self._pumps_df = create_dataframeINP(self.path, "[PUMPS]", comment_cols=False)
+        return self._pumps_df
+
+    @pumps.setter
+    def pumps(self, df):
+        """Set inp.pumps DataFrame."""
+        self._pumps_df = df
+
+    @property
+    def orifices(self):
+        """
+        Get/set orifices section of the INP file.
+        """
+        if self._orifices_df is None:
+            self._orifices_df = create_dataframeINP(self.path, "[ORIFICES]", comment_cols=False)
+        return self._orifices_df
+
+    @orifices.setter
+    def orifices(self, df):
+        """Set inp.orifices DataFrame."""
+        self._orifices_df = df
+
+    @property
+    def weirs(self):
+        """
+        Get/set weirs section of the INP file.
+        """
+        if self._weirs_df is None:
+            self._weirs_df = create_dataframeINP(self.path, "[WEIRS]", comment_cols=False)
+        return self._weirs_df
+
+    @weirs.setter
+    def weirs(self, df):
+        """Set inp.weirs DataFrame."""
+        self._weirs_df = df
 
     @property
     def junctions(self):

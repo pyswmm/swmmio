@@ -14,8 +14,8 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
     tempfilepath = txt.extract_section_from_inp(bi_path, section,
                                                 headerdefs=headerdefs,
                                                 skipheaders=True)
-    df = pd.read_table(tempfilepath, header=None, delim_whitespace=True,
-                       skiprows=[0], index_col=0, names=headerlist, comment=None)
+    df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True,
+                     skiprows=[0], index_col=0, names=headerlist, comment=None)
 
     os.remove(tempfilepath)  # clean up
 
@@ -57,8 +57,9 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
         headerlist = headerdefs['headers'][section].split()
         if comment_cols:
             headerlist = headerlist + [';', 'Comment', 'Origin']
+        dtypes = {'InletNode': str, 'OutletNode': str}
         df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                           index_col=0, names=headerlist, comment=comment_str)# , encoding='latin1')
+                           index_col=0, names=headerlist, comment=comment_str, dtype=dtypes)# , encoding='latin1')
 
         if comment_cols:
             # add new blank comment column after a semicolon column
@@ -125,13 +126,13 @@ def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
         if element_id:
             # we'retrying to pull a time series, parse the datetimes by
             # concatenating the Date Time columns (cols 1,2)
-            df0 = pd.read_table(tempfilepath, delim_whitespace=True)
+            df0 = pd.read_csv(tempfilepath, delim_whitespace=True)
             df = df0[df0.columns[2:]]  # the data sans date time columns
             df.index = pd.to_datetime(df0['Date'] + ' ' + df0['Time'])
             df.index.name = "".join(df0.columns[:2])
         else:
             # this section header is recognized, will be organized into known cols
-            df = pd.read_table(tempfilepath, delim_whitespace=True, index_col=0)
+            df = pd.read_csv(tempfilepath, delim_whitespace=True, index_col=0)
 
     os.remove(tempfilepath)
 

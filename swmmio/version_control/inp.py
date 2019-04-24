@@ -153,7 +153,8 @@ class INPDiff(object):
             #drop dupes on the set, all things that did not changed should have 1 row
             changes_with_dupes = full_set.drop_duplicates()
             #duplicate indicies are rows that have changes, isolate these
-            changed_ids = changes_with_dupes.index.get_duplicates()
+            # idx[idx.duplicated()].unique()
+            changed_ids = changes_with_dupes.index[changes_with_dupes.index.duplicated()].unique() #.get_duplicates()
 
             added = df2.loc[added_ids].copy()
             added['Comment'] = 'Added'# from model {}'.format(model2.inp.path)

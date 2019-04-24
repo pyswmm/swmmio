@@ -1,6 +1,6 @@
-from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_XSECTION_ALT_01,
-                               MODEL_XSECTION_ALT_02, MODEL_XSECTION_ALT_03)
-from swmmio import swmmio
+from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_PATH,
+                               MODEL_XSECTION_ALT_02, MODEL_XSECTION_ALT_03, MODEL_BLANK)
+
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
@@ -33,3 +33,23 @@ def test_create_inp_build_instructions():
     juncs = bi.instructions['[JUNCTIONS]']
     assert(all(j in juncs.altered.index for j in [
            'dummy_node1', 'dummy_node5']))
+
+
+# def test_add_models():
+#     inp.create_inp_build_instructions(MODEL_BLANK,
+#                                       MODEL_XSECTION_ALT_03,
+#                                       'vc_dir',
+#                                       'test_version_id', 'cool comments')
+#     bi_1 = vc_utils.newest_file('vc_dir')
+#     bi1 = inp.BuildInstructions(bi_1)
+#
+#     inp.create_inp_build_instructions(MODEL_BLANK,
+#                                       MODEL_FULL_FEATURES_PATH,
+#                                       'vc_dir',
+#                                       'test_model_full_feat', 'cool comments')
+#     bi_2 = vc_utils.newest_file('vc_dir')
+#     bi2 = inp.BuildInstructions(bi_2)
+#
+#     bi3 = bi1 + bi2
+#     bi3.build(MODEL_BLANK, 'added_model.inp')
+
