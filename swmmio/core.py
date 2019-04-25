@@ -13,6 +13,8 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES
 import warnings
 import swmmio
 from swmmio.elements import ModelSection
+from swmmio.defs import HEADERS
+# from swmmio.utils.functions import find_invalid_links
 
 
 class Model(object):
@@ -534,6 +536,9 @@ class inp(SWMMIOFile):
         self._vertices_df = None
         self._polygons_df = None
         self._subcatchments_df = None
+        self._subareas_df = None
+        self._infiltration_df = None
+        self._headers = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -549,7 +554,9 @@ class inp(SWMMIOFile):
                 '[STORAGE]',
                 '[OUTFALLS]',
                 '[VERTICES]',
-                '[SUBCATCHMENTS]'
+                '[SUBCATCHMENTS]',
+                '[SUBAREAS]',
+                '[INFILTRATION]'
             ]
 
     def save(self, target_path=None):
@@ -570,6 +577,31 @@ class inp(SWMMIOFile):
             if data is not None:
                 replace_inp_section(target_path, section, data)
 
+    def validate(self):
+        """
+        Detect and remove invalid model elements
+        :return: None
+        """
+        drop_invalid_model_elements(self)
+
+    @property
+    def headers(self):
+        """
+        Get the proper section headers for the INP file.
+        """
+        if self._headers is None:
+
+            infil_type = self.options.loc['INFILTRATION', 'Value']
+            infil_cols = HEADERS['infiltration_cols'][infil_type]
+
+            # overwrite the dynamic sections with proper header cols
+            h = dict(HEADERS['inp_sections'])
+            h['[INFILTRATION]'] = list(infil_cols)
+            self._headers = h
+
+        else:
+            return self._headers
+
     @property
     def options(self):
         """
@@ -581,13 +613,24 @@ class inp(SWMMIOFile):
         Examples:
         """
         if self._options_df is None:
-            self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False)
+            self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False,
+                                                   headers=self._headers)
         return self._options_df
 
     @options.setter
     def options(self, df):
         """Set inp.options DataFrame."""
         self._options_df = df
+
+        # update the headers
+        infil_type = df.loc['INFILTRATION', 'Value']
+        infil_cols = HEADERS['infiltration_cols'][infil_type]
+
+        # overwrite the dynamic sections with proper header cols
+        h = dict(HEADERS['inp_sections'])
+        h['[INFILTRATION]'] = list(infil_cols)
+        self._headers = h
+        self._infiltration_df = None
 
     @property
     def files(self):
@@ -788,13 +831,44 @@ class inp(SWMMIOFile):
         Examples:
         """
         if self._subcatchments_df is None:
-            self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False)
+            self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False,
+                                                         headers=self._headers)
         return self._subcatchments_df
 
     @subcatchments.setter
     def subcatchments(self, df):
         """Set inp.subcatchments DataFrame."""
         self._subcatchments_df = df
+
+    @property
+    def subareas(self):
+        """
+        Get/set subareas section of the INP file.
+        """
+        if self._subareas_df is None:
+            self._subareas_df = create_dataframeINP(self.path, "[SUBAREAS]", comment_cols=False,
+                                                    headers=self._headers)
+        return self._subareas_df
+
+    @subareas.setter
+    def subareas(self, df):
+        """Set inp.subareas DataFrame."""
+        self._subareas_df = df
+
+    @property
+    def infiltration(self):
+        """
+        Get/set infiltration section of the INP file.
+        """
+        if self._infiltration_df is None:
+            self._infiltration_df = create_dataframeINP(self.path, "[INFILTRATION]", comment_cols=False,
+                                                        headers=self._headers)
+        return self._infiltration_df
+
+    @infiltration.setter
+    def infiltration(self, df):
+        """Set inp.infiltration DataFrame."""
+        self._infiltration_df = df
 
     @property
     def coordinates(self):
@@ -804,7 +878,8 @@ class inp(SWMMIOFile):
         """
         if self._coordinates_df is not None:
             return self._coordinates_df
-        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False)
+        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False,
+                                                        headers=self._headers)
         return self._coordinates_df
 
     @coordinates.setter
@@ -843,3 +918,44 @@ class inp(SWMMIOFile):
     def polygons(self, df):
         """Set inp.polygons DataFrame."""
         self._polygons_df = df
+
+
+def drop_invalid_model_elements(inp):
+    """
+    Identify references to elements in the model that are undefined and remove them from the
+    model. These should coincide with warnings/errors produced by SWMM5 when undefined elements
+    are referenced in links, subcatchments, and controls.
+    :param model: swmmio.Model
+    :return:
+    >>> import swmmio
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
+    >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
+    >>> drop_invalid_model_elements(m.inp)
+    ['InvalidLink2', 'InvalidLink1']
+    >>> m.inp.conduits.index
+    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+    """
+    from swmmio.utils.dataframes import create_dataframeINP
+    juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
+    outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
+    stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
+    nids = juncs + outfs + stors
+
+    # drop links with bad refs to inlet/outlet nodes
+    from swmmio.utils.functions import find_invalid_links
+    inv_conds = find_invalid_links(inp, nids, 'conduits', drop=True)
+    inv_pumps = find_invalid_links(inp, nids, 'pumps', drop=True)
+    inv_orifs = find_invalid_links(inp, nids, 'orifices', drop=True)
+    inv_weirs = find_invalid_links(inp, nids, 'weirs', drop=True)
+
+    # drop other parts of bad links
+    invalid_links = inv_conds + inv_pumps + inv_orifs + inv_weirs
+    inp.xsections = inp.xsections.loc[~inp.xsections.index.isin(invalid_links)]
+
+    # drop invalid subcats and their related components
+    invalid_subcats = inp.subcatchments.index[~inp.subcatchments['Outlet'].isin(nids)]
+    inp.subcatchments = inp.subcatchments.loc[~inp.subcatchments.index.isin(invalid_subcats)]
+    inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
+    inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
+
+    return invalid_links + invalid_subcats

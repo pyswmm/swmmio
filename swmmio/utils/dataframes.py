@@ -1,7 +1,8 @@
+import os
+import pandas as pd
 from swmmio.utils import text as txt
 from swmmio.utils import functions as funcs
-import pandas as pd
-import os
+from swmmio.defs import HEADERS
 
 
 def create_dataframeBI(bi_path, section='[CONDUITS]'):
@@ -23,7 +24,7 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
 
 
 def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
-                        comment_str=';', comment_cols=True):
+                        comment_str=';', comment_cols=True, headers=None):
     """
     given a path to an INP file, create a dataframe of data in the given
     section.
@@ -35,14 +36,22 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
     tempfilepath = txt.extract_section_from_inp(inp_path, section,
                                                 headerdefs=headerdefs,
                                                 ignore_comments=ignore_comments)
+
     if ignore_comments:
         comment_str = None
     if not tempfilepath:
         # if this head (section) was not found in the textfile, return a
         # blank dataframe with the appropriate schema
-        print('header "{}" not found in "{}"'.format(section, inp_path))
-        print('returning empty dataframe')
-        headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
+        print('header {} not found in {}\nReturning empty DataFrame.'.format(section, inp_path))
+        # headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
+
+        headerlist = HEADERS['inp_sections'][section]
+        if headers is not None:
+            headerlist = headers[section]
+
+        if comment_cols:
+            headerlist = headerlist + [';', 'Comment', 'Origin']
+
         blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
         return blank_df
 
@@ -54,7 +63,9 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
         df = pd.read_csv(tempfilepath, delim_whitespace=False)  # , index_col=0)#, skiprows=[0])
     else:
         # this section header is recognized and will be organized into known columns
-        headerlist = headerdefs['headers'][section].split()
+        headerlist = HEADERS['inp_sections'][section]
+        if headers is not None:
+            headerlist = headers[section]
         if comment_cols:
             headerlist = headerlist + [';', 'Comment', 'Origin']
         dtypes = {'InletNode': str, 'OutletNode': str}

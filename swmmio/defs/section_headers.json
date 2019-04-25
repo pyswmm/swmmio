@@ -13,5 +13,42 @@
   "orifices": {
     "inp_sections": ["[ORIFICES]"],
     "rpt_sections": ["Link Flow Summary"]
+  },
+  "subcatchments": {
+    "inp_sections": ["[SUBCATCHMENTS]"],
+    "rpt_sections": [],
+    "columns": ["Name", "Raingage", "Outlet", "Area", "PercImperv", "Width", "PercSlope", "CurbLength", "SnowPack"]
+  },
+  "inp_sections": {
+    "[TITLE]": ["blob"],
+    "[OPTIONS]": ["Name", "Value"],
+    "[FILES]": ["Action", "FileType", "FileName"],
+    "[CONDUITS]": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InletOffset", "OutletOffset", "InitFlow", "MaxFlow"],
+    "[COORDINATES]": ["Name", "X", "Y"],
+    "[JUNCTIONS]": ["Name", "InvertElev", "MaxDepth", "InitDepth", "SurchargeDepth", "PondedArea"],
+    "[ORIFICES]": ["Name", "InletNode", "OutletNode", "OrificeType", "CrestHeight", "DischCoeff", "FlapGate", "OpenCloseTime"],
+    "[OUTFALLS]": ["Name", "InvertElev", "OutfallType", "StageOrTimeseries", "TideGate"],
+    "[STORAGE]": ["Name", "InvertElev", "MaxD", "InitDepth", "StorageCurve", "Coefficient", "Exponent", "Constant", "PondedArea", "EvapFrac", "SuctionHead", "Conductivity", "InitialDeficit"],
+    "[VERTICES]": ["Name", "X", "Y"],
+    "[WEIRS]": ["Name", "InletNode", "OutletNode", "WeirType", "CrestHeight", "DischCoeff", "FlapGate", "EndCon", "EndCoeff", "Surcharge", "RoadWidth", "RoadSurf"],
+    "[XSECTIONS]": ["Link", "Shape", "Geom1", "Geom2", "Geom3", "Geom4", "Barrels"],
+    "[SUBCATCHMENTS]": ["Name", "Raingage", "Outlet", "Area", "PercImperv", "Width", "PercSlope", "CurbLength", "SnowPack"],
+    "[SUBAREAS]": ["Name", "N-Imperv", "N-Perv", "S-Imperv", "S-Perv", "PctZero", "RouteTo", "PctRouted"],
+    "[LOSSES]": ["Link", "Inlet", "Outlet", "Average", "FlapGate"],
+    "[PUMPS]": ["Name", "InletNode", "OutletNode", "PumpCurve", "InitStatus", "Depth", "ShutoffDepth"],
+    "[DWF]": ["Node", "Parameter", "AverageValue", "TimePatterns"],
+    "[RAINGAGES]": ["Name", "RainType", "TimeIntrv", "SnowCatch", "DataSourceType", "DataSourceName"],
+    "[INFILTRATION]": ["Subcatchment", "Suction", "HydCon", "IMDmax"],
+    "[Polygons]": ["Name", "X", "Y"],
+    "[REPORT]": ["Param", "Status"],
+    "[TAGS]": ["ElementType", "Name", "Tag"],
+    "[MAP]": ["x1", "y1", "x2", "y2"]
+  },
+  "infiltration_cols": {
+    "HORTON": ["Subcatchment", "MaxRate", "MinRate", "Decay", "DryTime", "MaxInfil"],
+    "MODIFIED_HORTON": ["Subcatchment", "MaxRate", "MinRate", "Decay", "DryTime", "MaxInfil"],
+    "GREEN_AMPT": ["Subcatchment", "Suction", "HydCon", "IMDmax"],
+    "MODIFIED_GREEN_AMPT": ["Subcatchment", "Suction", "Ksat", "IMD"],
+    "CURVE_NUMBER": ["CurveNum", "Conductivity (depreciated)", "DryTime"]
   }
 }

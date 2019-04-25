@@ -79,46 +79,59 @@ def model_to_networkx(model, drop_cycles=True):
     return G
 
 
-def find_invalid_links(model, link_type, drop=False):
-    nids = model.nodes().index
-    elems = getattr(model.inp, link_type)
-    invalids = elems.index[~(elems.InletNode.isin(nids) & elems.OutletNode.isin(nids))]
+def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
+    # from swmmio.utils.dataframes import create_dataframeINP
+    # if node_ids is None:
+    #     juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
+    #     outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
+    #     stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
+    #     node_ids = juncs + outfs + stors
+
+    elems = getattr(inp, link_type)
+    invalids = elems.index[~(elems.InletNode.isin(node_ids) & elems.OutletNode.isin(node_ids))]
     if drop:
-        df = elems.loc[elems.InletNode.isin(nids) & elems.OutletNode.isin(nids)]
-        setattr(model.inp, link_type, df)
+        df = elems.loc[elems.InletNode.isin(node_ids) & elems.OutletNode.isin(node_ids)]
+        setattr(inp, link_type, df)
     return invalids.tolist()
 
 
-def drop_invalid_model_elements(model):
-    """
-    Identify references to elements in the model that are undefined and remove them from the
-    model. These should coincide with warnings/errors produced by SWMM5 when undefined elements
-    are referenced in links, subcatchments, and controls.
-    :param model: swmmio.Model
-    :return:
-    >>> import swmmio
-    >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
-    >>> drop_invalid_model_elements(m)
-    ['InvalidLink2', 'InvalidLink1']
-    >>> m.inp.conduits.index
-    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
-    """
-
-    nids = model.nodes().index
-
-    # drop links with bad refs to inlet/outlet nodes
-    inv_conds = find_invalid_links(model, 'conduits', drop=True)
-    inv_pumps = find_invalid_links(model, 'pumps', drop=True)
-    inv_orifs = find_invalid_links(model, 'orifices', drop=True)
-    inv_weirs = find_invalid_links(model, 'weirs', drop=True)
-
-    invalids = inv_conds + inv_pumps + inv_orifs + inv_weirs
-
-    # drop other parts of bad links, subcatchments
-    model.inp.xsections = model.inp.xsections.loc[~model.inp.xsections.index.isin(invalids)]
-    model.inp.subcatchments = model.inp.subcatchments.loc[model.inp.subcatchments['Outlet'].isin(nids)]
-
-    return invalids
+# def drop_invalid_model_elements(inp):
+#     """
+#     Identify references to elements in the model that are undefined and remove them from the
+#     model. These should coincide with warnings/errors produced by SWMM5 when undefined elements
+#     are referenced in links, subcatchments, and controls.
+#     :param model: swmmio.Model
+#     :return:
+#     >>> import swmmio
+#     >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
+#     >>> drop_invalid_model_elements(m.inp)
+#     ['InvalidLink2', 'InvalidLink1']
+#     >>> m.inp.conduits.index
+#     Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+#     """
+#     from swmmio.utils.dataframes import create_dataframeINP
+#     juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
+#     outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
+#     stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
+#     nids = juncs + outfs + stors
+#
+#     # drop links with bad refs to inlet/outlet nodes
+#     inv_conds = find_invalid_links(inp, nids, 'conduits', drop=True)
+#     inv_pumps = find_invalid_links(inp, nids, 'pumps', drop=True)
+#     inv_orifs = find_invalid_links(inp, nids, 'orifices', drop=True)
+#     inv_weirs = find_invalid_links(inp, nids, 'weirs', drop=True)
+#
+#     # drop other parts of bad links
+#     invalid_links = inv_conds + inv_pumps + inv_orifs + inv_weirs
+#     inp.xsections = inp.xsections.loc[~inp.xsections.index.isin(invalid_links)]
+#
+#     # drop invalid subcats and their related components
+#     invalid_subcats = inp.subcatchments.index[~inp.subcatchments['Outlet'].isin(nids)]
+#     inp.subcatchments = inp.subcatchments.loc[~inp.subcatchments.index.isin(invalid_subcats)]
+#     inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
+#     inp.infiltration= inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
+#
+#     return invalid_links + invalid_subcats
 
 
 # Todo: use an OrderedDict instead of a dict and a "order" list
