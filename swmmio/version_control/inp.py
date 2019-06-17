@@ -150,6 +150,8 @@ class INPDiff(object):
             common_ids = df1.index.difference(removed_ids) #original - removed = in common
             #both dfs concatenated, with matched indices for each element
             full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]])
+            # remove whitespace
+            full_set = full_set.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
             #drop dupes on the set, all things that did not changed should have 1 row
             changes_with_dupes = full_set.drop_duplicates()
             #duplicate indicies are rows that have changes, isolate these

@@ -15,6 +15,7 @@ import swmmio
 from swmmio.elements import ModelSection
 from swmmio.defs import HEADERS
 # from swmmio.utils.functions import find_invalid_links
+from swmmio.utils.functions import trim_section_to_nodes
 
 
 class Model(object):
@@ -556,7 +557,8 @@ class inp(SWMMIOFile):
                 '[VERTICES]',
                 '[SUBCATCHMENTS]',
                 '[SUBAREAS]',
-                '[INFILTRATION]'
+                '[INFILTRATION]',
+                '[COORDINATES]'
             ]
 
     def save(self, target_path=None):
@@ -583,6 +585,11 @@ class inp(SWMMIOFile):
         :return: None
         """
         drop_invalid_model_elements(self)
+
+    def trim_to_nodes(self, node_ids):
+
+        for section in ['junctions', 'storage', 'outfalls', 'coordinates']:
+            trim_section_to_nodes(self, node_ids, node_type=section)
 
     @property
     def headers(self):

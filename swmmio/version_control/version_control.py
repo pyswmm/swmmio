@@ -1,17 +1,11 @@
 import pandas as pd
-import shutil
 import os
-import fileinput
 import itertools
 from datetime import datetime
 from swmmio import Model
-from swmmio.utils import functions as funcs
-from swmmio.utils.dataframes import create_dataframeINP
-# from swmmio.utils import swmm_utils as su
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 
-#from .utils.text import * #functions for processing inp/rpt/txt files
 
 pd.options.display.max_colwidth = 200
 
@@ -19,7 +13,6 @@ pd.options.display.max_colwidth = 200
 def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
                                     version_id='', comments=''):
 
-    #stuff
     """
     if the baseline model has changes that need to be propogated to all models,
     iterate through each model and rebuild the INPs with the new baseline and

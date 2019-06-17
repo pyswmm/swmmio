@@ -1,16 +1,11 @@
 import subprocess
 import os
 import pandas as pd
-from swmmio.version_control import version_control as vc
 from swmmio.utils.modify_model import replace_inp_section
-from swmmio.utils import dataframes
 from swmmio.run_models import defs
-from swmmio.swmmio import Model
+from swmmio import Model
 from swmmio.defs.config import SWMM_ENGINE_PATH
 
-
-#path to the SWMM5 Engine
-# SWMM_ENGINE_PATH = r'\\PWDHQR\Data\Planning & Research\Flood Risk Management\07_Software\swmm5_22.exe'
 
 def run_simple(inp_path, swmm_eng=SWMM_ENGINE_PATH):
     """

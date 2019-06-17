@@ -80,12 +80,6 @@ def model_to_networkx(model, drop_cycles=True):
 
 
 def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
-    # from swmmio.utils.dataframes import create_dataframeINP
-    # if node_ids is None:
-    #     juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
-    #     outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
-    #     stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
-    #     node_ids = juncs + outfs + stors
 
     elems = getattr(inp, link_type)
     invalids = elems.index[~(elems.InletNode.isin(node_ids) & elems.OutletNode.isin(node_ids))]
@@ -94,6 +88,15 @@ def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
         setattr(inp, link_type, df)
     return invalids.tolist()
 
+
+def trim_section_to_nodes(inp, node_ids=None, node_type='junctions', drop=True):
+
+    elems = getattr(inp, node_type)
+    invalids = elems.index[~(elems.index.isin(node_ids))]
+    if drop:
+        df = elems.loc[elems.index.isin(node_ids)]
+        setattr(inp, node_type, df)
+    return invalids.tolist()
 
 # def drop_invalid_model_elements(inp):
 #     """

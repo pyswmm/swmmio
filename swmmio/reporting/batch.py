@@ -1,4 +1,4 @@
-from swmmio.swmmio import Model
+from swmmio import Model
 from swmmio.reporting import reporting, serialize
 from swmmio.reporting import functions
 from swmmio.utils import spatial
