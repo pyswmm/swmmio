@@ -19,7 +19,7 @@ MODEL_FULL_FEATURES_XY = os.path.join(
 MODEL_FULL_FEATURES__NET_PATH = os.path.join(
     DATA_PATH, 'model_full_features_network.inp')
 MODEL_FULL_FEATURES_INVALID = os.path.join(DATA_PATH, 'invalid_model.inp')
-MODEL_BROWARD_COUNTY_PATH = os.path.join(DATA_PATH, 'RUNOFF46_SW5.INP')
+MODEL_BROWARD_COUNTY_PATH = os.path.join(DATA_PATH, 'RUNOFF46_SW5.inp')
 
 # version control test models
 MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')
