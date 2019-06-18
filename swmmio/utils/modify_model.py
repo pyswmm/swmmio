@@ -1,9 +1,8 @@
-from swmmio.version_control import version_control as vc
 from swmmio.version_control import utils as vc_utils
 from swmmio.utils.functions import complete_inp_headers
 from swmmio import swmmio
-import pandas as pd
 import os
+
 
 def replace_inp_section(inp_path, modified_section_header, new_data, overwrite=True):
 

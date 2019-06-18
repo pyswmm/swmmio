@@ -13,6 +13,9 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES
 import warnings
 import swmmio
 from swmmio.elements import ModelSection
+from swmmio.defs import HEADERS
+# from swmmio.utils.functions import find_invalid_links
+from swmmio.utils.functions import trim_section_to_nodes
 
 
 class Model(object):
@@ -160,30 +163,14 @@ class Model(object):
 
         return df
 
+    @property
     def orifices(self):
         """
         collect all useful and available data related model orifices and
         organize in one dataframe.
         """
 
-        # check if this has been done already and return that data accordingly
-        if self._orifices_df is not None:
-            return self._orifices_df
-
-        # parse out the main objects of this model
-        inp = self.inp
-        rpt = self.rpt
-
-        # create dataframes of relevant sections from the INP
-        orifices_df = create_dataframeINP(inp.path, "[ORIFICES]", comment_cols=False)
-        if orifices_df.empty:
-            return pd.DataFrame()
-
-        # add conduit coordinates
-        xys = orifices_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
-        df = orifices_df.assign(coords=xys.map(lambda x: x[0]))
-        df.InletNode = df.InletNode.astype(str)
-        df.OutletNode = df.OutletNode.astype(str)
+        df = ModelSection(self, 'orifices')
         self._orifices_df = df
 
         return df
@@ -244,13 +231,14 @@ class Model(object):
 
     def links(self):
         """
-        create a DataFrame containing all link objects in the model including conduits, pumps, weirs, and orifices.
+        create a DataFrame containing all link objects in the model including
+        conduits, pumps, weirs, and orifices.
         :return: dataframe containing all link objects in the model
         """
         if self._links_df is not None:
             return self._links_df
 
-        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()])
+        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
         df['facilityid'] = df.index
         self._links_df = df
         return df
@@ -275,7 +263,7 @@ class Model(object):
         storage_df = create_dataframeINP(inp.path, "[STORAGE]")
 
         # concatenate the DFs and keep only relevant cols
-        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df])
+        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
         cols = ['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
         all_nodes = all_nodes[cols]
 
@@ -365,7 +353,7 @@ class Model(object):
         >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates
                       X          Y
-        Name                      
+        Name
         J3   -74.866424  42.365958
         1    -74.870614  42.368292
         2    -74.867615  42.367916
@@ -377,7 +365,7 @@ class Model(object):
         J1   -74.868861  42.366968
         >>> m.inp.vertices
                        X          Y
-        Name                       
+        Name
         C1:C2 -74.868703  42.366833
         C2.1  -74.868034  42.366271
         C2.1  -74.867305  42.365974
@@ -535,17 +523,43 @@ class inp(SWMMIOFile):
     # make sure INP has been saved in the GUI before using this
 
     def __init__(self, file_path):
+        self._options_df = None
+        self._files_df = None
         self._conduits_df = None
+        self._xsections_df = None
+        self._pumps_df = None
+        self._orifices_df = None
+        self._weirs_df = None
         self._junctions_df = None
         self._outfalls_df = None
+        self._storage_df = None
         self._coordinates_df = None
         self._vertices_df = None
         self._polygons_df = None
+        self._subcatchments_df = None
+        self._subareas_df = None
+        self._infiltration_df = None
+        self._headers = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
-        self._sections = [self._conduits_df, self._junctions_df, self._outfalls_df,
-                          self._coordinates_df, self._vertices_df, self._polygons_df]
+        self._sections = [
+                '[OPTIONS]',
+                '[FILES]',
+                '[CONDUITS]',
+                '[XSECTIONS]',
+                '[PUMPS]',
+                '[ORIFICES]',
+                '[WEIRS]',
+                '[JUNCTIONS]',
+                '[STORAGE]',
+                '[OUTFALLS]',
+                '[VERTICES]',
+                '[SUBCATCHMENTS]',
+                '[SUBAREAS]',
+                '[INFILTRATION]',
+                '[COORDINATES]'
+            ]
 
     def save(self, target_path=None):
         '''
@@ -553,11 +567,97 @@ class inp(SWMMIOFile):
         is provided
         '''
         from swmmio.utils.modify_model import replace_inp_section
+        import shutil
         target_path = target_path if target_path is not None else self.path
 
+        shutil.copyfile(self.path, target_path)
         for section in self._sections:
-            if section is not None:
-                replace_inp_section()
+            # reformate the [SECTION] to section (and _section_df)
+            sect_id = section.translate({ord(i): None for i in '[]'}).lower()
+            sect_id_private = '_{}_df'.format(sect_id)
+            data = getattr(self, sect_id_private)
+            if data is not None:
+                replace_inp_section(target_path, section, data)
+
+    def validate(self):
+        """
+        Detect and remove invalid model elements
+        :return: None
+        """
+        drop_invalid_model_elements(self)
+
+    def trim_to_nodes(self, node_ids):
+
+        for section in ['junctions', 'storage', 'outfalls', 'coordinates']:
+            trim_section_to_nodes(self, node_ids, node_type=section)
+
+    @property
+    def headers(self):
+        """
+        Get the proper section headers for the INP file.
+        """
+        if self._headers is None:
+
+            infil_type = self.options.loc['INFILTRATION', 'Value']
+            infil_cols = HEADERS['infiltration_cols'][infil_type]
+
+            # overwrite the dynamic sections with proper header cols
+            h = dict(HEADERS['inp_sections'])
+            h['[INFILTRATION]'] = list(infil_cols)
+            self._headers = h
+
+        else:
+            return self._headers
+
+    @property
+    def options(self):
+        """
+        Get/set options section of the INP file.
+
+        :return: options section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._options_df is None:
+            self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False,
+                                                   headers=self._headers)
+        return self._options_df
+
+    @options.setter
+    def options(self, df):
+        """Set inp.options DataFrame."""
+        self._options_df = df
+
+        # update the headers
+        infil_type = df.loc['INFILTRATION', 'Value']
+        infil_cols = HEADERS['infiltration_cols'][infil_type]
+
+        # overwrite the dynamic sections with proper header cols
+        h = dict(HEADERS['inp_sections'])
+        h['[INFILTRATION]'] = list(infil_cols)
+        self._headers = h
+        self._infiltration_df = None
+
+    @property
+    def files(self):
+        """
+        Get/set files section of the INP file.
+
+        :return: files section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._files_df is None:
+            self._files_df = create_dataframeINP(self.path, "[FILES]", comment_cols=False)
+        return self._files_df.reset_index()
+
+    @files.setter
+    def files(self, df):
+        """Set inp.files DataFrame."""
+        first_col = df.columns[0]
+        self._files_df = df.set_index(first_col)
 
     @property
     def conduits(self):
@@ -591,6 +691,62 @@ class inp(SWMMIOFile):
     def conduits(self, df):
         """Set inp.conduits DataFrame."""
         self._conduits_df = df
+
+    @property
+    def xsections(self):
+        """
+        Get/set pumps section of the INP file.
+        """
+        if self._xsections_df is None:
+            self._xsections_df = create_dataframeINP(self.path, "[XSECTIONS]", comment_cols=False)
+        return self._xsections_df
+
+    @xsections.setter
+    def xsections(self, df):
+        """Set inp.xsections DataFrame."""
+        self._xsections_df = df
+
+    @property
+    def pumps(self):
+        """
+        Get/set pumps section of the INP file.
+        """
+        if self._pumps_df is None:
+            self._pumps_df = create_dataframeINP(self.path, "[PUMPS]", comment_cols=False)
+        return self._pumps_df
+
+    @pumps.setter
+    def pumps(self, df):
+        """Set inp.pumps DataFrame."""
+        self._pumps_df = df
+
+    @property
+    def orifices(self):
+        """
+        Get/set orifices section of the INP file.
+        """
+        if self._orifices_df is None:
+            self._orifices_df = create_dataframeINP(self.path, "[ORIFICES]", comment_cols=False)
+        return self._orifices_df
+
+    @orifices.setter
+    def orifices(self, df):
+        """Set inp.orifices DataFrame."""
+        self._orifices_df = df
+
+    @property
+    def weirs(self):
+        """
+        Get/set weirs section of the INP file.
+        """
+        if self._weirs_df is None:
+            self._weirs_df = create_dataframeINP(self.path, "[WEIRS]", comment_cols=False)
+        return self._weirs_df
+
+    @weirs.setter
+    def weirs(self, df):
+        """Set inp.weirs DataFrame."""
+        self._weirs_df = df
 
     @property
     def junctions(self):
@@ -653,6 +809,75 @@ class inp(SWMMIOFile):
         self._outfalls_df = df
 
     @property
+    def storage(self):
+        """
+        Get/set storage section of the INP file.
+
+        :return: storage section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._storage_df is None:
+            self._storage_df = create_dataframeINP(self.path, "[STORAGE]", comment_cols=False)
+        return self._storage_df
+
+    @storage.setter
+    def storage(self, df):
+        """Set inp.storage DataFrame."""
+        self._storage_df = df
+
+    @property
+    def subcatchments(self):
+        """
+        Get/set subcatchments section of the INP file.
+
+        :return: subcatchments section of the INP file
+        :rtype: pandas.DataFrame
+
+        Examples:
+        """
+        if self._subcatchments_df is None:
+            self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False,
+                                                         headers=self._headers)
+        return self._subcatchments_df
+
+    @subcatchments.setter
+    def subcatchments(self, df):
+        """Set inp.subcatchments DataFrame."""
+        self._subcatchments_df = df
+
+    @property
+    def subareas(self):
+        """
+        Get/set subareas section of the INP file.
+        """
+        if self._subareas_df is None:
+            self._subareas_df = create_dataframeINP(self.path, "[SUBAREAS]", comment_cols=False,
+                                                    headers=self._headers)
+        return self._subareas_df
+
+    @subareas.setter
+    def subareas(self, df):
+        """Set inp.subareas DataFrame."""
+        self._subareas_df = df
+
+    @property
+    def infiltration(self):
+        """
+        Get/set infiltration section of the INP file.
+        """
+        if self._infiltration_df is None:
+            self._infiltration_df = create_dataframeINP(self.path, "[INFILTRATION]", comment_cols=False,
+                                                        headers=self._headers)
+        return self._infiltration_df
+
+    @infiltration.setter
+    def infiltration(self, df):
+        """Set inp.infiltration DataFrame."""
+        self._infiltration_df = df
+
+    @property
     def coordinates(self):
         """
         Get/set coordinates section of model
@@ -660,7 +885,8 @@ class inp(SWMMIOFile):
         """
         if self._coordinates_df is not None:
             return self._coordinates_df
-        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False)
+        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False,
+                                                        headers=self._headers)
         return self._coordinates_df
 
     @coordinates.setter
@@ -699,3 +925,44 @@ class inp(SWMMIOFile):
     def polygons(self, df):
         """Set inp.polygons DataFrame."""
         self._polygons_df = df
+
+
+def drop_invalid_model_elements(inp):
+    """
+    Identify references to elements in the model that are undefined and remove them from the
+    model. These should coincide with warnings/errors produced by SWMM5 when undefined elements
+    are referenced in links, subcatchments, and controls.
+    :param model: swmmio.Model
+    :return:
+    >>> import swmmio
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
+    >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
+    >>> drop_invalid_model_elements(m.inp)
+    ['InvalidLink2', 'InvalidLink1']
+    >>> m.inp.conduits.index
+    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+    """
+    from swmmio.utils.dataframes import create_dataframeINP
+    juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
+    outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
+    stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
+    nids = juncs + outfs + stors
+
+    # drop links with bad refs to inlet/outlet nodes
+    from swmmio.utils.functions import find_invalid_links
+    inv_conds = find_invalid_links(inp, nids, 'conduits', drop=True)
+    inv_pumps = find_invalid_links(inp, nids, 'pumps', drop=True)
+    inv_orifs = find_invalid_links(inp, nids, 'orifices', drop=True)
+    inv_weirs = find_invalid_links(inp, nids, 'weirs', drop=True)
+
+    # drop other parts of bad links
+    invalid_links = inv_conds + inv_pumps + inv_orifs + inv_weirs
+    inp.xsections = inp.xsections.loc[~inp.xsections.index.isin(invalid_links)]
+
+    # drop invalid subcats and their related components
+    invalid_subcats = inp.subcatchments.index[~inp.subcatchments['Outlet'].isin(nids)]
+    inp.subcatchments = inp.subcatchments.loc[~inp.subcatchments.index.isin(invalid_subcats)]
+    inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
+    inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
+
+    return invalid_links + invalid_subcats

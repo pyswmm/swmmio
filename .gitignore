@@ -17,3 +17,10 @@ _build/
 
 # IDE Stuff
 *.idea/
+
+# SWMM files
+*.out
+#*.ini
+*.chi
+*.~inp
+*.thm
