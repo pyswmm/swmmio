@@ -14,11 +14,11 @@
 ====================================================================================================
 
 [JUNCTIONS]
-;;            InvertElev MaxDepth InitDepth SurchargeDepth PondedArea ;   Comment   Origin                                            
-dummy_node1   -15.0      30.0     0         0              0          ;   Altered   C:\PROJECTCODE\swmmio\swmmio\tests\data\alt_t...
-dummy_node5   -6.96      15.0     0         0              73511      ;   Altered   C:\PROJECTCODE\swmmio\swmmio\tests\data\alt_t...
+;;            InvertElev MaxDepth InitDepth SurchargeDepth PondedArea ;   Comment   Origin         
+dummy_node1   -15.0      30.0     0         0              0          ;   Altered   alt_test3.inp
+dummy_node5   -6.96      15.0     0         0              73511      ;   Altered   alt_test3.inp
 
 [CONDUITS]
-;;      InletNode     OutletNode    Length ManningN               InletOffset OutletOffset InitFlow MaxFlow ;   Comment   Origin                                            
-pipe5   dummy_node6   dummy_node5   666    0.013000000000000001   0           0            0        0       ;   Altered   C:\PROJECTCODE\swmmio\swmmio\tests\data\alt_t...
+;;      InletNode     OutletNode    Length ManningN               InletOffset OutletOffset InitFlow MaxFlow ;   Comment   Origin         
+pipe5   dummy_node6   dummy_node5   666    0.013000000000000001   0           0            0        0       ;   Altered   alt_test3.inp
 

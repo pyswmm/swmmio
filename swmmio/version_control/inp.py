@@ -4,15 +4,10 @@ from swmmio.version_control import utils as vc_utils
 from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
 from swmmio.utils import text
 import pandas as pd
-from datetime import datetime
 import os
-import sys
 from copy import deepcopy
 
-if sys.version_info[0] < 3:
-    from io import StringIO
-else:
-    from io import StringIO
+
 problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
 
@@ -143,6 +138,7 @@ class INPDiff(object):
         if model1 and model2:
             df1 = create_dataframeINP(model1.inp.path, section)
             df2 = create_dataframeINP(model2.inp.path, section)
+            m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
 
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
             added_ids = df2.index.difference(df1.index)
@@ -162,17 +158,17 @@ class INPDiff(object):
 
             added = df2.loc[added_ids].copy()
             added['Comment'] = 'Added'  # from model {}'.format(model2.inp.path)
-            added['Origin'] = model2.inp.path
+            added['Origin'] = m2_origin_string
 
             altered = df2.loc[changed_ids].copy()
             altered['Comment'] = 'Altered'  # in model {}'.format(model2.inp.path)
-            altered['Origin'] = model2.inp.path
+            altered['Origin'] = m2_origin_string
 
             removed = df1.loc[removed_ids].copy()
             # comment out the removed elements
             # removed.index = ["; " + str(x) for x in removed.index]
             removed['Comment'] = 'Removed'  # in model {}'.format(model2.inp.path)
-            removed['Origin'] = model2.inp.path
+            removed['Origin'] = m2_origin_string
 
             self.old = df1
             self.new = df2

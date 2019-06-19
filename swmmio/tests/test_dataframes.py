@@ -1,9 +1,31 @@
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
-                               MODEL_BROWARD_COUNTY_PATH, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
-                               MODEL_FULL_FEATURES_XY)
+                               BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
+                               MODEL_FULL_FEATURES_XY, DATA_PATH)
 import swmmio
 from swmmio import create_dataframeINP
 import pandas as pd
+import pytest
+import shutil
+import os
+
+
+def test_create_dataframeBI():
+
+    # m = swmmio.Model(MODEL_BROWARD_COUNTY_PATH)
+    bi_juncs = swmmio.create_dataframeBI(BUILD_INSTR_01, section='[JUNCTIONS]')
+
+    assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
+    assert bi_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
+
+    # test with spaces in path
+    temp_dir_01 = os.path.join(DATA_PATH, 'path with spaces')
+    os.makedirs(temp_dir_01, exist_ok=True)
+    BUILD_INSTR_01_spaces = shutil.copy(BUILD_INSTR_01, temp_dir_01)
+
+    bi_juncs = swmmio.create_dataframeBI(BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
+    assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
+    assert bi_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
+    shutil.rmtree(temp_dir_01)
 
 
 def test_create_dataframeRPT():
