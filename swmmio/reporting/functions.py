@@ -2,7 +2,7 @@
 Utility functions related to comparing SWMM models
 """
 import pandas as pd
-from swmmio.version_control.inp import INPDiff
+from swmmio.version_control.inp import INPSectionDiff
 from swmmio.utils.dataframes import create_dataframeINP
 import os
 

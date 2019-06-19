@@ -5,7 +5,7 @@ from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
-from swmmio.version_control.inp import INPDiff
+from swmmio.version_control.inp import INPSectionDiff
 
 import os
 import shutil
@@ -79,7 +79,7 @@ def test_create_inp_build_instructions():
 
 def test_inp_diff_from_bi():
 
-    change = INPDiff(build_instr_file=BUILD_INSTR_01, section='[JUNCTIONS]')
+    change = INPSectionDiff(build_instr_file=BUILD_INSTR_01, section='[JUNCTIONS]')
 
     alt_juncs = change.altered
     assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
@@ -91,7 +91,7 @@ def test_inp_diff_from_bi():
     shutil.copy(BUILD_INSTR_01, temp_dir_01)
     BUILD_INSTR_01_spaces = os.path.join(temp_dir_01, BUILD_INSTR_01)
 
-    change = INPDiff(build_instr_file=BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
+    change = INPSectionDiff(build_instr_file=BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
 
     alt_juncs = change.altered
     assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
@@ -112,7 +112,7 @@ def test_inp_diff_from_bi():
                                       'test_version_id', 'cool comments')
 
     latest_bi_spaces = vc_utils.newest_file(temp_dir_03)
-    change = INPDiff(build_instr_file=latest_bi_spaces, section='[JUNCTIONS]')
+    change = INPSectionDiff(build_instr_file=latest_bi_spaces, section='[JUNCTIONS]')
     alt_juncs = change.altered
     assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
     assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)

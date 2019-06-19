@@ -13,7 +13,7 @@ problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
 class BuildInstructions(object):
     """
-    similar to the INPDiff object, this object contains information used to
+    similar to the INPSectionDiff object, this object contains information used to
     generate an inp based on 'serialized' (though human readable, inp-esque)
     build instructions files. This object is meant to neatly encapsulate things.
 
@@ -31,7 +31,7 @@ class BuildInstructions(object):
             allheaders = funcs.complete_inp_headers(build_instr_file)
             instructions = {}
             for section in allheaders['order']:
-                change = INPDiff(build_instr_file=build_instr_file, section=section)
+                change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section: change})
 
             self.instructions = instructions
@@ -122,7 +122,7 @@ class BuildInstructions(object):
                 vc_utils.write_inp_section(f, allheaders, section, new_section)
 
 
-class INPDiff(object):
+class INPSectionDiff(object):
     """
     This object represents the 'changes' of a given section of a INP file
     with respect to another INP. Three main dataframes are attributes:
@@ -187,7 +187,7 @@ class INPDiff(object):
     def __add__(self, other):
 
         # this should be made more robust to catch conflicts
-        change = INPDiff()
+        change = INPSectionDiff()
         change.added = self.added.append(other.added)
         change.removed = self.removed.append(other.removed)
         change.altered = self.altered.append(other.altered)
@@ -303,7 +303,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
         for section in allsections_a['order']:
             if section not in problem_sections:
                 # calculate the changes in the current section
-                changes = INPDiff(modela, modelb, section)
+                changes = INPSectionDiff(modela, modelb, section)
                 data = pd.concat([changes.removed, changes.added, changes.altered])
                 # vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
