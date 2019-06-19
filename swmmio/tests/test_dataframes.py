@@ -8,6 +8,15 @@ import pytest
 import shutil
 import os
 
+def makedirs(newdir):
+    """
+    replicate this in Py2 campatible way
+    os.makedirs(temp_vc_dir_02, exist_ok=True)
+    """
+    if os.path.exists(newdir):
+        shutil.rmtree(newdir)
+    os.makedirs(newdir)
+
 
 def test_create_dataframeBI():
 
@@ -19,8 +28,9 @@ def test_create_dataframeBI():
 
     # test with spaces in path
     temp_dir_01 = os.path.join(DATA_PATH, 'path with spaces')
-    os.makedirs(temp_dir_01, exist_ok=True)
-    BUILD_INSTR_01_spaces = shutil.copy(BUILD_INSTR_01, temp_dir_01)
+    makedirs(temp_dir_01)
+    shutil.copy(BUILD_INSTR_01, temp_dir_01)
+    BUILD_INSTR_01_spaces = os.path.join(temp_dir_01, BUILD_INSTR_01)
 
     bi_juncs = swmmio.create_dataframeBI(BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
     assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
