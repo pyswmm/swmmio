@@ -82,8 +82,8 @@ pipe5            RECT_TRIANGULAR 6.5              13         1.434756791 0      
 [DWF]
 ;;Node           Constituent      Baseline   Patterns  
 ;;-------------- ---------------- ---------- ----------
-dummy_node2      FLOW             0.000275704 "" "" ""
-dummy_node6      FLOW             0.008150676 "" "" ""
+dummy_node2      FLOW             0.000275704 "" ""
+dummy_node6      FLOW             0.008150676 "" ""
 
 [REPORT]
 ;;Reporting Options
@@ -96,7 +96,7 @@ LINKS ALL
 [TAGS]
 
 [MAP]
-DIMENSIONS 0.000 0.000 10000.000 10000.000
+DIMENSIONS -13594.704 4798.556 5809.792 15410.113
 Units      None
 
 [COORDINATES]

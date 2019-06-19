@@ -20,7 +20,7 @@ def model_to_networkx(model, drop_cycles=True):
         import networkx as nx
     except ImportError:
         raise ImportError('networkx module needed. get this package here: ',
-                        'https://pypi.python.org/pypi/networkx')
+                          'https://pypi.python.org/pypi/networkx')
 
     def multidigraph_from_edges(edges, source, target):
         '''
@@ -80,7 +80,6 @@ def model_to_networkx(model, drop_cycles=True):
 
 
 def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
-
     elems = getattr(inp, link_type)
     invalids = elems.index[~(elems.InletNode.isin(node_ids) & elems.OutletNode.isin(node_ids))]
     if drop:
@@ -90,13 +89,13 @@ def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
 
 
 def trim_section_to_nodes(inp, node_ids=None, node_type='junctions', drop=True):
-
     elems = getattr(inp, node_type)
     invalids = elems.index[~(elems.index.isin(node_ids))]
     if drop:
         df = elems.loc[elems.index.isin(node_ids)]
         setattr(inp, node_type, df)
     return invalids.tolist()
+
 
 # def drop_invalid_model_elements(inp):
 #     """
@@ -135,6 +134,37 @@ def trim_section_to_nodes(inp, node_ids=None, node_type='junctions', drop=True):
 #     inp.infiltration= inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
 #
 #     return invalid_links + invalid_subcats
+
+
+def rotate_model(m, rads=0.5, origin=None):
+    """
+    rotate a model (its coordinates)
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY_B
+    >>> import swmmio
+    >>> mb = swmmio.Model(MODEL_FULL_FEATURES_XY_B)
+    >>> mc = rotate_model(mb, rads=0.75, origin=(2748515.571, 1117763.466))
+    >>> mc.inp.coordinates
+    """
+    from swmmio.graphics.utils import rotate_coord_about_point
+
+    origin = (0, 0) if not origin else origin
+    rotate_lambda = lambda xy: rotate_coord_about_point(xy, rads, origin)
+    coord = m.inp.coordinates.apply(rotate_lambda, axis=1)
+    verts = m.inp.vertices.apply(rotate_lambda, axis=1)
+    pgons = m.inp.polygons.apply(rotate_lambda, axis=1)
+
+    # retain column names / convert to df
+    m.inp.coordinates = pd.DataFrame(data=coord.to_list(),
+                                     columns=m.inp.coordinates.columns,
+                                     index=m.inp.coordinates.index)
+    m.inp.vertices = pd.DataFrame(data=verts.to_list(),
+                                  columns=m.inp.vertices.columns,
+                                  index=m.inp.vertices.index)
+    m.inp.polygons = pd.DataFrame(data=pgons.to_list(),
+                                  columns=m.inp.polygons.columns,
+                                  index=m.inp.polygons.index)
+
+    return m
 
 
 # Todo: use an OrderedDict instead of a dict and a "order" list
@@ -190,25 +220,24 @@ def complete_rpt_headers(rptfilepath):
         buff3line = deque()
         for line in f:
 
-
-            #maintains a 3 line buffer and looks for instances where
-            #a top and bottom line have '*****' and records the middle line
-            #typical of section headers in RPT files
+            # maintains a 3 line buffer and looks for instances where
+            # a top and bottom line have '*****' and records the middle line
+            # typical of section headers in RPT files
             buff3line.append(line)
             if len(buff3line) > 3:
                 buff3line.popleft()
 
-            if ('***********'in buff3line[0] and
-                '***********'in buff3line[2] and
-                len(buff3line[1].strip()) > 0):
+            if ('***********' in buff3line[0] and
+                    '***********' in buff3line[2] and
+                    len(buff3line[1].strip()) > 0):
                 h = buff3line[1].strip()
                 order.append(h)
                 if h in rpt_header_dict:
-                    foundheaders.update({h:rpt_header_dict[h]})
+                    foundheaders.update({h: rpt_header_dict[h]})
                 else:
-                    foundheaders.update({h:'blob'})
+                    foundheaders.update({h: 'blob'})
 
-    return {'headers':foundheaders, 'order':order}
+    return {'headers': foundheaders, 'order': order}
 
 
 def merge_dicts(*dict_args):
@@ -224,13 +253,12 @@ def merge_dicts(*dict_args):
 
 
 def trace_from_node(conduits, startnode, mode='up', stopnode=None):
-
     """
     trace up and down a SWMM model given a start node and optionally a
     stop node.
     """
 
-    traced_nodes = [startnode] #include the starting node
+    traced_nodes = [startnode]  # include the starting node
     traced_conduits = []
 
     def trace(node_id):
@@ -252,8 +280,8 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
                     break
                 trace(data.OutletNode)
 
-    #kickoff the trace
-    print ("Starting trace {} from {}".format(mode, startnode))
+    # kickoff the trace
+    print("Starting trace {} from {}".format(mode, startnode))
     trace(startnode)
-    print ("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
-    return {'nodes':traced_nodes, 'conduits':traced_conduits}
+    print("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
+    return {'nodes': traced_nodes, 'conduits': traced_conduits}

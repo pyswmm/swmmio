@@ -558,7 +558,8 @@ class inp(SWMMIOFile):
                 '[SUBCATCHMENTS]',
                 '[SUBAREAS]',
                 '[INFILTRATION]',
-                '[COORDINATES]'
+                '[COORDINATES]',
+                '[Polygons]'
             ]
 
     def save(self, target_path=None):

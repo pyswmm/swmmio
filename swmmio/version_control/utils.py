@@ -1,9 +1,7 @@
 from datetime import datetime
 import os
 import json
-import pandas as pd
 import shutil
-from swmmio.utils import functions
 
 
 def copy_rpts_hsf(from_dir, to_dir, search_dir):
@@ -158,42 +156,3 @@ def modification_date(filename, string=True):
     else:
         return dt  # datetime.fromtimestamp(t)
 
-
-def write_excel_inp_section(excelwriter, allheaders, sectionheader, section_data):
-    if not section_data.empty:
-        sheetname = sectionheader.replace('[', "").replace(']', "")
-
-        if allheaders['headers'].get(sectionheader, 'blob') == 'blob' and not section_data.empty:
-            # write section to excel sheet
-            section_data.to_excel(excelwriter, sheetname, index=False)
-        else:
-            # clean up the format a bit
-            # workbook = excelwriter.book
-            # elem_fmt = workbook.add_format({'align': 'left'})
-            # worksheet = excelwriter.sheets[sheetname]
-            # worksheet.set_column('A:A', 20)
-
-            section_data.to_excel(excelwriter, sheetname)
-
-
-def create_change_info_sheet(excelwriter, model1, model2, name='', message=''):
-    ix = ['Date', 'BaselineModel', 'TargetModel', 'Commit', 'Name', 'Comment']
-    vals = [
-        datetime.now().strftime("%y-%m-%d %H:%M"),
-        model1.inp.path,
-        model2.inp.path,
-        functions.random_alphanumeric(12),
-        name,
-        message
-    ]
-    df = pd.DataFrame(data=vals, index=ix, columns=['FileInfo'])
-    df.to_excel(excelwriter, 'FileInfo')
-
-
-def create_info_sheet(excelwriter, basemodel, parent_models=[]):
-    # create an info sheet for the Excel file
-    timeofcreation = datetime.now()
-    s = pd.Series([datetime.now(), basemodel.inp.path] + [x.inp.path for x in parent_models])
-    s.index = ['DateCreated', 'Basemodel'] + ['ParentModel_' + str(i) for i, x in enumerate(parent_models)]
-    df = pd.DataFrame(s, columns=['FileInfo'])
-    df.to_excel(excelwriter, 'FileInfo')

@@ -1,7 +1,7 @@
 from swmmio import create_dataframeBI
 from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
                                MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
-                               OUTFALLS_MODIFIED, BUILD_INSTR_01)
+                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
@@ -121,23 +121,25 @@ def test_inp_diff_from_bi():
     shutil.rmtree(temp_dir_02)
 
 
-# def test_add_models():
-#     inp.create_inp_build_instructions(MODEL_BLANK,
-#                                       MODEL_XSECTION_ALT_03,
-#                                       'vc_dir',
-#                                       'test_version_id', 'cool comments')
-#     bi_1 = vc_utils.newest_file('vc_dir')
-#     bi1 = inp.BuildInstructions(bi_1)
-#
-#     inp.create_inp_build_instructions(MODEL_BLANK,
-#                                       MODEL_FULL_FEATURES_PATH,
-#                                       'vc_dir',
-#                                       'test_model_full_feat', 'cool comments')
-#     bi_2 = vc_utils.newest_file('vc_dir')
-#     bi2 = inp.BuildInstructions(bi_2)
-#
-#     bi3 = bi1 + bi2
-#     bi3.build(MODEL_BLANK, 'added_model.inp')
+def test_add_models():
+    """
+    create build instructions for entire models with respect to a blank (empty) model
+    such that BIs include additions for each model element.
+    """
+    import swmmio
+    bi_b = inp.create_inp_build_instructions(MODEL_BLANK,
+                                      MODEL_FULL_FEATURES_XY_B,
+                                      'vc_dir',
+                                      'from_blank_model_b', 'cool comments')
+    bi_a = inp.create_inp_build_instructions(MODEL_BLANK,
+                                      MODEL_FULL_FEATURES_XY,
+                                      'vc_dir',
+                                      'from_blank_model_a', 'should have all we need')
+
+
+    bi_final = bi_a + bi_b
+    bi_final.save(DATA_PATH, 'merged-build-instr.txt')
+    bi_final.build(MODEL_BLANK, 'merged-model.inp')
 
 
 def test_modify_model():

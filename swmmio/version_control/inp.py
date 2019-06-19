@@ -284,9 +284,6 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     if not os.path.exists(path):
         os.makedirs(path)
     filepath = os.path.join(path, filename) + '.txt'
-    # xlpath = os.path.join(path, filename) + '.xlsx'
-    # excelwriter = pd.ExcelWriter(xlpath)
-    # vc_utils.create_change_info_sheet(excelwriter, modela, modelb)
 
     problem_sections = ['[TITLE]', '[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
     with open(filepath, 'w') as newf:
@@ -312,4 +309,14 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
                                            na_fill='NaN')  # na fill fixes SNOWPACK blanks spaces issue
 
-    # excelwriter.save()
+    return BuildInstructions(filepath)
+
+
+def merge_models(inp1, inp2):
+    """
+    Merge two separate swmm models into one model.
+    :param m1:
+    :param m2:
+    :return:
+    """
+    pass
