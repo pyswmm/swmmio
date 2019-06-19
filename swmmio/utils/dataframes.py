@@ -7,7 +7,7 @@ from swmmio.defs import HEADERS
 
 def create_dataframeBI(bi_path, section='[CONDUITS]'):
     """
-    given a path to a biuld instructions file, create a dataframe of data in a
+    given a path to a build instructions file, create a dataframe of data in a
     given section
     """
     headerdefs = funcs.complete_inp_headers(bi_path)
