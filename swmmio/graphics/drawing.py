@@ -1,7 +1,4 @@
-import math
-from swmmio.graphics.constants import *  # constants
-from swmmio.graphics import config, options
-from swmmio.defs.config import FONT_PATH
+from swmmio.defs.constants import *
 from swmmio.graphics.utils import *
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from time import strftime

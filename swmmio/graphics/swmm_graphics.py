@@ -1,5 +1,4 @@
 # graphical functions for SWMM files
-# from swmmio.defs.config import *
 # from swmmio.graphics import config, options
 # from swmmio.graphics.constants import * #constants
 # from swmmio.graphics.utils import *
@@ -12,11 +11,11 @@ from PIL import Image, ImageDraw
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
     """
-    given the shapefiles in options.basemap_options, render each layer
+    given the shapefiles in config.basemap_options, render each layer
     on the model basemap.
     """
 
-    for f in options.basemap_options['features']:
+    for f in config.basemap_options['features']:
 
         shp_path = os.path.join(config.basemap_shapefile_dir, f['feature'])
         df = spatial.read_shapefile(shp_path)[f['cols'] + ['coords']]
