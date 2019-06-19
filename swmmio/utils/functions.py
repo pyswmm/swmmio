@@ -1,5 +1,5 @@
 from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
-from collections import deque
+from collections import deque, OrderedDict
 import pandas as pd
 from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
 
@@ -197,6 +197,29 @@ def complete_inp_headers(inpfilepath):
                     foundheaders.update({h: 'blob'})
 
     return {'headers': foundheaders, 'order': order}
+
+
+def get_inp_sections_details(inp_path):
+    from swmmio.defs import INP_OBJECTS
+
+    found_sects = OrderedDict()
+
+    with open(inp_path) as f:
+        for line in f:
+            for sect_id, data in INP_OBJECTS.items():
+                search_tag = '[{}]'.format(sect_id.lower())
+                if search_tag.lower() in line:
+                    found_sects[sect_id] = data
+
+
+    # select the correct infiltration column names
+    infil_type = self.options.loc['INFILTRATION', 'Value']
+    infil_cols = HEADERS['infiltration_cols'][infil_type]
+
+    # overwrite the dynamic sections with proper header cols
+    h = dict(HEADERS['inp_sections'])
+    h['[INFILTRATION]'] = list(infil_cols)
+    self._headers = h
 
 
 def complete_rpt_headers(rptfilepath):

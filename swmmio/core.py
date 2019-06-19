@@ -13,7 +13,7 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES
 import warnings
 import swmmio
 from swmmio.elements import ModelSection
-from swmmio.defs import HEADERS
+from swmmio.defs import HEADERS, INP_SECTION_TAGS
 # from swmmio.utils.functions import find_invalid_links
 from swmmio.utils.functions import trim_section_to_nodes
 
@@ -595,10 +595,10 @@ class inp(SWMMIOFile):
     @property
     def headers(self):
         """
-        Get the proper section headers for the INP file.
+        Return all headers and associated column names found in the INP file.
         """
         if self._headers is None:
-
+            # select the correct infiltration column names
             infil_type = self.options.loc['INFILTRATION', 'Value']
             infil_cols = HEADERS['infiltration_cols'][infil_type]
 
@@ -607,8 +607,7 @@ class inp(SWMMIOFile):
             h['[INFILTRATION]'] = list(infil_cols)
             self._headers = h
 
-        else:
-            return self._headers
+        return self._headers
 
     @property
     def options(self):
