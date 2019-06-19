@@ -7,3 +7,4 @@ include swmmio/defs/*.json
 include swmmio/tests/data/*.inp
 include swmmio/tests/data/*.rpt
 include swmmio/tests/data/*.csv
+include swmmio/tests/data/*.txt

@@ -1,7 +1,7 @@
-# SWMMIO 
-*v0.3.5.dev1*
+# SWMMIO
+*v0.3.6*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master) 
+[![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
 [![Build Status](https://travis-ci.com/aerispaha/swmmio.svg?branch=master)](https://travis-ci.com/aerispaha/swmmio)
 
 ![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
