@@ -1,4 +1,4 @@
-from swmmio.graphics.constants import *
+from swmmio.defs.constants import *
 
 FLOOD_IMPACT_CATEGORIES = {
     'increased_flooding':{

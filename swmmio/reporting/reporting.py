@@ -2,21 +2,17 @@
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
 from swmmio.reporting.functions import *
-from swmmio.reporting.utils import insert_in_file, insert_in_file_2
 from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import drawing
-from swmmio.graphics.constants import *
-from swmmio.utils.dataframes import create_dataframeRPT
 from swmmio.utils import spatial
 from swmmio.version_control.inp import INPDiff
 from swmmio import swmmio
-import os
 import math
 import pandas as pd
 from swmmio.defs.config import *
-import json, geojson
-import shutil
+from swmmio.defs.constants import *
+import geojson
 
 
 class FloodReport(object):
