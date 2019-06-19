@@ -74,7 +74,7 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                             return_string=False, skiprows=0, skipheaders=False):
     """
     INPUT path to text file (inp, rpt, etc) and a text string
-    matchig the section header of the to be extracted
+    matching the section header of the to be extracted
 
     creates a new text file in the same directory as the filepath
     and returns the path to the new file.
