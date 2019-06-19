@@ -1,10 +1,12 @@
-from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_XY,
-                               MODEL_XSECTION_ALT_02, MODEL_XSECTION_ALT_03, MODEL_BLANK,
-                               OUTFALLS_MODIFIED)
-
+from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
+                               MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
+                               OUTFALLS_MODIFIED, BUILD_INSTR_01)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
+import os
+import filecmp
+import shutil
 
 
 def test_complete_inp_headers():
@@ -21,17 +23,21 @@ def test_complete_inp_headers():
 
 
 def test_create_inp_build_instructions():
+    temp_vc_dir = os.path.join(DATA_PATH, 'vc_dir')
     inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE,
                                       MODEL_XSECTION_ALT_03,
-                                      'vc_dir',
+                                      temp_vc_dir,
                                       'test_version_id', 'cool comments')
 
-    latest_bi = vc_utils.newest_file('vc_dir')
+    latest_bi = vc_utils.newest_file(temp_vc_dir)
     bi = inp.BuildInstructions(latest_bi)
 
     juncs = bi.instructions['[JUNCTIONS]']
     assert (all(j in juncs.altered.index for j in [
         'dummy_node1', 'dummy_node5']))
+
+    assert(filecmp.cmp(latest_bi, BUILD_INSTR_01))
+    shutil.rmtree(temp_vc_dir)
 
 
 # def test_add_models():
