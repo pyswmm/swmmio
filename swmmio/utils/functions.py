@@ -183,6 +183,9 @@ def complete_inp_headers(inpfilepath):
                     an array of section headers found in the INP file
                     that preserves the original order
     """
+    # found_headers = get_inp_sections_details(inpfilepath, include_brackets=True)
+    # return {'headers': found_headers, 'order': found_headers.keys()}
+
     foundheaders = {}
     order = []
     # print inp_header_dict
@@ -199,7 +202,18 @@ def complete_inp_headers(inpfilepath):
     return {'headers': foundheaders, 'order': order}
 
 
-def get_inp_sections_details(inp_path):
+def get_inp_sections_details(inp_path, include_brackets=False):
+    """
+
+    :param inp_path:
+    :return:
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
+    >>> [header for header, cols in headers.items()][:4]
+    ['TITLE', 'OPTIONS', 'RAINGAGES', 'SUBCATCHMENTS']
+    >>> headers['SUBCATCHMENTS']['columns']
+    ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
+    """
     from swmmio.defs import INP_OBJECTS
 
     found_sects = OrderedDict()
@@ -207,10 +221,15 @@ def get_inp_sections_details(inp_path):
     with open(inp_path) as f:
         for line in f:
             for sect_id, data in INP_OBJECTS.items():
+                # find the start of an INP section
                 search_tag = '[{}]'.format(sect_id.lower())
-                if search_tag.lower() in line:
+                if search_tag.lower() in line.lower():
+                    if include_brackets:
+                        sect_id = '[{}]'.format(sect_id)
                     found_sects[sect_id] = data
 
+
+    return found_sects
 
     # select the correct infiltration column names
     infil_type = self.options.loc['INFILTRATION', 'Value']

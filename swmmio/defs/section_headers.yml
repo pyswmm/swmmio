@@ -1,0 +1,74 @@
+analysis_options: [FLOW_UNITS, INFILTRATION, FLOW_ROUTING, START_DATE, START_TIME,
+  END_DATE, END_TIME, REPORT_START_DATE, REPORT_START_TIME, SWEEP_START, SWEEP_END,
+  DRY_DAYS, WET_STEP, DRY_STEP, ROUTING_STEP, REPORT_STEP, RULE_STEP, ALLOW_PONDING,
+  INERTIAL_DAMPING, SLOPE_WEIGHTING, VARIABLE_STEP, NORMAL_FLOW_LIMITED, LENGTHENING_STEP,
+  MIN_SURFAREA, COMPATIBILITY, SKIP_STEADY_STATE, TEMPDIR, IGNORE_RAINFALL, FORCE_MAIN_EQUATION,
+  LINK_OFFSETS, MIN_SLOPE, IGNORE_SNOWMELT, IGNORE_GROUNDWATER, IGNORE_ROUTING, IGNORE_QUALITY,
+  MAX_TRIALS, HEAD_TOLERANCE, SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII, MINIMUM_STEP,
+  THREADS, SURCHARGE_METHOD]
+conduits:
+  columns: [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset,
+    InitFlow, MaxFlow]
+  inp_sections: ['[CONDUITS]', '[XSECTIONS]']
+  rpt_sections: [Link Flow Summary]
+infiltration_cols:
+  CURVE_NUMBER: [CurveNum, Conductivity (depreciated), DryTime]
+  GREEN_AMPT: [Subcatchment, Suction, HydCon, IMDmax]
+  HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
+  MODIFIED_GREEN_AMPT: [Subcatchment, Suction, Ksat, IMD]
+  MODIFIED_HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
+inp_section_tags: ['[TITLE', '[OPTION', '[FILE', '[RAINGAGE', '[TEMPERATURE', '[EVAP',
+  '[SUBCATCHMENT', '[SUBAREA', '[INFIL', '[AQUIFER', '[GROUNDWATER', '[SNOWPACK',
+  '[JUNC', '[OUTFALL', '[STORAGE', '[DIVIDER', '[CONDUIT', '[PUMP', '[ORIFICE', '[WEIR',
+  '[OUTLET', '[XSECT', '[TRANSECT', '[LOSS', '[CONTROL', '[POLLUT', '[LANDUSE', '[BUILDUP',
+  '[WASHOFF', '[COVERAGE', '[INFLOW', '[DWF', '[PATTERN', '[RDII', '[HYDROGRAPH',
+  '[LOADING', '[TREATMENT', '[CURVE', '[TIMESERIES', '[REPORT', '[MAP', '[COORDINATE',
+  '[VERTICES', '[POLYGON', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
+  '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
+inp_sections:
+  '[CONDUITS]': [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset,
+    InitFlow, MaxFlow]
+  '[COORDINATES]': [Name, X, Y]
+  '[DWF]': [Node, Parameter, AverageValue, TimePatterns]
+  '[FILES]': [Action, FileType, FileName]
+  '[INFILTRATION]': [Subcatchment, Suction, HydCon, IMDmax]
+  '[JUNCTIONS]': [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
+  '[LOSSES]': [Link, Inlet, Outlet, Average, FlapGate]
+  '[MAP]': [x1, y1, x2, y2]
+  '[OPTIONS]': [Name, Value]
+  '[ORIFICES]': [Name, InletNode, OutletNode, OrificeType, CrestHeight, DischCoeff,
+    FlapGate, OpenCloseTime]
+  '[OUTFALLS]': [Name, InvertElev, OutfallType, StageOrTimeseries, TideGate]
+  '[PUMPS]': [Name, InletNode, OutletNode, PumpCurve, InitStatus, Depth, ShutoffDepth]
+  '[Polygons]': [Name, X, Y]
+  '[RAINGAGES]': [Name, RainType, TimeIntrv, SnowCatch, DataSourceType, DataSourceName]
+  '[REPORT]': [Param, Status]
+  '[STORAGE]': [Name, InvertElev, MaxD, InitDepth, StorageCurve, Coefficient, Exponent,
+    Constant, PondedArea, EvapFrac, SuctionHead, Conductivity, InitialDeficit]
+  '[SUBAREAS]': [Name, N-Imperv, N-Perv, S-Imperv, S-Perv, PctZero, RouteTo, PctRouted]
+  '[SUBCATCHMENTS]': [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope,
+    CurbLength, SnowPack]
+  '[TAGS]': [ElementType, Name, Tag]
+  '[TITLE]': [blob]
+  '[VERTICES]': [Name, X, Y]
+  '[WEIRS]': [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate,
+    EndCon, EndCoeff, Surcharge, RoadWidth, RoadSurf]
+  '[XSECTIONS]': [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels]
+
+objects:
+  junctions:
+    cols: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
+  orifices:
+    inp_sections: ['[ORIFICES]']
+    rpt_sections: [Link Flow Summary]
+  outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
+  pumps:
+    inp_sections: ['[PUMPS]']
+    rpt_sections: [Link Flow Summary]
+  subcatchments:
+    columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,
+              SnowPack]
+    inp_sections: ['[SUBCATCHMENTS]']
+    rpt_sections: []
+
+primary_objects:

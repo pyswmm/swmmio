@@ -2,6 +2,7 @@
 import os
 import json
 import yaml
+from swmmio.defs.sectionheaders import normalize_inp_config
 
 _DEFS_PATH = os.path.abspath(os.path.dirname(__file__))
 _HEADERS_JSON = os.path.join(_DEFS_PATH, 'section_headers.json')
@@ -11,8 +12,7 @@ with open(_HEADERS_JSON, 'r') as f:
     HEADERS = json.load(f)
 
 with open(_INP_SECTIONS_YAML, 'r') as f:
-    INP_SECTIONS = yaml.load(f)
+    _inp_sections_conf_raw = yaml.load(f)
 
-INP_OBJECTS = INP_SECTIONS['inp_file_objects']
-print(INP_SECTIONS)
+INP_OBJECTS = normalize_inp_config(_inp_sections_conf_raw['inp_file_objects'])
 INP_SECTION_TAGS = HEADERS['inp_section_tags']

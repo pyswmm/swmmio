@@ -31,12 +31,9 @@ inp_file_objects:
       - Average
       - Flap Gate
       - SeepageRate
-  CONDUITS:
-    columns: [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset, InitFlow, MaxFlow]
-  INFILTRATION:
-    columns: [Subcatchment, Suction, HydCon, IMDmax]
-  JUNCTIONS:
-    columns: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
+  CONDUITS: [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset, InitFlow, MaxFlow]
+  INFILTRATION: [Subcatchment, Suction, HydCon, IMDmax]
+  JUNCTIONS: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
   DWF:
     columns: [Node, Parameter, AverageValue, TimePatterns]
   ORIFICES:
