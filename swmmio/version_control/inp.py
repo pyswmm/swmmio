@@ -30,7 +30,7 @@ class BuildInstructions(object):
             # read the instructions and create a dictionary of Change objects
             allheaders = funcs.complete_inp_headers(build_instr_file)
             instructions = {}
-            for section in allheaders['order']:
+            for section, _ in allheaders.items():
                 change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section: change})
 
@@ -94,12 +94,12 @@ class BuildInstructions(object):
         allheaders = funcs.complete_inp_headers(basemodel.inp.path)
         # new_inp = os.path.join(target_dir, 'model.inp')
         with open(target_path, 'w') as f:
-            for section in allheaders['order']:
+            for section, _ in allheaders.items():
 
                 # check if the section is not in problem_sections and there are changes
                 # in self.instructions and commit changes to it from baseline accordingly
                 if (section not in problem_sections
-                        and allheaders['headers'][section] != 'blob'
+                        and allheaders[section]['columns'] != ['blob']
                         and section in self.instructions):
 
                     # df of baseline model section
@@ -113,7 +113,7 @@ class BuildInstructions(object):
                     new_section = basedf.drop(remove_ids)
 
                     # add elements
-                    new_section = pd.concat([new_section, changes.altered, changes.added])
+                    new_section = pd.concat([new_section, changes.altered, changes.added], sort=True)
                 else:
                     # section is not well understood or is problematic, just blindly copy
                     new_section = create_dataframeINP(basemodel.inp.path, section=section)
@@ -210,7 +210,7 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
     combi_build_instr_file = os.path.join(target_dir, 'build_instructions.txt')
     newinp = os.path.join(target_dir, 'new.inp')
     with open(combi_build_instr_file, 'w') as f:
-        for header in allheaders['order']:
+        for header, _ in allheaders.items():
             s = ''
             section_header_written = False
             for inp in inpdiffs:
@@ -244,9 +244,9 @@ def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
     # step 3 --> create a new inp based on the baseline, with the inp_diff
     # instructions applied
     with open(newinp, 'w') as f:
-        for section in allheaders['order']:
+        for section, _ in allheaders.items():
             print(section)
-            if section not in problem_sections and allheaders['headers'][section] != 'blob':
+            if section not in problem_sections and allheaders[section]['columns'] != ['blob']:
                 # check if a changes from baseline spreadheet exists, and use this
                 # information if available to create the changes array
                 df = create_dataframeINP(basemodel.inp.path, section)
@@ -300,7 +300,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
         }
         # print metadata
         vc_utils.write_meta_data(newf, metadata)
-        for section in allsections_a['order']:
+        for section, _ in allsections_a.items():
             if section not in problem_sections:
                 # calculate the changes in the current section
                 changes = INPSectionDiff(modela, modelb, section)

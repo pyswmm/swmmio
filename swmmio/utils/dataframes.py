@@ -11,7 +11,7 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
     given section
     """
     headerdefs = funcs.complete_inp_headers(bi_path)
-    headerlist = headerdefs['headers'][section].split() + [';', 'Comment', 'Origin']
+    headerlist = headerdefs[section]['columns'] + [';', 'Comment', 'Origin']
     tempfilepath = txt.extract_section_from_inp(bi_path, section,
                                                 headerdefs=headerdefs,
                                                 skipheaders=True)
@@ -55,7 +55,7 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
         blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
         return blank_df
 
-    if headerdefs['headers'][section] == 'blob':
+    if headerdefs[section]['columns'][0] == 'blob':
         # return the whole row, without specifc col headers
         df = pd.read_csv(tempfilepath, delim_whitespace=False, comment=comment_str)
     elif section == '[CURVES]' or section == '[TIMESERIES]':

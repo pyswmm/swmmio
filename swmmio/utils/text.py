@@ -23,7 +23,7 @@ def inline_comments_in_inp(filepath, overwrite=False):
         with open(newfilepath, 'w') as new:
 
             comment_concat = [] #to hold list of comments (handles multiline comments)
-            current_section = allheaders['order'][0]
+            current_section = list(allheaders.keys())[0]
             for line in oldf:
 
                 #determine what section we are in by noting when we pass double brackets
@@ -38,7 +38,7 @@ def inline_comments_in_inp(filepath, overwrite=False):
                         #this is a comment bc first char is ; and there
                         #seconf char is not (which would resember the header section)
                         words = line.split()
-                        hdrs = allheaders['headers'][current_section].split()#headerrow.split()
+                        hdrs = allheaders[current_section]['columns']#headerrow.split()
                         perc_match_to_header = float(len([x for x in words if x in hdrs])) / float(len(hdrs))
                         if perc_match_to_header <= 0.75:
                             comment_concat.append(line.strip())
@@ -85,9 +85,9 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
 
     #headers = she.complete_inp_headers(inp)['headers']
     if not headerdefs:
-        allheaders = complete_inp_headers(filepath)['headers']
+        allheaders = complete_inp_headers(filepath)
     else:
-        allheaders = headerdefs['headers']
+        allheaders = headerdefs
 
     with open(filepath) as f:
         startfound = False
@@ -110,8 +110,8 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                     startfound = True
                     #replace line with usable headers
                     if cleanheaders:
-                        if allheaders[sectionheader] != 'blob':
-                            line = allheaders[sectionheader] + '\n'
+                        if allheaders[sectionheader]['columns'][0] != 'blob':
+                            line = ' '.join(allheaders[sectionheader]['columns']) + '\n'
                         else:
                             line = sectionheader + '\n'
 

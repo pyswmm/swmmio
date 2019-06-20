@@ -31,8 +31,8 @@ def test_complete_inp_headers():
 
     h1 = funcs.complete_inp_headers(MODEL_XSECTION_BASELINE)
 
-    assert (all(h in h1['headers'] for h in headers))
-    assert (h1['order'] == headers)
+    assert (all(h in h1 for h in headers))
+    assert (list(h1.keys()) == headers)
 
 
 def test_create_inp_build_instructions():
@@ -164,7 +164,7 @@ def test_modify_model():
 
     # copy the base model into a new directory
     newdir = os.path.join(baseline.inp.dir, str(rise))
-    os.mkdir(newdir)
+    makedirs(newdir)
     newfilepath = os.path.join(newdir, baseline.inp.name + "_" + str(rise) + '_SLR.inp')
     shutil.copyfile(baseline.inp.path, newfilepath)
 

@@ -49,7 +49,7 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
             f.write('\n\n' + sectionheader + '\n')  # add SWMM-friendly header e.g. [DWF]
         else:
             f.write(sectionheader + '\n')
-        if allheaders and allheaders['headers'].get(sectionheader, 'blob') == 'blob':
+        if allheaders and (sectionheader in allheaders) and allheaders[sectionheader]['columns'] == ['blob']:
             # to left justify based on the longest string in the blob column
             formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
             add_str = section_data.fillna('').to_string(

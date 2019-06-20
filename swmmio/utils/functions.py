@@ -167,7 +167,6 @@ def rotate_model(m, rads=0.5, origin=None):
     return m
 
 
-# Todo: use an OrderedDict instead of a dict and a "order" list
 def complete_inp_headers(inpfilepath):
     """
     creates a dictionary with all the headers found in an INP file
@@ -183,23 +182,7 @@ def complete_inp_headers(inpfilepath):
                     an array of section headers found in the INP file
                     that preserves the original order
     """
-    # found_headers = get_inp_sections_details(inpfilepath, include_brackets=True)
-    # return {'headers': found_headers, 'order': found_headers.keys()}
-
-    foundheaders = {}
-    order = []
-    # print inp_header_dict
-    with open(inpfilepath) as f:
-        for line in f:
-            if '[' and ']' in line:
-                h = line.strip()
-                order.append(h)
-                if h in inp_header_dict:
-                    foundheaders.update({h: inp_header_dict[h]})
-                else:
-                    foundheaders.update({h: 'blob'})
-
-    return {'headers': foundheaders, 'order': order}
+    return get_inp_sections_details(inpfilepath, include_brackets=True)
 
 
 def get_inp_sections_details(inp_path, include_brackets=False):
@@ -220,6 +203,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
 
     with open(inp_path) as f:
         for line in f:
+            sect_not_found = True
             for sect_id, data in INP_OBJECTS.items():
                 # find the start of an INP section
                 search_tag = '[{}]'.format(sect_id.lower())
@@ -227,6 +211,12 @@ def get_inp_sections_details(inp_path, include_brackets=False):
                     if include_brackets:
                         sect_id = '[{}]'.format(sect_id)
                     found_sects[sect_id] = data
+                    sect_not_found = False
+                    break
+            if sect_not_found:
+                if '[' and ']' in line:
+                    h = line.strip()
+                    found_sects[h] = OrderedDict(columns=['blob'])
 
 
     return found_sects

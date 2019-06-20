@@ -24,10 +24,11 @@ def test_model_section(test_model):
 
 def test_complete_headers(test_model):
     headers = functions.complete_inp_headers(test_model.inp.path)
+    print (list(headers.keys()))
     sections_in_inp = [
         '[TITLE]', '[OPTIONS]', '[EVAPORATION]', '[RAINGAGES]', '[SUBCATCHMENTS]', '[SUBAREAS]', '[INFILTRATION]',
         '[JUNCTIONS]', '[OUTFALLS]', '[STORAGE]', '[CONDUITS]', '[PUMPS]', '[WEIRS]', '[XSECTIONS]', '[INFLOWS]',
         '[CURVES]', '[TIMESERIES]', '[REPORT]', '[TAGS]', '[MAP]', '[COORDINATES]', '[VERTICES]', '[Polygons]',
         '[SYMBOLS]'
     ]
-    assert (all(section in headers['headers'] for section in sections_in_inp))
+    assert (all(section in headers for section in sections_in_inp))

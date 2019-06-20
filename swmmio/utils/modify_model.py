@@ -41,7 +41,7 @@ def replace_inp_section(inp_path, modified_section_header, new_data, overwrite=T
 
                 if (
                     found_section and not found_next_section
-                    and line.strip() in allheaders['headers']
+                    and line.strip() in allheaders
                     and modified_section_header != line.strip()
                     ):
 
