@@ -126,20 +126,27 @@ def test_add_models():
     create build instructions for entire models with respect to a blank (empty) model
     such that BIs include additions for each model element.
     """
-    import swmmio
+    # create blank model with all inp objects
+    # from swmmio.defs import INP_OBJECTS
+    # with open (MODEL_BLANK.replace('.inp', '_01.inp'), 'w') as f:
+    #     for header, _ in INP_OBJECTS.items():
+    #         s = '\n[{}]\n'.format(header)
+    #         f.write(s)
+
+    tdir = os.path.join(DATA_PATH, 'vc_dir')
+
     bi_b = inp.create_inp_build_instructions(MODEL_BLANK,
                                       MODEL_FULL_FEATURES_XY_B,
-                                      'vc_dir',
+                                      tdir,
                                       'from_blank_model_b', 'cool comments')
     bi_a = inp.create_inp_build_instructions(MODEL_BLANK,
                                       MODEL_FULL_FEATURES_XY,
-                                      'vc_dir',
+                                      tdir,
                                       'from_blank_model_a', 'should have all we need')
 
-
     bi_final = bi_a + bi_b
-    bi_final.save(DATA_PATH, 'merged-build-instr.txt')
-    bi_final.build(MODEL_BLANK, 'merged-model.inp')
+    bi_final.save(tdir, 'merged-build-instr.txt')
+    bi_final.build(MODEL_BLANK, os.path.join(tdir, 'merged-model.inp'))
 
 
 def test_modify_model():

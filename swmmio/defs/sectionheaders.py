@@ -72,7 +72,7 @@ def parse_inp_section_config(raw_conf):
         if 'keys' in raw_conf:
             # object is special case like OPTIONS
             conf.update(raw_conf)
-            conf['columns'] = ['Values']
+            conf['columns'] = ['Key', 'Value']
         else:
             conf.update(raw_conf)
 

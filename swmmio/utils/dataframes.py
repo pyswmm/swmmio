@@ -1,8 +1,9 @@
 import os
 import pandas as pd
+
+from swmmio.defs import INP_OBJECTS
 from swmmio.utils import text as txt
 from swmmio.utils import functions as funcs
-from swmmio.defs import HEADERS
 
 
 def create_dataframeBI(bi_path, section='[CONDUITS]'):
@@ -45,7 +46,7 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
         print('header {} not found in {}\nReturning empty DataFrame.'.format(section, inp_path))
         # headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
 
-        headerlist = HEADERS['inp_sections'][section]
+        headerlist = INP_OBJECTS[section.replace('[', '').replace(']', '')]['columns']
         if headers is not None:
             headerlist = headers[section]
 
@@ -63,7 +64,7 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
         df = pd.read_csv(tempfilepath, delim_whitespace=False)  # , index_col=0)#, skiprows=[0])
     else:
         # this section header is recognized and will be organized into known columns
-        headerlist = HEADERS['inp_sections'][section]
+        headerlist = headerdefs[section]['columns']
         if headers is not None:
             headerlist = headers[section]
         if comment_cols:

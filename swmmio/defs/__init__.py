@@ -15,4 +15,4 @@ with open(_INP_SECTIONS_YAML, 'r') as f:
     _inp_sections_conf_raw = yaml.load(f)
 
 INP_OBJECTS = normalize_inp_config(_inp_sections_conf_raw['inp_file_objects'])
-INP_SECTION_TAGS = HEADERS['inp_section_tags']
+INFILTRATION_COLS = _inp_sections_conf_raw['infiltration_cols']

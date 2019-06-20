@@ -8,7 +8,7 @@ infiltration_cols:
 
 inp_file_objects:
   TITLE:
-    columns: blob
+    columns: [blob]
   OPTIONS:
     keys: [FLOW_UNITS, INFILTRATION, FLOW_ROUTING, START_DATE, START_TIME,
     END_DATE, END_TIME, REPORT_START_DATE, REPORT_START_TIME, SWEEP_START, SWEEP_END,
@@ -48,12 +48,13 @@ inp_file_objects:
   WEIRS: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate, EndCon, EndCoeff,
           Surcharge, RoadWidth, RoadSurf]
   XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels]
+  INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
 
 
   COORDINATES: [Name, X, Y]
   VERTICES: [Name, X, Y]
   Polygons: [Name, X, Y]
-  MAP: [x1, y1, x2, y2]
+  MAP: [Param, x1, y1, x2, y2]
   REPORT: [Param, Status]
   TAGS: [ElementType, Name, Tag]
 

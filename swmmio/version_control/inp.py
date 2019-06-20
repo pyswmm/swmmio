@@ -1,12 +1,14 @@
+from collections import OrderedDict
+
 from swmmio.utils import functions as funcs
-from swmmio import swmmio
+from swmmio import swmmio, get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
 from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
 from swmmio.utils import text
 import pandas as pd
 import os
 from copy import deepcopy
-
+pd.options.display.max_colwidth = 200
 
 problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
 
@@ -113,7 +115,7 @@ class BuildInstructions(object):
                     new_section = basedf.drop(remove_ids)
 
                     # add elements
-                    new_section = pd.concat([new_section, changes.altered, changes.added], sort=True)
+                    new_section = pd.concat([new_section, changes.altered, changes.added])
                 else:
                     # section is not well understood or is problematic, just blindly copy
                     new_section = create_dataframeINP(basemodel.inp.path, section=section)
@@ -134,6 +136,8 @@ class INPSectionDiff(object):
     """
 
     def __init__(self, model1=None, model2=None, section='[JUNCTIONS]', build_instr_file=None):
+        self.model1 = model1 if model1 else ""
+        self.model2 = model2 if model2 else ""
 
         if model1 and model2:
             df1 = create_dataframeINP(model1.inp.path, section)
@@ -193,6 +197,63 @@ class INPSectionDiff(object):
         change.altered = self.altered.append(other.altered)
 
         return change
+
+    def __str__(self):
+        s = ''
+        diff = pd.concat([self.removed, self.added, self.altered])
+        diffs = '\n{}'.format(diff.head().to_string())
+        return s+diffs
+
+
+class INPDiff(object):
+    def __init__(self, model1=None, model2=None):
+        """
+        diff of all INP sections between two models
+        :param model1:
+        :param model2:
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
+        >>> mydiff = INPDiff(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B)
+        >>> mydiff.diffs['[XSECTIONS]']
+                 Shape  Geom1  Geom2  Geom3  Geom4  Barrels  ;  Comment                     Origin
+        Link
+        1:4   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
+        2:5   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
+        3:4   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
+        4:5   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
+        5:J1  CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
+        <BLANKLINE>
+        >>> print(mydiff)
+        """
+        m1 = model1
+        m2 = model2
+        if isinstance(m1, str):
+            m1 = swmmio.Model(m1)
+        if isinstance(m2, str):
+            m2 = swmmio.Model(m2)
+        self.m1 = m1
+        self.m2 = m2
+        self.diffs = OrderedDict()
+
+        m1_sects = get_inp_sections_details(m1.inp.path, include_brackets=True)
+        m2_sects = get_inp_sections_details(m2.inp.path, include_brackets=True)
+
+        # get union of sections found, maintain order
+        sects = list(m1_sects.keys()) + list(m2_sects.keys())
+        seen = set()
+        self.all_sections = [x for x in sects if not (x in seen or seen.add(x))]
+        self.all_inp_objects = OrderedDict(m1_sects)
+        self.all_inp_objects.update(m2_sects)
+        for section in self.all_sections:
+            if section not in problem_sections:
+                # calculate the changes in the current section
+                changes = INPSectionDiff(m1, m2, section)
+
+                self.diffs[section] = changes
+
+    def __str__(self):
+        s = '--- {}\n+++ {}\n\n'.format(self.m1.inp.path, self.m2.inp.path)
+        diffs = '\n\n'.join(['{}\n{}'.format(sect, d.__str__()) for sect, d in self.diffs.items()])
+        return s+diffs
 
 
 def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
@@ -312,11 +373,50 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     return BuildInstructions(filepath)
 
 
-def merge_models(inp1, inp2):
+def merge_models(inp1, inp2, target='merged_model.inp'):
     """
-    Merge two separate swmm models into one model.
+    Merge two separate swmm models into one model. This creates a diff, ignores
+    removed sections, and uses inp1 settings where conflicts exist (altered sections in diff)
     :param m1:
     :param m2:
     :return:
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
+    >>> merged_model = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B)
     """
-    pass
+    # model object to store resulting merged model
+    m3 = swmmio.Model(inp1)
+
+    inp_diff = INPDiff(inp1, inp2)
+    with open(target, 'w') as newf:
+        for section, _ in inp_diff.all_inp_objects.items():
+            # don't consider the "removed" parts of the diff
+            print('{}: {}'.format(section,inp_diff.all_inp_objects[section]['columns']))
+            # check if the section is not in problem_sections and there are changes
+            # in self.instructions and commit changes to it from baseline accordingly
+            if (section not in problem_sections
+                    and inp_diff.all_inp_objects[section]['columns'] != ['blob']
+                    and section in inp_diff.diffs):
+
+                # df of baseline model section
+                basedf = create_dataframeINP(m3.inp.path, section)
+
+                # grab the changes to
+                changes = inp_diff.diffs[section]
+
+                # remove elements that have alterations keep ones tagged for removal
+                # (unchanged, but not present in m2)
+                remove_ids = changes.altered.index
+                new_section = basedf.drop(remove_ids)
+
+                # add elements
+                new_section = pd.concat([new_section, changes.altered, changes.added])
+            else:
+                # section is not well understood or is problematic, just blindly copy
+                new_section = create_dataframeINP(m3.inp.path, section=section)
+                print ('dealing with confusing section: {}\n{}'.format(section, new_section))
+
+            # print(new_section.head())
+            # write the section
+            vc_utils.write_inp_section(newf, inp_diff.all_inp_objects, section, new_section, pad_top=True)
+
+    return target

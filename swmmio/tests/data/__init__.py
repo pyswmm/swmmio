@@ -27,7 +27,7 @@ MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')
 MODEL_XSECTION_ALT_01 = os.path.join(DATA_PATH, 'alt_test1.inp')
 MODEL_XSECTION_ALT_02 = os.path.join(DATA_PATH, 'alt_test2.inp')
 MODEL_XSECTION_ALT_03 = os.path.join(DATA_PATH, 'alt_test3.inp')
-MODEL_BLANK = os.path.join(DATA_PATH, 'model_blank.inp')
+MODEL_BLANK = os.path.join(DATA_PATH, 'model_blank_01.inp')
 BUILD_INSTR_01 = os.path.join(DATA_PATH, 'test_build_instructions_01.txt')
 
 df_test_coordinates_csv = os.path.join(DATA_PATH, 'df_test_coordinates.csv')

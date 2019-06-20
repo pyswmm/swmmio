@@ -216,19 +216,11 @@ def get_inp_sections_details(inp_path, include_brackets=False):
             if sect_not_found:
                 if '[' and ']' in line:
                     h = line.strip()
+                    if not include_brackets:
+                        h = h.replace('[', '').replace(']', '')
                     found_sects[h] = OrderedDict(columns=['blob'])
 
-
     return found_sects
-
-    # select the correct infiltration column names
-    infil_type = self.options.loc['INFILTRATION', 'Value']
-    infil_cols = HEADERS['infiltration_cols'][infil_type]
-
-    # overwrite the dynamic sections with proper header cols
-    h = dict(HEADERS['inp_sections'])
-    h['[INFILTRATION]'] = list(infil_cols)
-    self._headers = h
 
 
 def complete_rpt_headers(rptfilepath):

@@ -13,9 +13,9 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES
 import warnings
 import swmmio
 from swmmio.elements import ModelSection
-from swmmio.defs import HEADERS, INP_SECTION_TAGS
+from swmmio.defs import HEADERS, INFILTRATION_COLS
 # from swmmio.utils.functions import find_invalid_links
-from swmmio.utils.functions import trim_section_to_nodes
+from swmmio.utils.functions import trim_section_to_nodes, get_inp_sections_details
 
 
 class Model(object):
@@ -103,20 +103,6 @@ class Model(object):
             return False
         else:
             return True
-
-    def to_map(self, filename=None, inproj='epsg:2272'):
-        '''
-        To be removed in v0.4.0. Use swmmio.reporting.visualize.create_map()
-        '''
-
-        def wrn():
-            w = '''to_map is no longer supported! Use
-            swmmio.reporting.visualize.create_map() instead'''
-            warnings.warn(w, DeprecationWarning)
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("always")
-            wrn()
 
     def conduits(self):
         """
@@ -600,11 +586,11 @@ class inp(SWMMIOFile):
         if self._headers is None:
             # select the correct infiltration column names
             infil_type = self.options.loc['INFILTRATION', 'Value']
-            infil_cols = HEADERS['infiltration_cols'][infil_type]
+            infil_cols = INFILTRATION_COLS[infil_type]
 
             # overwrite the dynamic sections with proper header cols
-            h = dict(HEADERS['inp_sections'])
-            h['[INFILTRATION]'] = list(infil_cols)
+            h = get_inp_sections_details(self.path)
+            h['INFILTRATION'] = list(infil_cols)
             self._headers = h
 
         return self._headers
@@ -618,6 +604,15 @@ class inp(SWMMIOFile):
         :rtype: pandas.DataFrame
 
         Examples:
+        >>> import swmmio
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+        >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
+        >>> model.inp.options.loc['INFILTRATION']
+        Value    HORTON
+        Name: INFILTRATION, dtype: object
+        >>> model.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
+        >>> model.inp.headers['INFILTRATION']
+        ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
         """
         if self._options_df is None:
             self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False,
