@@ -1,5 +1,12 @@
 [TITLE]
 ;;Project Title/Notes
+Notes about this full featured model 
+More notes
+{ADAM ADAM  - 2018.03.07} CSO-195 Seperation Project:  Modified baseflow and 
+Evapotransportation: changed back to monthly averages (from TimeS)
+; Notes with , commas , for a test
+more notes
+
 
 [OPTIONS]
 ;;Option             Value

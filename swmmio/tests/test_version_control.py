@@ -5,7 +5,7 @@ from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
-from swmmio.version_control.inp import INPSectionDiff
+from swmmio.version_control.inp import INPSectionDiff, merge_models
 
 import os
 import shutil
@@ -148,6 +148,22 @@ def test_add_models():
     bi_final.save(tdir, 'merged-build-instr.txt')
     bi_final.build(MODEL_BLANK, os.path.join(tdir, 'merged-model.inp'))
 
+def test_merge_models():
+
+    from swmmio import Model
+    import pandas as pd
+    # MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
+    target_merged_model = os.path.join(DATA_PATH, 'merged-model-test.inp')
+    merged_model = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B, target_merged_model)
+    m1 = Model(MODEL_FULL_FEATURES_XY)
+    m2 = Model(MODEL_FULL_FEATURES_XY_B)
+
+    conds1_2 = pd.concat([m1.inp.conduits, m2.inp.conduits]).sort_index()
+    m12 = Model(merged_model)
+    conds1_2_merged = m12.inp.conduits.sort_index()
+    os.remove(target_merged_model)
+
+    assert conds1_2.equals(conds1_2_merged)
 
 def test_modify_model():
     from swmmio.utils.modify_model import replace_inp_section

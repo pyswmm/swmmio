@@ -39,6 +39,7 @@ inp_file_objects:
   ORIFICES:
     columns: [Name, InletNode, OutletNode, OrificeType, CrestHeight, DischCoeff, FlapGate, OpenCloseTime]
   OUTFALLS: [Name, InvertElev, OutfallType, StageOrTimeseries, TideGate]
+  OUTLETS: [Name, InletNode, OutletNode, OutflowHeight, OutletType, Qcoeff/QTable, Qexpon, FlapGate]
   PUMPS: [Name, InletNode, OutletNode, PumpCurve, InitStatus, Depth, ShutoffDepth]
   STORAGE: [Name, InvertElev, MaxD, InitDepth, StorageCurve, Coefficient, Exponent,
                 Constant, PondedArea, EvapFrac, SuctionHead, Conductivity, InitialDeficit]
@@ -57,6 +58,7 @@ inp_file_objects:
   MAP: [Param, x1, y1, x2, y2]
   REPORT: [Param, Status]
   TAGS: [ElementType, Name, Tag]
+  ADJUSTMENTS: [blob]
 
 
 

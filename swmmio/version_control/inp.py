@@ -380,8 +380,6 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
     :param m1:
     :param m2:
     :return:
-    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
-    >>> merged_model = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B)
     """
     # model object to store resulting merged model
     m3 = swmmio.Model(inp1)
@@ -390,7 +388,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
     with open(target, 'w') as newf:
         for section, _ in inp_diff.all_inp_objects.items():
             # don't consider the "removed" parts of the diff
-            print('{}: {}'.format(section,inp_diff.all_inp_objects[section]['columns']))
+            # print('{}: {}'.format(section,inp_diff.all_inp_objects[section]['columns']))
             # check if the section is not in problem_sections and there are changes
             # in self.instructions and commit changes to it from baseline accordingly
             if (section not in problem_sections
@@ -413,7 +411,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
             else:
                 # section is not well understood or is problematic, just blindly copy
                 new_section = create_dataframeINP(m3.inp.path, section=section)
-                print ('dealing with confusing section: {}\n{}'.format(section, new_section))
+                # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
             # print(new_section.head())
             # write the section
