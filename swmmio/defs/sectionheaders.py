@@ -7,7 +7,7 @@ inp_header_dict = {
     '[TITLE]':'blob',
     '[OPTIONS]':'Name Value',
     '[FILES]': 'Action FileType FileName',
-    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
+    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InOffset OutOffset InitFlow MaxFlow',
     '[COORDINATES]': 'Name X Y',
     '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
     '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
@@ -59,7 +59,7 @@ def parse_inp_section_config(raw_conf):
     >>> from swmmio.defs import INP_OBJECTS
     >>> conds_config = INP_OBJECTS['CONDUITS']
     >>> parse_inp_section_config(conds_config)
-    OrderedDict([('columns', ['Name', 'InletNode', 'OutletNode', 'Length', 'ManningN', 'InletOffset', 'OutletOffset', 'InitFlow', 'MaxFlow'])])
+    OrderedDict([('columns', ['Name', 'InletNode', 'OutletNode', 'Length', 'ManningN', 'InOffset', 'OutOffset', 'InitFlow', 'MaxFlow'])])
     >>> parse_inp_section_config(INP_OBJECTS['LOSSES'])
     OrderedDict([('columns', ['Link', 'Inlet', 'Outlet', 'Average', 'Flap Gate', 'SeepageRate'])])
     """

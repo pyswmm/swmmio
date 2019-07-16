@@ -2,6 +2,7 @@
 #STANDARD READING AND WRITING OF TEXT FILES (E.G. .INP AND .RPT)
 
 import os
+
 from swmmio.utils.functions import random_alphanumeric, complete_inp_headers, complete_rpt_headers
 
 
@@ -61,13 +62,52 @@ def inline_comments_in_inp(filepath, overwrite=False):
         os.rename(newfilepath, filepath)
 
 
+def extract_section_of_file(file_path, start_string, end_string, comment_str=';'):
+    """
+    Extract a portion of a file found between a start string and a end string/condition
+    :param file_path: path to file
+    :param start_string: token used to start the extraction (included)
+    :param end_string: token used to end the extraction
+    :param comment: ignore any text in a line behind a comment char
+    :return: string
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment_str=None)
+    >>> print(s.strip())
+    [EVAPORATION]
+    ;;Data Source    Parameters
+    ;;-------------- ----------------
+    CONSTANT         0.0
+    DRY_ONLY         NO
+    """
 
-def extract_section_from_file(filepath, sectionheader, element_id=None, cleanheaders=True, startfile=False, headerdefs=None,  ignore_comments=False):
-    f_extension = os.path.splitext(filepath)[1]
-    if f_extension == '.inp':
-        return extract_section_from_inp(filepath, sectionheader, cleanheaders, startfile, headerdefs, ignore_comments)
-    if f_extension == '.rpt':
-        return extract_section_from_rpt(filepath, sectionheader, element_id, cleanheaders, startfile, headerdefs)
+    if isinstance(end_string, str):
+        end_string = [end_string]
+
+    start_found = False
+    out_string = ''
+    with open(file_path, 'r') as f:
+
+        for line in f:
+
+            if start_found and any(es in line for es in end_string):
+                # print('end found: {}'.format(line))
+                break
+            elif not start_found and start_string in line:
+                start_found = True
+
+            if start_found:
+                if comment_str is not None:
+                    # ignore anything after a comment
+                    if comment_str in line:
+                        s = line.split(comment_str)[0] + '\n'
+                        out_string += s
+                    else:
+                        out_string += line
+                else:
+                    out_string += line
+
+    return out_string
+
 
 def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                             startfile=False, headerdefs=None, ignore_comments=False,
@@ -91,8 +131,6 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
 
     with open(filepath) as f:
         startfound = False
-        endfound = False
-        #outFilePath = inp.dir + "\\" + inp.name + "_" + section + ".txt"
         wd = os.path.dirname(filepath)
         newfname = sectionheader + '_' + random_alphanumeric(6)
         outfilepath = os.path.join(wd, newfname + txt)
@@ -103,7 +141,6 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
             for line in f:
 
                 if startfound and line.strip() in allheaders:
-                    endfound = True
                     #print 'end found: {}'.format(line.strip())
                     break
                 elif not startfound and sectionheader in line:
@@ -118,7 +155,6 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
                 if startfound:
                     if ignore_comments:
                         #ignore anything after a comment
-                        #THIS IS HACK GARBAGE
                         if ';' in line:
                             s = line.split(';')[0] + '\n'
                             out_string += s #build the overall out string (optional use)
@@ -250,3 +286,34 @@ def extract_section_from_rpt(filepath, sectionheader, element_id=None, cleanhead
 
     return outfilepath
     #pass
+
+
+def find_byte_range_of_section(path, start_string):
+    '''
+    returns the start and end "byte" location of substrings in a text file
+    '''
+
+    with open(path) as f:
+        start = None
+        end = None
+        l = 0  # line bytes index
+        for line in f:
+
+            if start and line.strip() == "" and (l - start) > 100:
+                # LOGIC: if start exists (was found) and the current line
+                # length is 3 or less (length of /n ) and we're more than
+                # 100 bytes from the start location then we are at the first
+                # "blank" line after our start section (aka the end of the
+                # section)
+                end = l
+                break
+
+            if (start_string in line) and (not start):
+                start = l
+
+            # increment length (bytes?) of current position
+            l += len(line) + len("\n")
+
+    return [start, end]
+
+

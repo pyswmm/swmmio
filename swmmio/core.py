@@ -7,15 +7,16 @@ import glob
 import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
-from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords
+from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords, get_inp_options_df
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
 import swmmio
 from swmmio.elements import ModelSection
-from swmmio.defs import HEADERS, INFILTRATION_COLS
+from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS
 # from swmmio.utils.functions import find_invalid_links
 from swmmio.utils.functions import trim_section_to_nodes, get_inp_sections_details
+from swmmio.utils.text import find_byte_range_of_section
 
 
 class Model(object):
@@ -138,8 +139,8 @@ class Model(object):
         df = df.rename(index=str, columns={"InvertElev": "InletNodeInvert"})
         df = pd.merge(df, elevs, left_on='OutletNode', right_index=True, how='left')
         df = df.rename(index=str, columns={"InvertElev": "OutletNodeInvert"})
-        df['UpstreamInvert'] = df.InletNodeInvert + df.InletOffset
-        df['DownstreamInvert'] = df.OutletNodeInvert + df.OutletOffset
+        df['UpstreamInvert'] = df.InletNodeInvert + df.InOffset
+        df['DownstreamInvert'] = df.OutletNodeInvert + df.OutOffset
         df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
         df.InletNode = df.InletNode.astype(str)
@@ -414,34 +415,6 @@ class SWMMIOFile(object):
         self.dir = os.path.dirname(file_path)
         self.file_size = os.path.getsize(file_path)
 
-    def findByteRangeOfSection(self, startStr):
-        '''
-        returns the start and end "byte" location of substrings in a text file
-        '''
-
-        with open(self.path) as f:
-            start = None
-            end = None
-            l = 0  # line bytes index
-            for line in f:
-
-                if start and line.strip() == "" and (l - start) > 100:
-                    # LOGIC: if start exists (was found) and the current line
-                    # length is 3 or less (length of /n ) and we're more than
-                    # 100 bytes from the start location then we are at the first
-                    # "blank" line after our start section (aka the end of the
-                    # section)
-                    end = l
-                    break
-
-                if (startStr in line) and (not start):
-                    start = l
-
-                # increment length (bytes?) of current position
-                l += len(line) + len("\n")
-
-        return [start, end]
-
 
 class rpt(SWMMIOFile):
     '''
@@ -486,7 +459,7 @@ class rpt(SWMMIOFile):
             startByte = byteLocDict[id]
 
         elif startByte == 0:
-            startByte = self.findByteRangeOfSection(sectionTitle)[0]
+            startByte = find_byte_range_of_section(self.path, sectionTitle)[0]
             print('startByte ' + str(startByte))
 
         with open(self.path) as f:
@@ -525,7 +498,7 @@ class inp(SWMMIOFile):
         self._subcatchments_df = None
         self._subareas_df = None
         self._infiltration_df = None
-        self._headers = None
+        self._inp_section_details = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -583,17 +556,18 @@ class inp(SWMMIOFile):
         """
         Return all headers and associated column names found in the INP file.
         """
-        if self._headers is None:
-            # select the correct infiltration column names
-            infil_type = self.options.loc['INFILTRATION', 'Value']
-            infil_cols = INFILTRATION_COLS[infil_type]
+        if self._inp_section_details is None:
+            self._inp_section_details = get_inp_sections_details(self.path,
+                                                                 include_brackets=True)
 
-            # overwrite the dynamic sections with proper header cols
-            h = get_inp_sections_details(self.path)
-            h['INFILTRATION'] = list(infil_cols)
-            self._headers = h
+        # select the correct infiltration column names
+        infil_type = self.options.loc['INFILTRATION', 'Value']
+        infil_cols = INFILTRATION_COLS[infil_type]
 
-        return self._headers
+        # overwrite the dynamic sections with proper header cols
+        self._inp_section_details['[INFILTRATION]'] = list(infil_cols)
+
+        return self._inp_section_details
 
     @property
     def options(self):
@@ -610,13 +584,14 @@ class inp(SWMMIOFile):
         >>> model.inp.options.loc['INFILTRATION']
         Value    HORTON
         Name: INFILTRATION, dtype: object
+        >>> model.inp.headers['[INFILTRATION]']
+        ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
         >>> model.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
-        >>> model.inp.headers['INFILTRATION']
+        >>> model.inp.headers['[INFILTRATION]']
         ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
         """
         if self._options_df is None:
-            self._options_df = create_dataframeINP(self.path, "[OPTIONS]", comment_cols=False,
-                                                   headers=self._headers)
+            self._options_df = get_inp_options_df(self.path)
         return self._options_df
 
     @options.setter
@@ -626,12 +601,12 @@ class inp(SWMMIOFile):
 
         # update the headers
         infil_type = df.loc['INFILTRATION', 'Value']
-        infil_cols = HEADERS['infiltration_cols'][infil_type]
+        infil_cols = INFILTRATION_COLS[infil_type]
 
         # overwrite the dynamic sections with proper header cols
-        h = dict(HEADERS['inp_sections'])
+        h = dict(INP_OBJECTS)
         h['[INFILTRATION]'] = list(infil_cols)
-        self._headers = h
+        self._inp_section_details = h
         self._infiltration_df = None
 
     @property
@@ -834,7 +809,7 @@ class inp(SWMMIOFile):
         """
         if self._subcatchments_df is None:
             self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False,
-                                                         headers=self._headers)
+                                                         headers=self._inp_section_details)
         return self._subcatchments_df
 
     @subcatchments.setter
@@ -849,7 +824,7 @@ class inp(SWMMIOFile):
         """
         if self._subareas_df is None:
             self._subareas_df = create_dataframeINP(self.path, "[SUBAREAS]", comment_cols=False,
-                                                    headers=self._headers)
+                                                    headers=self._inp_section_details)
         return self._subareas_df
 
     @subareas.setter
@@ -864,7 +839,7 @@ class inp(SWMMIOFile):
         """
         if self._infiltration_df is None:
             self._infiltration_df = create_dataframeINP(self.path, "[INFILTRATION]", comment_cols=False,
-                                                        headers=self._headers)
+                                                        headers=self.headers)
         return self._infiltration_df
 
     @infiltration.setter
@@ -881,7 +856,7 @@ class inp(SWMMIOFile):
         if self._coordinates_df is not None:
             return self._coordinates_df
         self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False,
-                                                        headers=self._headers)
+                                                        headers=self._inp_section_details)
         return self._coordinates_df
 
     @coordinates.setter

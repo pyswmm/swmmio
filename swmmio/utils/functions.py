@@ -1,7 +1,6 @@
-from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
+from swmmio.defs.sectionheaders import rpt_header_dict
 from collections import deque, OrderedDict
 import pandas as pd
-from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
 
 
 def random_alphanumeric(n=6):
@@ -11,7 +10,7 @@ def random_alphanumeric(n=6):
 
 
 def model_to_networkx(model, drop_cycles=True):
-    from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT
+    from swmmio.utils.dataframes import create_dataframeRPT
     '''
     Networkx MultiDiGraph representation of the model
     '''
@@ -193,7 +192,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
     >>> [header for header, cols in headers.items()][:4]
-    ['TITLE', 'OPTIONS', 'RAINGAGES', 'SUBCATCHMENTS']
+    ['TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES']
     >>> headers['SUBCATCHMENTS']['columns']
     ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
     """

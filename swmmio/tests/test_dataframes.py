@@ -80,6 +80,18 @@ def test_nodes_dataframe():
     assert (nodes.loc['dummy_node4', 'MaxDepth'] == 12.59314)
     assert (nodes.loc['dummy_node5', 'PondedArea'] == 73511)
 
+def test_infiltration_section():
+    m = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    inf = m.inp.infiltration
+    assert(inf.columns.tolist() == ['MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil'])
+
+    m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
+    print (m.inp.infiltration)
+    print(m.inp.headers)
+    xy = m.inp.coordinates
+
+
+
 
 def test_model_to_networkx():
     m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)

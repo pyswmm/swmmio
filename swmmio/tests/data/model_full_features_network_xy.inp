@@ -11,7 +11,7 @@ more notes
 [OPTIONS]
 ;;Option             Value
 FLOW_UNITS           CFS
-INFILTRATION         HORTON
+INFILTRATION         HORTON ; comment about this 
 FLOW_ROUTING         DYNWAVE
 LINK_OFFSETS         DEPTH
 MIN_SLOPE            0
@@ -75,10 +75,10 @@ S4               0.01       0.1        0.05       0.05       25         OUTLET
 [INFILTRATION]
 ;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil  
 ;;-------------- ---------- ---------- ---------- ---------- ----------
-S1               3          0.5        4          7          0         
-S2               3          0.5        4          7          0         
+S1               2.5        0.4        3          6          0         
+S2               2.5        0.4        3          6          0         
 S3               3          0.5        4          7          0         
-S4               3.0        0.5        4          7          0         
+S4               2.5        0.4        3          6          0         
 
 [JUNCTIONS]
 ;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   

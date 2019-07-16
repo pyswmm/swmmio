@@ -7,7 +7,7 @@ analysis_options: [FLOW_UNITS, INFILTRATION, FLOW_ROUTING, START_DATE, START_TIM
   MAX_TRIALS, HEAD_TOLERANCE, SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII, MINIMUM_STEP,
   THREADS, SURCHARGE_METHOD]
 conduits:
-  columns: [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset,
+  columns: [Name, InletNode, OutletNode, Length, ManningN, InOffset, OutOffset,
     InitFlow, MaxFlow]
   inp_sections: ['[CONDUITS]', '[XSECTIONS]']
   rpt_sections: [Link Flow Summary]
@@ -26,7 +26,7 @@ inp_section_tags: ['[TITLE', '[OPTION', '[FILE', '[RAINGAGE', '[TEMPERATURE', '[
   '[VERTICES', '[POLYGON', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
   '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
 inp_sections:
-  '[CONDUITS]': [Name, InletNode, OutletNode, Length, ManningN, InletOffset, OutletOffset,
+  '[CONDUITS]': [Name, InletNode, OutletNode, Length, ManningN, InOffset, OutOffset,
     InitFlow, MaxFlow]
   '[COORDINATES]': [Name, X, Y]
   '[DWF]': [Node, Parameter, AverageValue, TimePatterns]

@@ -4,7 +4,7 @@
   "conduits": {
     "inp_sections": ["[CONDUITS]", "[XSECTIONS]"],
     "rpt_sections": ["Link Flow Summary"],
-    "columns": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InletOffset", "OutletOffset", "InitFlow", "MaxFlow"]
+    "columns": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InOffset", "OutOffset", "InitFlow", "MaxFlow"]
   },
   "pumps": {
     "inp_sections": ["[PUMPS]"],
@@ -23,7 +23,7 @@
     "[TITLE]": ["blob"],
     "[OPTIONS]": ["Name", "Value"],
     "[FILES]": ["Action", "FileType", "FileName"],
-    "[CONDUITS]": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InletOffset", "OutletOffset", "InitFlow", "MaxFlow"],
+    "[CONDUITS]": ["Name", "InletNode", "OutletNode", "Length", "ManningN", "InOffset", "OutOffset", "InitFlow", "MaxFlow"],
     "[COORDINATES]": ["Name", "X", "Y"],
     "[JUNCTIONS]": ["Name", "InvertElev", "MaxDepth", "InitDepth", "SurchargeDepth", "PondedArea"],
     "[ORIFICES]": ["Name", "InletNode", "OutletNode", "OrificeType", "CrestHeight", "DischCoeff", "FlapGate", "OpenCloseTime"],

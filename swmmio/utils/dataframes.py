@@ -4,6 +4,7 @@ import pandas as pd
 from swmmio.defs import INP_OBJECTS
 from swmmio.utils import text as txt
 from swmmio.utils import functions as funcs
+from swmmio.utils.text import extract_section_of_file
 
 
 def create_dataframeBI(bi_path, section='[CONDUITS]'):
@@ -149,3 +150,27 @@ def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
     os.remove(tempfilepath)
 
     return df
+
+
+def get_inp_options_df(inp_path):
+    """
+    Parse ONLY the OPTIONS section of the inp file into a dataframe
+    :param inp_path: path to inp file
+    :return: pandas.DataFrame
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> ops = get_inp_options_df(MODEL_FULL_FEATURES_XY)
+    >>> ops[:3]
+                    Value
+    Key
+    FLOW_UNITS        CFS
+    INFILTRATION   HORTON
+    FLOW_ROUTING  DYNWAVE
+    """
+    from pandas.compat import StringIO
+    from swmmio.defs import INP_SECTION_TAGS, INP_OBJECTS
+    ops_tag = '[OPTIONS]'
+    ops_cols = INP_OBJECTS['OPTIONS']['columns']
+    ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment_str=';')
+    ops_df = pd.read_csv(StringIO(ops_string), header=None, delim_whitespace=True, skiprows=[0],
+                         index_col=0, names=ops_cols)
+    return ops_df

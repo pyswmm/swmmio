@@ -1,4 +1,3 @@
-from swmmio import create_dataframeBI
 from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
                                MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
                                OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
@@ -148,22 +147,29 @@ def test_add_models():
     bi_final.save(tdir, 'merged-build-instr.txt')
     bi_final.build(MODEL_BLANK, os.path.join(tdir, 'merged-model.inp'))
 
+
 def test_merge_models():
 
     from swmmio import Model
     import pandas as pd
     # MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
-    target_merged_model = os.path.join(DATA_PATH, 'merged-model-test.inp')
-    merged_model = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B, target_merged_model)
-    m1 = Model(MODEL_FULL_FEATURES_XY)
-    m2 = Model(MODEL_FULL_FEATURES_XY_B)
+    target_merged_model_ab = os.path.join(DATA_PATH, 'merged-model-test-ab.inp')
+    target_merged_model_ba = os.path.join(DATA_PATH, 'merged-model-test-ba.inp')
+    merged_model_ab = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B, target_merged_model_ab)
+    merged_model_ba = merge_models(MODEL_FULL_FEATURES_XY_B, MODEL_FULL_FEATURES_XY, target_merged_model_ba)
+    ma = Model(MODEL_FULL_FEATURES_XY)
+    mb = Model(MODEL_FULL_FEATURES_XY_B)
 
-    conds1_2 = pd.concat([m1.inp.conduits, m2.inp.conduits]).sort_index()
-    m12 = Model(merged_model)
-    conds1_2_merged = m12.inp.conduits.sort_index()
-    os.remove(target_merged_model)
+    conds_ab = pd.concat([ma.inp.conduits, mb.inp.conduits]).sort_index()
+    mab = Model(merged_model_ab)
+    mba = Model(merged_model_ba)
+    conds_ab_merged = mab.inp.conduits.sort_index()
+    conds_ba_merged = mba.inp.conduits.sort_index()
 
-    assert conds1_2.equals(conds1_2_merged)
+    assert conds_ab.equals(conds_ab_merged)
+    assert conds_ab.equals(conds_ba_merged)
+
+    # os.remove(target_merged_model_ab)
 
 def test_modify_model():
     from swmmio.utils.modify_model import replace_inp_section
