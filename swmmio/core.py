@@ -2,6 +2,7 @@
 # coding:utf-8
 import re
 from time import ctime
+from datetime import timedelta, datetime
 import pandas as pd
 import glob
 import math
@@ -49,6 +50,7 @@ class Model(object):
             self.name = name
             self.inp = inp(inp_path)  # inp object
             self.rpt = None  # until we can confirm it initializes properly
+            self.out = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
             self.scenario = ''  # self._get_scenario()
             self.crs = crs  # coordinate reference system
@@ -60,6 +62,14 @@ class Model(object):
                     self.rpt = rpt(rpt_path)
                 except Exception as e:
                     print('{}.rpt failed to initialize\n{}'.format(name, e))
+
+            # try to initialize a companion OUT file object
+            out_path = os.path.join(wd, name + '.out')
+            if os.path.exists(out_path):
+                try:
+                    self.out = out(out_path)
+                except Exception as e:
+                    print('{}.out failed to initialize\n{}'.format(name, e))
 
             self._nodes_df = None
             self._conduits_df = None
@@ -895,6 +905,93 @@ class inp(SWMMIOFile):
     def polygons(self, df):
         """Set inp.polygons DataFrame."""
         self._polygons_df = df
+
+
+class out(SWMMIOFile):
+    def __init__(self, file_path):
+
+        SWMMIOFile.__init__(self, file_path)
+
+    def __call__(self, element_id, element_type='NODE',
+                    attribute='INVERT_DEPTH'):
+                    # attribute=oapi.NodeAttribute.INVERT_DEPTH):
+        """
+        Read a time series from a SWMM output file into a Pandas.Series object
+        :param element_id:
+        :param element_type: SUBCATCH, NODE, LINK, SYSTEM
+        :param attribute:
+            NODE:
+                INVERT_DEPTH, HYDRAULIC_HEAD, PONDED_VOLUME, LATERAL_INFLOW,
+                TOTAL_INFLOW, FLOODING_LOSSES, POLLUT_CONC
+            LINK:
+                FLOW_RATE, FLOW_DEPTH, FLOW_VELOCITY, FLOW_VOLUME, CAPACITY,
+                POLLUT_CONC
+        :return:
+        >>> ts = series_from_out('97200', element_type='NODE')
+        >>> ts.head()
+        2018-01-01 00:00:00    0.279042
+        2018-01-01 00:15:00    0.612898
+        2018-01-01 00:30:00    0.566697
+        2018-01-01 00:45:00    0.637005
+        2018-01-01 01:00:00    0.526333
+        Name: 97200, dtype: float64
+        """
+        try:
+            import swmm_output as oapi
+        except ImportError:
+            raise ImportError('Failed to import swmm_output package. To install ' \
+                              'from source, clone the Stormwater Management Model ' \
+                              'reposity from Open Water Analytics:\n ' \
+                              'https://github.com/OpenWaterAnalytics/Stormwater-Management-Model' \
+                              ')
+
+        # create handle, open file
+        handle = oapi.smo_init()
+        oapi.smo_open(handle, self.path)
+
+        # for example:  oapi.NodeAttribute.INVERT_DEPTH
+        attr_accessor = getattr(oapi, f'{element_type.lower().capitalize()}Attribute')
+        attribute = getattr(attr_accessor, attribute)
+        element_type = getattr(oapi.ElementType, element_type)
+        # print (element_type, attribute)
+
+        # get time duration
+        nperiods = oapi.smo_get_times(handle, oapi.Time.NUM_PERIODS)
+        dt_sec = oapi.smo_get_times(handle, oapi.Time.REPORT_STEP)
+        dt_day = dt_sec / 86400.0
+
+        # print('Start Date: {}'.format(oapi.smo_get_start_date(handle)))
+        start_date = oapi.smo_get_start_date(handle)
+
+        def from_excel_ordinal(ordinal, _epoch=datetime(1900, 1, 1)):
+            '''https://stackoverflow.com/questions/29387137/how-to-convert-
+            a-given-ordinal-number-from-excel-to-a-date'''
+            if ordinal > 59:
+                ordinal -= 1  # Excel leap year bug, 1900 is not a leap year!
+            seconds = (ordinal - 1) * 24 * 60 * 60
+            return _epoch + timedelta(seconds=seconds)  # epoch is day 1
+
+        def find_nodeid_index(element_id):
+            # print(f'searching for {element_id}')
+            i = 0
+            while True:
+                if oapi.smo_get_element_name(handle, element_type, i) == element_id:
+                    break
+                i += 1
+            return i
+
+        elem_index = find_nodeid_index(element_id)
+        t_array = [from_excel_ordinal(start_date + i * dt_day) for i in range(nperiods)]
+
+        if element_type == oapi.ElementType.NODE:
+            d_array = oapi.smo_get_node_series(handle, elem_index, attribute, 0, nperiods)
+
+        if element_type == oapi.ElementType.LINK:
+            d_array = oapi.smo_get_link_series(handle, elem_index, attribute, 0, nperiods)
+
+        handle = oapi.smo_close()
+
+        return pd.Series(data=d_array, index=t_array, name=element_id)
 
 
 def drop_invalid_model_elements(inp):
