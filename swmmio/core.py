@@ -942,8 +942,7 @@ class out(SWMMIOFile):
             raise ImportError('Failed to import swmm_output package. To install ' \
                               'from source, clone the Stormwater Management Model ' \
                               'reposity from Open Water Analytics:\n ' \
-                              'https://github.com/OpenWaterAnalytics/Stormwater-Management-Model' \
-                              ')
+                              'https://github.com/OpenWaterAnalytics/Stormwater-Management-Model')
 
         # create handle, open file
         handle = oapi.smo_init()
