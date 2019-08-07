@@ -32,11 +32,11 @@ AUTHOR_NAME = 'Adam Erispaha'
 AUTHOR_EMAIL = 'aerispaha@gmail.com'
 
 install_requires = [
-    'Pillow',
-    'numpy',
+    'Pillow==6.0.0',
+    'numpy==1.16.4',
     'pandas==0.24.2',
-    'pyshp',
-    'geojson',
+    'pyshp==2.1.0',
+    'geojson==2.4.1',
 ]
 
 tests_require = [
