@@ -3,7 +3,7 @@
 pytest
 pillow
 numpy
-pandas
+pandas==0.24.2
 pyshp
 geojson
 networkx

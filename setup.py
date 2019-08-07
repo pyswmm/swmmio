@@ -34,7 +34,7 @@ AUTHOR_EMAIL = 'aerispaha@gmail.com'
 install_requires = [
     'Pillow',
     'numpy',
-    'pandas',
+    'pandas==0.24.2',
     'pyshp',
     'geojson',
 ]
@@ -68,5 +68,3 @@ setup(name='swmmio',
           "Programming Language :: Python :: 3.6",
       ]
       )
-
-
