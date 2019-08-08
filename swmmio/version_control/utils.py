@@ -81,8 +81,8 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
             add_str = section_data.fillna(na_fill).to_string(
                                                         index_names=False,
                                                         header=True,
-                                                        index=False,
                                                         justify='left',
+                                                        index=False,
                                                         formatters=objectformatter#{'Comment':formatter}
                                                         )
 
