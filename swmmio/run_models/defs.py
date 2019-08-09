@@ -12,7 +12,6 @@ OPTIONS_no_rain = pd.read_table(
                                 delim_whitespace=True,
                                 names=inp_header_dict['[OPTIONS]'].split(),
                                 skiprows=1,
-                                index_col=0
                                 )
 
 OPTIONS_normal = pd.read_table(
@@ -20,19 +19,16 @@ OPTIONS_normal = pd.read_table(
                                 delim_whitespace=True,
                                 names=inp_header_dict['[OPTIONS]'].split(),
                                 skiprows=1,
-                                index_col=0
                                 )
 REPORT_nodes_links = pd.read_table(
                                 j(sets, 'REPORT_nodes_links.txt'),
                                 delim_whitespace=True,
                                 names=inp_header_dict['[REPORT]'].split(),
                                 skiprows=1,
-                                index_col=0
                                 )
 REPORT_none = pd.read_table(
                                 j(sets, 'REPORT_none.txt'),
                                 delim_whitespace=True,
                                 names=inp_header_dict['[REPORT]'].split(),
                                 skiprows=1,
-                                index_col=0
                             )
