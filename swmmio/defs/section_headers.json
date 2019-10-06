@@ -42,7 +42,8 @@
     "[Polygons]": ["Name", "X", "Y"],
     "[REPORT]": ["Param", "Status"],
     "[TAGS]": ["ElementType", "Name", "Tag"],
-    "[MAP]": ["x1", "y1", "x2", "y2"]
+    "[MAP]": ["x1", "y1", "x2", "y2"],
+    "[CURVES]": ["Name", "Type", "X-Value", "Y-Value"]
   },
   "infiltration_cols": {
     "HORTON": ["Subcatchment", "MaxRate", "MinRate", "Decay", "DryTime", "MaxInfil"],
