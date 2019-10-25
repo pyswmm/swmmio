@@ -2,6 +2,7 @@ from swmmio.defs.sectionheaders import inp_header_dict, rpt_header_dict
 from collections import deque
 import pandas as pd
 from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
+import networkx as nx
 
 
 def random_alphanumeric(n=6):
@@ -16,11 +17,6 @@ def model_to_networkx(model, drop_cycles=True):
     Networkx MultiDiGraph representation of the model
     '''
     from geojson import Point, LineString
-    try:
-        import networkx as nx
-    except ImportError:
-        raise ImportError('networkx module needed. get this package here: ',
-                        'https://pypi.python.org/pypi/networkx')
 
     def multidigraph_from_edges(edges, source, target):
         '''
@@ -52,8 +48,7 @@ def model_to_networkx(model, drop_cycles=True):
             model.rpt.path, "Node Inflow Summary")[inflow_cols]
         nodes = nodes.join(flows)
 
-    conduits = model.conduits()
-    links = pd.concat([conduits, model.orifices(), model.weirs(), model.pumps()], sort=True)
+    links = model.links()
     links['facilityid'] = links.index
 
     # create a nx.MultiDiGraph from the combined model links, add node data, set CRS
@@ -66,7 +61,7 @@ def model_to_networkx(model, drop_cycles=True):
             G[u][v][k]['geometry'] = LineString(coords)
     for n, coords in G.nodes(data='coords'):
         if coords:
-            G.node[n]['geometry'] = Point(coords[0])
+            G.nodes[n]['geometry'] = Point(coords[0])
 
     if drop_cycles:
         # remove cycles

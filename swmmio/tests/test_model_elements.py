@@ -1,4 +1,4 @@
-from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH
 from swmmio import Model
 from swmmio.elements import ModelSection
 from swmmio.utils import functions
