@@ -5,7 +5,7 @@ import swmmio.core as swmmio
 '''Python SWMM Input/Output Tools'''
 
 
-VERSION_INFO = (0, 3, 6, 'dev1')
+VERSION_INFO = (0, 3, 7)
 __version__ = '.'.join(map(str, VERSION_INFO))
 __author__ = 'Adam Erispaha'
 __copyright__ = 'Copyright (c) 2016'
