@@ -1,19 +1,9 @@
-#matrix:
-#  fast_finish: true
-
-#branches:
-#  only:
-#    - master
-#    - /dev-.*/
-
 environment:
   matrix:
-    # For Python versions available on Appveyor, see
+    # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
-    # The list here is complete (excluding Python 2.6, which
-    # isn't covered by this document) at the time of writing.
-    - PYTHON: "C:\\Python27"
     - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python37"
 
 install:
   - "%PYTHON%\\python setup.py develop"
@@ -22,17 +12,18 @@ install:
 build: off
 
 test_script:
-
   - "%PYTHON%\\Scripts\\pytest %APPVEYOR_BUILD_FOLDER%"
 
-  # Asserting pep8 formatting checks (using autopep8 tool)
-  # - ps: |
-  #     $output = C:\\Python36\\Scripts\\autopep8 -d --recursive .
-  #     if($output)
-  #     {
-  #         echo $output;
-  #         $host.SetShouldExit(1)
-  #         Write-Host "autopep8 failed:
-  #         Please this command locally:
-  #         'autopep8 -i -a -r .'"
-  #     }
+
+on_success:
+  - >
+    IF "%APPVEYOR_REPO_BRANCH%" == "master"
+    (
+    IF "%APPVEYOR_REPO_TAG%" == "true"
+    (
+    %PYTHON%\\python.exe -m pip install wheel
+    %PYTHON%\\python.exe setup.py bdist_wheel
+    %PYTHON%\\python.exe -m pip install twine &&
+    %PYTHON%\\python.exe -m twine upload dist/* -u %PYPI_USERNAME% -p %PYPI_PASSWORD%
+    )
+    )

@@ -1,13 +1,14 @@
-from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH
 from swmmio import Model
 from swmmio.elements import ModelSection
 from swmmio.utils import functions
 import pytest
 
 
+
 @pytest.fixture
 def test_model():
-    return Model(MODEL_FULL_FEATURES__NET_PATH)
+    return Model(MODEL_FULL_FEATURES_XY)
 
 
 def test_model_section(test_model):
@@ -31,3 +32,10 @@ def test_complete_headers(test_model):
         '[SYMBOLS]'
     ]
     assert (all(section in headers['headers'] for section in sections_in_inp))
+
+
+def test_get_set_curves(test_model):
+
+    curves = test_model.inp.curves
+
+    print (curves)
