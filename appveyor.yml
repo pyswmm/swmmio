@@ -24,6 +24,6 @@ on_success:
     %PYTHON%\\python.exe -m pip install wheel
     %PYTHON%\\python.exe setup.py bdist_wheel
     %PYTHON%\\python.exe -m pip install twine &&
-    %PYTHON%\\python.exe -m twine upload dist/* --repository-url %REPO% -u %PYPI_USERNAME% -p %PYPI_PASSWORD%
+    %PYTHON%\\python.exe -m twine upload dist/* -u %PYPI_USERNAME% -p %PYPI_PASSWORD%
     )
     )
