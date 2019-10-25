@@ -36,3 +36,16 @@ test_script:
   #         Please this command locally:
   #         'autopep8 -i -a -r .'"
   #     }
+
+on_success:
+  - >
+    IF "%APPVEYOR_REPO_BRANCH%" == "master"
+    (
+    IF "%APPVEYOR_REPO_TAG%" == "true"
+    (
+    %PYTHON%\\python.exe -m pip install wheel
+    %PYTHON%\\python.exe setup.py bdist_wheel
+    %PYTHON%\\python.exe -m pip install twine &&
+    %PYTHON%\\python.exe -m twine upload dist/* --repository-url %REPO% -u %PYPI_USERNAME% -p %PYPI_PASSWORD%
+    )
+    )
