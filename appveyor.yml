@@ -1,6 +1,6 @@
 environment:
   matrix:
-    # For Python versions available on Appveyor, see
+    # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
     - PYTHON: "C:\\Python36"
     - PYTHON: "C:\\Python37"
