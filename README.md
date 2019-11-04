@@ -1,5 +1,5 @@
 # SWMMIO
-*v0.3.6.dev0*
+*v0.3.7*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
 [![Build Status](https://travis-ci.com/aerispaha/swmmio.svg?branch=master)](https://travis-ci.com/aerispaha/swmmio)
@@ -13,11 +13,11 @@ SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) 
 
 
 ### Dependencies
-*  [pillow](http://python-pillow.org/)
-*  [matplotlib](http://matplotlib.org/)
-*  [numpy](http://www.numpy.org/)
-*  [pandas](https://github.com/pydata/pandas)
-*  [pyshp](https://github.com/GeospatialPython/pyshp)
+*  [pillow==6.0.0](https://python-pillow.org/)
+*  [numpy==1.16.4](https://numpy.org/)
+*  [pandas==0.24.2](https://github.com/pydata/pandas)
+*  [pyshp==2.1.0](https://github.com/GeospatialPython/pyshp)
+*  [geojson==2.4.1](https://pypi.org/project/geojson/)
 
 
 ### Installation:

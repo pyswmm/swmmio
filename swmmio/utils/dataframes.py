@@ -83,6 +83,38 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
     return df.rename(index=str)
 
 
+def create_dataframe_multi_index(inp_path, section='[CURVES]', ignore_comments=True,
+                        comment_str=';', comment_cols=True, headers=None):
+    # find all the headers and their defs (section title with cleaned one-liner column headers)
+    headerdefs = funcs.complete_inp_headers(inp_path)
+    # create temp file with section isolated from inp file
+    tempfilepath = txt.extract_section_from_inp(inp_path, section,
+                                                headerdefs=headerdefs,
+                                                ignore_comments=ignore_comments,
+                                                skipheaders=True)
+
+    headerlist = HEADERS['inp_sections'][section]
+
+    with open(tempfilepath, 'r') as f:
+        data = []
+        for line in f.readlines():
+            items = line.strip().split()
+            if len(items) == 3:
+                items = [items[0], None, items[1], items[2]]
+            if len(items) == 4:
+                data.append(items)
+
+    # df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
+    #                  index_col=[0,1], names=headerlist, comment=comment_str)
+
+    df = pd.DataFrame(data=data, columns=headerlist)
+    df = df.set_index(['Name', 'Type'])
+
+
+    # os.startfile(tempfilepath)
+    os.remove(tempfilepath)
+    return df
+
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
 

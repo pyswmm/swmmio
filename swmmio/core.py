@@ -8,7 +8,8 @@ import glob
 import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
-from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords, get_inp_options_df
+from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords, \
+    create_dataframe_multi_index, get_inp_options_df
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
@@ -509,6 +510,7 @@ class inp(SWMMIOFile):
         self._subareas_df = None
         self._infiltration_df = None
         self._inp_section_details = None
+        self._curves_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -527,6 +529,7 @@ class inp(SWMMIOFile):
                 '[SUBCATCHMENTS]',
                 '[SUBAREAS]',
                 '[INFILTRATION]',
+                '[CURVES]',
                 '[COORDINATES]',
                 '[Polygons]'
             ]
@@ -904,7 +907,23 @@ class inp(SWMMIOFile):
     @polygons.setter
     def polygons(self, df):
         """Set inp.polygons DataFrame."""
-        self._polygons_df = df
+        self._curves_df = df
+
+    @property
+    def curves(self):
+        """
+        get/set curves section of model
+        :return: multi-index dataframe of model curves
+        """
+        if self._curves_df is not None:
+            return self._curves_df
+        self._curves_df = create_dataframe_multi_index(self.path, '[CURVES]', comment_cols=False)
+        return self._curves_df
+
+    @curves.setter
+    def curves(self, df):
+        """Set inp.polygons DataFrame."""
+        self._curves_df = df
 
 
 class out(SWMMIOFile):

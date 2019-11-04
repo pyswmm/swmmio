@@ -144,8 +144,36 @@ J1               FLOW             ""               FLOW     1.0      1        1
 [CURVES]
 ;;Name           Type       X-Value    Y-Value   
 ;;-------------- ---------- ---------- ----------
+;control curve
+control-curve    Control    0          0         
+control-curve               1          0.5       
+control-curve               10         1.0       
+;
+diversion-curve  Diversion  0          0         
+diversion-curve             1          10        
+;
 P1_Curve         Pump4      0          10        
 P1_Curve                    5          20        
+;
+P2_Curve         Pump4      0          10        
+P2_Curve                    1          20        
+P2_Curve                    3          30        
+;
+;tenk sotrage curve 
+tenk-sturage     Shape      0          0         
+tenk-sturage                1          10        
+tenk-sturage                2          30        
+tenk-sturage                3          60        
+tenk-sturage                10         60        
+;
+storage-curve    Storage    0          0         
+storage-curve               1          100       
+storage-curve               10         100       
+;
+tidal-curve      Tidal      0          1         
+tidal-curve                 6          1.5       
+tidal-curve                 12         2         
+tidal-curve                 23         1         
 
 [TIMESERIES]
 ;;Name           Date       Time       Value     

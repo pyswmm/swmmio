@@ -99,7 +99,7 @@ def test_model_to_networkx():
 
     assert (G['J2']['J3']['C2.1']['Length'] == 666)
     assert (G['J1']['J2']['C1:C2']['Length'] == 244.63)
-    assert (round(G.node['J2']['InvertElev'], 3) == 13.0)
+    assert (round(G.nodes['J2']['InvertElev'], 3) == 13.0)
 
     links = m.links()
     assert(len(links) == len(G.edges()))
