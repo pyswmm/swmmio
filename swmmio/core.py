@@ -272,10 +272,13 @@ class Model(object):
             # add results data if a rpt file was found
             depth_summ = create_dataframeRPT(rpt.path, "Node Depth Summary")
             flood_summ = create_dataframeRPT(rpt.path, "Node Flooding Summary")
+            inflw_summ = create_dataframeRPT(rpt.path, "Node Inflow Summary")
 
             # join the rpt data (index on depth df, suffixes for common cols)
             rpt_df = depth_summ.join(
                 flood_summ, lsuffix='_depth', rsuffix='_flood')
+            rpt_df = rpt_df.join(
+                inflw_summ, lsuffix='_inflow')
             all_nodes = all_nodes.join(rpt_df)  # join to the all_nodes df
 
         all_nodes = all_nodes.join(self.inp.coordinates[['X', 'Y']])
