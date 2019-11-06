@@ -79,11 +79,27 @@ pipe3            RECT_TRIANGULAR 7                14         1.5        0       
 pipe4            RECT_TRIANGULAR 6.5              13         1.434756791 0          1                    
 pipe5            RECT_TRIANGULAR 6.5              13         1.434756791 0          1                    
 
+[INFLOWS]
+;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------
+dummy_node2      FLOW             my_time_series   FLOW     1.0      1.0      0.0333  
+dummy_node6      FLOW             ""               FLOW     1.0      1.0      0.6666  
+
 [DWF]
 ;;Node           Constituent      Baseline   Patterns  
 ;;-------------- ---------------- ---------- ----------
-dummy_node2      FLOW             0.000275704 "" ""
-dummy_node6      FLOW             0.008150676 "" ""
+dummy_node2      FLOW             0.000275   "" "" ""
+dummy_node6      FLOW             0.008150676 "" "" ""
+
+[TIMESERIES]
+;;Name           Date       Time       Value     
+;;-------------- ---------- ---------- ----------
+;cool
+my_time_series              0          0         
+my_time_series              1          1         
+my_time_series              2          2         
+my_time_series              3          1         
+my_time_series              4          0         
 
 [REPORT]
 ;;Reporting Options

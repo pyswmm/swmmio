@@ -10,6 +10,7 @@ from swmmio.utils.functions import random_alphanumeric, format_inp_section_heade
 #default file path suffix
 txt = '.txt'
 
+
 def inline_comments_in_inp(filepath, overwrite=False):
 
     """
@@ -120,12 +121,12 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
                         out_string += s
                     else:
                         out_string += line
-                elif skip_headers:
-                    # check if we're at a inp header row with ';;' or the section
-                    # header e.g. [XSECTIONS]. If so, skip the row bc skipheader = True
-                    if line.strip()[:2] != ";;" and line.strip().upper() != search_str.upper():
-                        # newf.write(line)
-                        out_string += line
+                # elif skip_headers:
+                #     # check if we're at a inp header row with ';;' or the section
+                #     # header e.g. [XSECTIONS]. If so, skip the row bc skipheader = True
+                #     if line.strip()[:2] != ";;" and line.strip().upper() != search_str.upper():
+                #         # newf.write(line)
+                #         out_string += line
                 else:
                     out_string += line
 

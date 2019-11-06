@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # coding:utf-8
-import re
+
 from time import ctime
 from datetime import timedelta, datetime
 import pandas as pd
+# import numpy as np
 import glob
 import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
-from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords, \
+from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, \
     create_dataframe_multi_index, get_inp_options_df, dataframe_from_inp
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
@@ -493,6 +494,7 @@ class inp(SWMMIOFile):
         self._subareas_df = None
         self._infiltration_df = None
         self._inp_section_details = None
+        self._inflows_df = None
         self._curves_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
@@ -514,6 +516,7 @@ class inp(SWMMIOFile):
                 '[INFILTRATION]',
                 '[CURVES]',
                 '[COORDINATES]',
+                '[INFLOWS]',
                 '[Polygons]'
             ]
 
@@ -883,6 +886,23 @@ class inp(SWMMIOFile):
     def vertices(self, df):
         """Set inp.vertices DataFrame."""
         self._vertices_df = df
+
+    @property
+    def inflows(self):
+        """
+        get/set inflows section of model
+        :return: dataframe of model coordinates
+        """
+        if self._inflows_df is not None:
+            return self._inflows_df
+        inf = dataframe_from_inp(self.path, 'INFLOWS', quote_replace='_!!!!_')
+        self._inflows_df = inf.replace('_!!!!_', pd.np.nan)
+        return self._inflows_df
+
+    @inflows.setter
+    def polygons(self, df):
+        """Set inp.polygons DataFrame."""
+        self._inflows_df = df
 
     @property
     def polygons(self):

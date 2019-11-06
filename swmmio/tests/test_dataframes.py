@@ -1,6 +1,6 @@
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
-                               MODEL_FULL_FEATURES_XY, DATA_PATH)
+                               MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03)
 import swmmio
 from swmmio import create_dataframeINP, Model
 
@@ -106,6 +106,16 @@ def test_infiltration_section():
     # print(m.inp.headers)
     xy = m.inp.coordinates
     print(xy)
+
+
+def test_inflow_dwf_dataframe():
+    m = swmmio.Model(MODEL_XSECTION_ALT_03)
+    dwf = dataframe_from_inp(m.inp.path, 'dwf')
+    assert(dwf.loc['dummy_node2', 'AverageValue'] == pytest.approx(0.000275, 0.0001))
+
+    inf = m.inp.inflows
+    assert (inf.loc['dummy_node2', 'Time Series'] == 'my_time_series')
+    assert (pd.isna(inf.loc['dummy_node6', 'Time Series']))
 
 
 def test_model_to_networkx():

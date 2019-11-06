@@ -7,10 +7,12 @@ from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.utils import functions as funcs
 from swmmio.version_control.inp import INPSectionDiff, merge_models
+from swmmio.utils.dataframes import dataframe_from_inp
 
 import os
 import shutil
 import pytest
+
 
 def makedirs(newdir):
     """
@@ -174,9 +176,10 @@ def test_merge_models():
 
     # os.remove(target_merged_model_ab)
 
+
 def test_modify_model():
     from swmmio.utils.modify_model import replace_inp_section
-    from swmmio import Model, create_dataframeINP
+    from swmmio import Model
     import pandas as pd
     import os
     import shutil
@@ -187,7 +190,7 @@ def test_modify_model():
     rise = 10.0  # set the starting sea level rise condition
 
     # create a dataframe of the model's outfalls
-    outfalls = create_dataframeINP(baseline.inp.path, '[OUTFALLS]', comment_cols=False)
+    outfalls = dataframe_from_inp(baseline.inp.path, '[OUTFALLS]')
 
     # add the current rise to the outfalls' stage elevation
     outfalls['OutfallType'] = 'FIXED'

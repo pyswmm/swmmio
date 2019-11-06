@@ -166,14 +166,14 @@ def dataframe_from_rpt(rpt_path, section):
     return df
 
 
-def dataframe_from_inp(inp_path, section, additional_cols=None,
-                       skip_headers=False, **kwargs):
+def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' ', **kwargs):
 
     """
     :param inp_path:
     :param section:
     :param additional_cols:
     :param skip_headers:
+    :param quote_replace:
     :return:
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> dataframe_from_inp(MODEL_FULL_FEATURES_XY, 'conduits')
@@ -189,46 +189,27 @@ def dataframe_from_inp(inp_path, section, additional_cols=None,
         warnings.warn(f'{sect} section not found in {inp_path}')
         return pd.DataFrame()
 
+    # extract the string and read into a dataframe
+    start_string = format_inp_section_header(section)
+    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
+
+    # replace occurrences of double quotes ""
+    s = s.replace('""', quote_replace)
+
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
     cols = headers[sect]['columns'] + additional_cols
 
-    # extract the string and read into a dataframe
-    start_string = format_inp_section_header(section)
-    end_strings = [format_inp_section_header(h) for h in headers.keys()]
-    s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
-    df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
-                     index_col=0, names=cols)
+    if headers[sect]['columns'][0] == 'blob':
+        # return the whole row, without specific col headers
+        return pd.read_csv(StringIO(s), delim_whitespace=False)
+    else:
+        return pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
+                           skiprows=[0], index_col=0, names=cols)
 
-    return df
-
-
-def dataframe_from_sections(m, inp_sections, rpt_sections, columns=None):
-
-    inp_sections = m.inp.headers
-    ops_cols = INP_OBJECTS['OPTIONS']['columns']
-    # create dataframes of relevant sections from the INP
-    for ix, sect in enumerate(inp_sections):
-        if ix == 0:
-            # df = create_dataframeINP(m.inp.path, sect, comment_cols=False)
-
-            # preprocess the section header
-            sect = f'[{sect.upper()}]'
-            s = extract_section_of_file(m.inp.path, sect, inp_sections)
-            ops_df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
-                                 index_col=0, names=ops_cols)
-
-
-
-        else:
-            df_other = create_dataframeINP(self.inp.path, sect, comment_cols=False)
-            df = df.join(df_other)
-
-    # if there is an RPT available, grab relevant sections
-    if self.rpt:
-        for rpt_sect in rpt_sections:
-            df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect))
+    # return df
 
 
 def get_link_coords(row, nodexys, verticies):

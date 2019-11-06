@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from swmmio.utils.text import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_bi
+from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_bi, dataframe_from_inp
 import swmmio
 import pandas as pd
 import os
@@ -142,10 +142,10 @@ class INPSectionDiff(object):
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
-            df1 = dataframe_from_bi(model1.inp.path, section)
-            df2 = dataframe_from_bi(model2.inp.path, section)
-            df1[';'] = ';'
-            df2[';'] = ';'
+            df1 = dataframe_from_inp(model1.inp.path, section)#, additional_cols=[';', 'Comment', 'Origin'])
+            df2 = dataframe_from_inp(model2.inp.path, section)# , additional_cols=[';', 'Comment', 'Origin'])
+            # df1[';'] = ';'
+            # df2[';'] = ';'
             m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
 
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
@@ -325,14 +325,15 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
             # print('{}: {}'.format(section,inp_diff.all_inp_objects[section]['columns']))
             # check if the section is not in problem_sections and there are changes
             # in self.instructions and commit changes to it from baseline accordingly
+            col_order = []
             if (section not in problem_sections
                     and inp_diff.all_inp_objects[section]['columns'] != ['blob']
                     and section in inp_diff.diffs):
 
                 # df of baseline model section
-                basedf = dataframe_from_bi(m3.inp.path, section)
+                basedf = dataframe_from_inp(m3.inp.path, section, additional_cols=[';', 'Comment', 'Origin'])
                 basedf[';'] = ';'
-
+                col_order = basedf.columns
                 # grab the changes to
                 changes = inp_diff.diffs[section]
 
@@ -342,15 +343,17 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                 new_section = basedf.drop(remove_ids)
 
                 # add elements
-                new_section = pd.concat([new_section, changes.altered, changes.added])
+                new_section = pd.concat([new_section, changes.altered, changes.added], axis=0)
             else:
                 # section is not well understood or is problematic, just blindly copy
-                new_section = dataframe_from_bi(m3.inp.path, section)
+                new_section = dataframe_from_inp(m3.inp.path, section, additional_cols=[';', 'Comment', 'Origin'])
                 new_section[';'] = ';'
                 # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
             # print(new_section.head())
             # write the section
+            new_section = new_section[col_order]
+            new_section[';'] = ';'
             vc_utils.write_inp_section(newf, inp_diff.all_inp_objects, section, new_section, pad_top=True)
 
     return target
