@@ -1,6 +1,5 @@
-from swmmio import *
+from swmmio.core import Model
 from swmmio.utils.dataframes import create_dataframeBI, dataframe_from_rpt, create_dataframeINP
-from .core import *
 import swmmio.core as swmmio
 '''Python SWMM Input/Output Tools'''
 

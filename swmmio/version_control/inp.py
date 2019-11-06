@@ -3,7 +3,6 @@ from collections import OrderedDict
 from swmmio.utils.functions import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
 from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
-from swmmio.utils import text
 import swmmio
 import pandas as pd
 import os

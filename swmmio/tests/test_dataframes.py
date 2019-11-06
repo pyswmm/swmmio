@@ -3,13 +3,13 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                MODEL_FULL_FEATURES_XY, DATA_PATH)
 import swmmio
 from swmmio import create_dataframeINP, Model
+
 import pandas as pd
 import pytest
 import shutil
 import os
 
-from swmmio.utils.dataframes import dataframe_from_rpt
-
+from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords
 
 @pytest.fixture
 def test_model_01():
@@ -154,7 +154,7 @@ def test_model_section():
             return pd.DataFrame()
 
         # add conduit coordinates
-        xys = pumps_df.apply(lambda r: swmmio.get_link_coords(r, inp.coordinates, inp.vertices), axis=1)
+        xys = pumps_df.apply(lambda r: get_link_coords(r, inp.coordinates, inp.vertices), axis=1)
         df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
