@@ -1,10 +1,10 @@
 from collections import OrderedDict
 
-from swmmio.utils import functions as funcs
-from swmmio import swmmio, get_inp_sections_details
+from swmmio.utils.functions import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
 from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
 from swmmio.utils import text
+import swmmio
 import pandas as pd
 import os
 from copy import deepcopy
@@ -30,7 +30,7 @@ class BuildInstructions(object):
         self.metadata = {}
         if build_instr_file:
             # read the instructions and create a dictionary of Change objects
-            allheaders = funcs.complete_inp_headers(build_instr_file)
+            allheaders = get_inp_sections_details(build_instr_file)
             instructions = {}
             for section, _ in allheaders.items():
                 change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
@@ -93,7 +93,7 @@ class BuildInstructions(object):
         baseline model.
         """
         basemodel = swmmio.Model(baseline_dir)
-        allheaders = funcs.complete_inp_headers(basemodel.inp.path)
+        allheaders = get_inp_sections_details(basemodel.inp.path)
         # new_inp = os.path.join(target_dir, 'model.inp')
         with open(target_path, 'w') as f:
             for section, _ in allheaders.items():
@@ -105,7 +105,7 @@ class BuildInstructions(object):
                         and section in self.instructions):
 
                     # df of baseline model section
-                    basedf = create_dataframeINP(basemodel.inp.path, section)
+                    basedf = create_dataframeINP(basemodel.inp.path, section, comment_cols=True)
 
                     # grab the changes to
                     changes = self.instructions[section]
@@ -118,7 +118,7 @@ class BuildInstructions(object):
                     new_section = pd.concat([new_section, changes.altered, changes.added])
                 else:
                     # section is not well understood or is problematic, just blindly copy
-                    new_section = create_dataframeINP(basemodel.inp.path, section=section)
+                    new_section = create_dataframeINP(basemodel.inp.path, section=section, comment_cols=True)
 
                 # write the section
                 vc_utils.write_inp_section(f, allheaders, section, new_section)
@@ -140,8 +140,8 @@ class INPSectionDiff(object):
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
-            df1 = create_dataframeINP(model1.inp.path, section)
-            df2 = create_dataframeINP(model2.inp.path, section)
+            df1 = create_dataframeINP(model1.inp.path, section, comment_cols=True)
+            df2 = create_dataframeINP(model2.inp.path, section, comment_cols=True)
             m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
 
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
@@ -256,76 +256,6 @@ class INPDiff(object):
         return s+diffs
 
 
-def generate_inp_from_diffs(basemodel, inpdiffs, target_dir):
-    """
-    create a new inp with respect to a baseline inp and changes instructed
-    with a list of inp diff files (build instructions). This saves having to
-    recalculate the differences of each model from the baseline whenever we want
-    to combine versions.
-
-    NOTE THIS ISN'T USED ANYWHERE. DELETE ????
-    """
-
-    # step 1 --> combine the diff/build instructions
-    allheaders = funcs.complete_inp_headers(basemodel.inp.path)
-    combi_build_instr_file = os.path.join(target_dir, 'build_instructions.txt')
-    newinp = os.path.join(target_dir, 'new.inp')
-    with open(combi_build_instr_file, 'w') as f:
-        for header, _ in allheaders.items():
-            s = ''
-            section_header_written = False
-            for inp in inpdiffs:
-                sect_s = None
-                if not section_header_written:
-                    sect_s = text.extract_section_from_inp(inp, header,
-                                                           cleanheaders=False,
-                                                           return_string=True,
-                                                           skipheaders=False)
-                    section_header_written = True
-
-                else:
-                    sect_s = text.extract_section_from_inp(inp, header,
-                                                           cleanheaders=False,
-                                                           return_string=True,
-                                                           skipheaders=True)
-
-                if sect_s:
-                    # remove the extra space between data in the same table
-                    # coming from diffrent models.
-                    if sect_s[-2:] == '\n\n':  # NOTE Check this section...
-                        s += sect_s[:-1]
-                    else:
-                        s += sect_s
-
-            f.write(s + '\n')
-
-    # step 2 --> clean up the new combined diff instructions
-    # df_dict = clean_inp_diff_formatting(combi_build_instr_file) #makes more human readable
-
-    # step 3 --> create a new inp based on the baseline, with the inp_diff
-    # instructions applied
-    with open(newinp, 'w') as f:
-        for section, _ in allheaders.items():
-            print(section)
-            if section not in problem_sections and allheaders[section]['columns'] != ['blob']:
-                # check if a changes from baseline spreadheet exists, and use this
-                # information if available to create the changes array
-                df = create_dataframeINP(basemodel.inp.path, section)
-                df['Origin'] = ''  # add the origin column if not there
-                if section in df_dict:
-                    df_change = df_dict[section]
-                    ids_to_drop = df_change.loc[df_change['Comment'].isin(['Removed', 'Altered'])].index
-                    df = df.drop(ids_to_drop)
-                    df = df.append(df_change.loc[df_change['Comment'].isin(['Added', 'Altered'])])
-                new_section = df
-            else:
-                # blindly copy this section from the base model
-                new_section = create_dataframeINP(basemodel.inp.path, section=section)
-
-            # write the section into the inp file and the excel file
-            vc_utils.write_inp_section(f, allheaders, section, new_section)
-
-
 def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
@@ -337,7 +267,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     that can then be written as a BI file or used programmatically
     """
 
-    allsections_a = funcs.complete_inp_headers(inpA)
+    allsections_a = get_inp_sections_details(inpA)
     modela = swmmio.Model(inpA)
     modelb = swmmio.Model(inpB)
 
@@ -396,7 +326,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                     and section in inp_diff.diffs):
 
                 # df of baseline model section
-                basedf = create_dataframeINP(m3.inp.path, section)
+                basedf = create_dataframeINP(m3.inp.path, section, comment_cols=True)
 
                 # grab the changes to
                 changes = inp_diff.diffs[section]
@@ -410,7 +340,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                 new_section = pd.concat([new_section, changes.altered, changes.added])
             else:
                 # section is not well understood or is problematic, just blindly copy
-                new_section = create_dataframeINP(m3.inp.path, section=section)
+                new_section = create_dataframeINP(m3.inp.path, section=section, comment_cols=True)
                 # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
             # print(new_section.head())

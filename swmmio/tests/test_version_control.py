@@ -1,3 +1,5 @@
+import swmmio.utils.functions
+import swmmio.utils.text
 from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
                                MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
                                OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
@@ -28,7 +30,7 @@ def test_complete_inp_headers():
         '[COORDINATES]', '[VERTICES]',
     ]
 
-    h1 = funcs.complete_inp_headers(MODEL_XSECTION_BASELINE)
+    h1 = swmmio.utils.functions.get_inp_sections_details(MODEL_XSECTION_BASELINE)
 
     assert (all(h in h1 for h in headers))
     assert (list(h1.keys()) == headers)
@@ -184,7 +186,7 @@ def test_modify_model():
     rise = 10.0  # set the starting sea level rise condition
 
     # create a dataframe of the model's outfalls
-    outfalls = create_dataframeINP(baseline.inp.path, '[OUTFALLS]')
+    outfalls = create_dataframeINP(baseline.inp.path, '[OUTFALLS]', comment_cols=False)
 
     # add the current rise to the outfalls' stage elevation
     outfalls['OutfallType'] = 'FIXED'

@@ -2,11 +2,24 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH)
 import swmmio
-from swmmio import create_dataframeINP
+from swmmio import create_dataframeINP, Model
 import pandas as pd
 import pytest
 import shutil
 import os
+
+from swmmio.utils.dataframes import dataframe_from_rpt
+
+
+@pytest.fixture
+def test_model_01():
+    return Model(MODEL_FULL_FEATURES_XY)
+
+
+@pytest.fixture
+def test_model_02():
+    return Model(MODEL_FULL_FEATURES__NET_PATH)
+
 
 def makedirs(newdir):
     """
@@ -38,17 +51,16 @@ def test_create_dataframeBI():
     shutil.rmtree(temp_dir_01)
 
 
-def test_create_dataframeRPT():
-    m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+def test_create_dataframeRPT(test_model_02):
+    m = test_model_02
 
-    depth_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Depth Summary")
-    flood_summ = swmmio.create_dataframeRPT(
-        m.rpt.path, "Node Flooding Summary")
-    inflo_summ = swmmio.create_dataframeRPT(m.rpt.path, "Node Inflow Summary")
-
+    depth_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Depth Summary")
     print('\n', depth_summ)
+    inflo_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Inflow Summary")
     print(inflo_summ)
+    flood_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Flooding Summary")
     print(flood_summ)
+
 
     assert (inflo_summ.loc['J3', 'TotalInflowV'] == 6.1)
     assert (inflo_summ.loc['J1', 'MaxTotalInflow'] == 3.52)
@@ -60,7 +72,7 @@ def test_create_dataframeRPT():
     assert (flood_summ.loc[5, 'TotalFloodVol'] == 0)
 
 
-def test_conduits_dataframe():
+def test_conduits_dataframe(test_model_01):
     m = swmmio.Model(MODEL_FULL_FEATURES_PATH)
     conduits = m.conduits()
     assert (list(conduits.index) == ['C1:C2'])
@@ -80,15 +92,18 @@ def test_nodes_dataframe():
     assert (nodes.loc['dummy_node4', 'MaxDepth'] == 12.59314)
     assert (nodes.loc['dummy_node5', 'PondedArea'] == 73511)
 
+
 def test_infiltration_section():
     m = swmmio.Model(MODEL_FULL_FEATURES_XY)
     inf = m.inp.infiltration
     assert(inf.columns.tolist() == ['MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil'])
 
-    m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
+    # print(m.inp.headers)
+    # m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
     print (m.inp.infiltration)
-    print(m.inp.headers)
+    # print(m.inp.headers)
     xy = m.inp.coordinates
+    print(xy)
 
 
 
@@ -152,3 +167,9 @@ def test_model_section():
     pumps = m.pumps()
 
     assert(pumps_old_method.equals(pumps))
+
+
+def test_dataframe_from_rpt(test_model_02):
+
+    link_flow_summary = dataframe_from_rpt(test_model_02.rpt.path, 'Link Flow Summary')
+    print(link_flow_summary)

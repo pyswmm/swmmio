@@ -8,7 +8,7 @@ import glob
 import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
-from swmmio.utils.dataframes import create_dataframeINP, create_dataframeRPT, get_link_coords, \
+from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords, \
     create_dataframe_multi_index, get_inp_options_df
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
@@ -16,8 +16,8 @@ import warnings
 import swmmio
 from swmmio.elements import ModelSection
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS
-# from swmmio.utils.functions import find_invalid_links
-from swmmio.utils.functions import trim_section_to_nodes, get_inp_sections_details
+
+from swmmio.utils.functions import trim_section_to_nodes, get_rpt_sections_details, get_inp_sections_details
 from swmmio.utils.text import find_byte_range_of_section
 
 
@@ -137,7 +137,7 @@ class Model(object):
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
-            link_flow_df = create_dataframeRPT(rpt.path, "Link Flow Summary")
+            link_flow_df = dataframe_from_rpt(rpt.path, "Link Flow Summary")
             conduits_df = conduits_df.join(link_flow_df)
 
         # add conduit coordinates
@@ -188,7 +188,7 @@ class Model(object):
         rpt = self.rpt
 
         # create dataframes of relevant sections from the INP
-        weirs_df = create_dataframeINP(inp.path, "[WEIRS]")
+        weirs_df = create_dataframeINP(inp.path, "[WEIRS]", comment_cols=False)
         if weirs_df.empty:
             return pd.DataFrame()
 
@@ -256,9 +256,9 @@ class Model(object):
         rpt = self.rpt
 
         # create dataframes of relevant sections from the INP
-        juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]")
-        outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]")
-        storage_df = create_dataframeINP(inp.path, "[STORAGE]")
+        juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]", comment_cols=False)
+        outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]", comment_cols=False)
+        storage_df = create_dataframeINP(inp.path, "[STORAGE]", comment_cols=False)
 
         # concatenate the DFs and keep only relevant cols
         all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
@@ -267,8 +267,8 @@ class Model(object):
 
         if rpt:
             # add results data if a rpt file was found
-            depth_summ = create_dataframeRPT(rpt.path, "Node Depth Summary")
-            flood_summ = create_dataframeRPT(rpt.path, "Node Flooding Summary")
+            depth_summ = dataframe_from_rpt(rpt.path, "Node Depth Summary")
+            flood_summ = dataframe_from_rpt(rpt.path, "Node Flooding Summary")
 
             # join the rpt data (index on depth df, suffixes for common cols)
             rpt_df = depth_summ.join(
@@ -295,12 +295,11 @@ class Model(object):
         collect all useful and available data related subcatchments and organize
         in one dataframe.
         """
-        subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]")
-        subs = subs.drop([';', 'Comment', 'Origin'], axis=1)
+        subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]", comment_cols=False)
         polygons_df = self.inp.polygons
 
         if self.rpt:
-            flw = create_dataframeRPT(
+            flw = dataframe_from_rpt(
                 self.rpt.path, 'Subcatchment Runoff Summary')
             subs = subs.join(flw)
 
@@ -449,7 +448,7 @@ class rpt(SWMMIOFile):
         self.simulationStart = simulationStart
         self.simulationEnd = simulationEnd
         self.timeStepMin = timeStepMin
-
+        self._rpt_section_details = None
         # grab the date of analysis
         with open(filePath) as f:
             f.seek(self.file_size - 500)  # jump to 500 bytes before the end of file
@@ -460,31 +459,15 @@ class rpt(SWMMIOFile):
         self.dateOfAnalysis = date
         self.elementByteLocations = {"Link Results": {}, "Node Results": {}}
 
-    def returnDataAtDTime(self, id, dtime, sectionTitle="Link Results", startByte=0):
-        '''
-        return data from time series in RPT file
-        '''
+    @property
+    def headers(self):
+        """
+        Return all section headers and associated column names found in the RPT file.
+        """
+        if self._rpt_section_details is None:
+            self._rpt_section_details = get_rpt_sections_details(self.path)
 
-        byteLocDict = self.elementByteLocations[sectionTitle]
-        if byteLocDict:
-            startByte = byteLocDict[id]
-
-        elif startByte == 0:
-            startByte = find_byte_range_of_section(self.path, sectionTitle)[0]
-            print('startByte ' + str(startByte))
-
-        with open(self.path) as f:
-
-            f.seek(startByte)  # jump to general area of file if we know it
-            subsectionFound = False
-
-            for line in f:
-                if id in line: subsectionFound = True
-
-                if subsectionFound and dtime in line:
-                    line = ' '.join(re.findall('\"[^\"]*\"|\S+', line))
-                    rowdata = line.replace("\n", "").split(" ")
-                    return rowdata
+        return self._rpt_section_details
 
 
 class inp(SWMMIOFile):
@@ -571,7 +554,8 @@ class inp(SWMMIOFile):
         """
         if self._inp_section_details is None:
             self._inp_section_details = get_inp_sections_details(self.path,
-                                                                 include_brackets=True)
+                                                                 include_brackets=True,
+                                                                 options=self.options)
 
         # select the correct infiltration column names
         infil_type = self.options.loc['INFILTRATION', 'Value']
@@ -849,6 +833,18 @@ class inp(SWMMIOFile):
     def infiltration(self):
         """
         Get/set infiltration section of the INP file.
+        >>> import swmmio
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+        >>> m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
+        >>> m.inp.infiltration
+                      MaxRate  MinRate  Decay  DryTime  MaxInfil
+        Subcatchment
+        S1                3.0      0.5      4        7         0
+        S2                3.0      0.5      4        7         0
+        S3                3.0      0.5      4        7         0
+        S4                3.0      0.5      4        7         0
+        >>> m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
+        >>> m.inp.infiltration
         """
         if self._infiltration_df is None:
             self._infiltration_df = create_dataframeINP(self.path, "[INFILTRATION]", comment_cols=False,
@@ -1027,10 +1023,10 @@ def drop_invalid_model_elements(inp):
     >>> m.inp.conduits.index
     Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
     """
-    from swmmio.utils.dataframes import create_dataframeINP
-    juncs = create_dataframeINP(inp.path, "[JUNCTIONS]").index.tolist()
-    outfs = create_dataframeINP(inp.path, "[OUTFALLS]").index.tolist()
-    stors = create_dataframeINP(inp.path, "[STORAGE]").index.tolist()
+
+    juncs = create_dataframeINP(inp.path, "[JUNCTIONS]", comment_cols=False).index.tolist()
+    outfs = create_dataframeINP(inp.path, "[OUTFALLS]", comment_cols=False).index.tolist()
+    stors = create_dataframeINP(inp.path, "[STORAGE]", comment_cols=False).index.tolist()
     nids = juncs + outfs + stors
 
     # drop links with bad refs to inlet/outlet nodes

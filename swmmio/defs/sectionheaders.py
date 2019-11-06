@@ -88,6 +88,7 @@ def normalize_inp_config(inp_obects):
     >>> from swmmio.defs import INP_OBJECTS
     >>> conf = normalize_inp_config(INP_OBJECTS)
     >>> print(conf['JUNCTIONS'])
+    >>> print(conf)
     OrderedDict([('columns', ['Name', 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea'])])
     """
     normalized = OrderedDict()

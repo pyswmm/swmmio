@@ -1,9 +1,7 @@
-from swmmio.defs.sectionheaders import rpt_header_dict
 from collections import deque, OrderedDict
 import pandas as pd
-from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
 import networkx as nx
-
+# from swmmio import get_inp_options_df, INFILTRATION_COLS
 
 
 def random_alphanumeric(n=6):
@@ -13,7 +11,7 @@ def random_alphanumeric(n=6):
 
 
 def model_to_networkx(model, drop_cycles=True):
-    from swmmio.utils.dataframes import create_dataframeRPT
+    from swmmio.utils.dataframes import dataframe_from_rpt
     '''
     Networkx MultiDiGraph representation of the model
     '''
@@ -45,7 +43,7 @@ def model_to_networkx(model, drop_cycles=True):
             'LatInflowV',
             'TotalInflowV',
             'FlowBalErrorPerc']
-        flows = create_dataframeRPT(
+        flows = dataframe_from_rpt(
             model.rpt.path, "Node Inflow Summary")[inflow_cols]
         nodes = nodes.join(flows)
 
@@ -163,83 +161,21 @@ def rotate_model(m, rads=0.5, origin=None):
     return m
 
 
-def complete_inp_headers(inpfilepath):
-    """
-    creates a dictionary with all the headers found in an INP file
-    (which varies based on what the user has defined in a given model)
-    and updates them based on the definitions in inp_header_dict
-    this ensures the list is comprehensive
-
-    RETURNS:
-        a dictionary including
-            'headers'->
-                    header section keys and their respective cleaned column headers
-            'order' ->
-                    an array of section headers found in the INP file
-                    that preserves the original order
-    """
-    return get_inp_sections_details(inpfilepath, include_brackets=True)
-
-
-def get_inp_sections_details(inp_path, include_brackets=False):
+def get_rpt_sections_details(rpt_path):
     """
 
-    :param inp_path:
+    :param rpt_path:
+    :param include_brackets:
     :return:
-    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-    >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
-    >>> [header for header, cols in headers.items()][:4]
-    ['TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES']
-    >>> headers['SUBCATCHMENTS']['columns']
-    ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
-    """
-    from swmmio.defs import INP_OBJECTS
+    # >>> MODEL_FULL_FEATURES__NET_PATH
 
+    """
+    from swmmio.defs import RPT_OBJECTS
     found_sects = OrderedDict()
 
-    with open(inp_path) as f:
-        for line in f:
-            sect_not_found = True
-            for sect_id, data in INP_OBJECTS.items():
-                # find the start of an INP section
-                search_tag = '[{}]'.format(sect_id.lower())
-                if search_tag.lower() in line.lower():
-                    if include_brackets:
-                        sect_id = '[{}]'.format(sect_id)
-                    found_sects[sect_id] = data
-                    sect_not_found = False
-                    break
-            if sect_not_found:
-                if '[' and ']' in line:
-                    h = line.strip()
-                    if not include_brackets:
-                        h = h.replace('[', '').replace(']', '')
-                    found_sects[h] = OrderedDict(columns=['blob'])
-
-    return found_sects
-
-
-def complete_rpt_headers(rptfilepath):
-    """
-    creates a dictionary with all the headers found in an RPT file
-    (which varies based on what the user has defined in a given model)
-    and updates them based on the definitions in rpt_header_dict
-    this ensures the list is comprehensive
-
-    RETURNS:
-        a dictionary including
-            'headers'->
-                    header section keys and their respective cleaned column headers
-            'order' ->
-                    an array of section headers found in the RPT file
-                    that perserves the original order
-    """
-    foundheaders = {}
-    order = []
-    with open(rptfilepath) as f:
+    with open(rpt_path) as f:
         buff3line = deque()
         for line in f:
-
             # maintains a 3 line buffer and looks for instances where
             # a top and bottom line have '*****' and records the middle line
             # typical of section headers in RPT files
@@ -247,17 +183,19 @@ def complete_rpt_headers(rptfilepath):
             if len(buff3line) > 3:
                 buff3line.popleft()
 
+            # search for section header between two rows of *'s
             if ('***********' in buff3line[0] and
                     '***********' in buff3line[2] and
                     len(buff3line[1].strip()) > 0):
-                h = buff3line[1].strip()
-                order.append(h)
-                if h in rpt_header_dict:
-                    foundheaders.update({h: rpt_header_dict[h]})
-                else:
-                    foundheaders.update({h: 'blob'})
+                header = buff3line[1].strip()
 
-    return {'headers': foundheaders, 'order': order}
+                if header in RPT_OBJECTS:
+                    found_sects[header] = RPT_OBJECTS[header]
+                else:
+                    # unrecognized section
+                    found_sects[header] = OrderedDict(columns=['blob'])
+
+    return found_sects
 
 
 def merge_dicts(*dict_args):
@@ -305,3 +243,54 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
     trace(startnode)
     print("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
     return {'nodes': traced_nodes, 'conduits': traced_conduits}
+
+
+def get_inp_sections_details(inp_path, include_brackets=True, options=None):
+    """
+    creates a dictionary with all the headers found in an INP file
+    (which varies based on what the user has defined in a given model)
+    and updates them based on the definitions in inp_header_dict
+    this ensures the list is comprehensive
+    :param inp_path:
+    :param include_brackets: whether to parse sections including the []
+    :return:
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
+    >>> [header for header, cols in headers.items()][:4]
+    ['TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES']
+    >>> headers['SUBCATCHMENTS']['columns']
+    ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
+    """
+    from swmmio.defs import INP_OBJECTS
+
+    found_sects = OrderedDict()
+
+    with open(inp_path) as f:
+        for line in f:
+            sect_not_found = True
+            for sect_id, data in INP_OBJECTS.items():
+                # find the start of an INP section
+                search_tag = '[{}]'.format(sect_id.lower())
+                if search_tag.lower() in line.lower():
+                    if include_brackets:
+                        sect_id = '[{}]'.format(sect_id)
+                    found_sects[sect_id] = data
+                    sect_not_found = False
+                    break
+            if sect_not_found:
+                if '[' and ']' in line:
+                    h = line.strip()
+                    if not include_brackets:
+                        h = h.replace('[', '').replace(']', '')
+                    found_sects[h] = OrderedDict(columns=['blob'])
+
+    # # make necessary adjustments to columns that change based on options
+    # options = get_inp_options_df(inp_path) if options is None else options
+    #
+    # # select the correct infiltration column names
+    # infil_type = options.loc['INFILTRATION', 'Value']
+    # infil_cols = INFILTRATION_COLS[infil_type]
+    #
+    # # overwrite the dynamic sections with proper header cols
+    # found_sects['INFILTRATION']['columns'] = list(infil_cols)
+    return found_sects

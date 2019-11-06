@@ -1,6 +1,5 @@
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.functions import complete_inp_headers
-from swmmio import swmmio
+from swmmio import swmmio, get_inp_sections_details
 import os
 
 
@@ -15,7 +14,7 @@ def replace_inp_section(inp_path, modified_section_header, new_data, overwrite=T
     tmpfilename = os.path.splitext(os.path.basename(inp_path))[0] + '_mod.inp'
     wd = os.path.dirname(inp_path)
     tmpfilepath = os.path.join(os.path.dirname(inp_path), tmpfilename)
-    allheaders = complete_inp_headers(inp_path)
+    allheaders = get_inp_sections_details(inp_path)
     basemodel = swmmio.Model(inp_path)
 
     with open(inp_path) as oldf:

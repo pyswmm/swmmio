@@ -1,9 +1,11 @@
 import os
-import pandas as pd
+from io import StringIO
 
-from swmmio.defs import INP_OBJECTS
+import pandas as pd
+from swmmio.utils.functions import get_rpt_sections_details, get_inp_sections_details
+
+from swmmio.defs import INP_OBJECTS, HEADERS
 from swmmio.utils import text as txt
-from swmmio.utils import functions as funcs
 from swmmio.utils.text import extract_section_of_file
 
 
@@ -12,7 +14,7 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
     given a path to a build instructions file, create a dataframe of data in a
     given section
     """
-    headerdefs = funcs.complete_inp_headers(bi_path)
+    headerdefs = get_inp_sections_details(bi_path)
     headerlist = headerdefs[section]['columns'] + [';', 'Comment', 'Origin']
     tempfilepath = txt.extract_section_from_inp(bi_path, section,
                                                 headerdefs=headerdefs,
@@ -28,12 +30,25 @@ def create_dataframeBI(bi_path, section='[CONDUITS]'):
 def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
                         comment_str=';', comment_cols=True, headers=None):
     """
+
     given a path to an INP file, create a dataframe of data in the given
     section.
+
+    :param inp_path:
+    :param section:
+    :param ignore_comments:
+    :param comment_str:
+    :param comment_cols:
+    :param headers:
+    :return:
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> df = create_dataframeINP(MODEL_FULL_FEATURES_XY, '[CONDUITS]')
+    >>> df
     """
 
     # find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_inp_headers(inp_path)
+    headerdefs = get_inp_sections_details(inp_path)
+    # print(f'headerdefs[{section}]: {headerdefs[section]}')
     # create temp file with section isolated from inp file
     tempfilepath = txt.extract_section_from_inp(inp_path, section,
                                                 headerdefs=headerdefs,
@@ -86,7 +101,7 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
 def create_dataframe_multi_index(inp_path, section='[CURVES]', ignore_comments=True,
                         comment_str=';', comment_cols=True, headers=None):
     # find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_inp_headers(inp_path)
+    headerdefs = get_inp_sections_details(inp_path)
     # create temp file with section isolated from inp file
     tempfilepath = txt.extract_section_from_inp(inp_path, section,
                                                 headerdefs=headerdefs,
@@ -114,6 +129,81 @@ def create_dataframe_multi_index(inp_path, section='[CURVES]', ignore_comments=T
     # os.startfile(tempfilepath)
     os.remove(tempfilepath)
     return df
+
+
+def dataframe_from_rpt(rpt_path, section):
+
+    # get list of all section headers in rpt to use as section ending flags
+    headers = get_rpt_sections_details(rpt_path)
+
+    # and get the list of columns to use for parsing this section
+    end_strings = list(headers.keys())
+    end_strings.append('***********')
+    start_strings = [section, '-'*20, '-'*20]
+    cols = headers[section]['columns']
+
+    # extract the string and read into a dataframe
+    s = extract_section_of_file(rpt_path, start_strings, end_strings)
+    df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
+                     index_col=0, names=cols)
+
+    return df
+
+
+def dataframe_from_inp(inp_path, section):
+
+    """
+
+    :param inp_path:
+    :param section:
+    :return:
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> dataframe_from_inp(MODEL_FULL_FEATURES_XY, 'conduits')
+    """
+
+    # format the section header string like: [UPPER]
+    sect = f'[{section.upper()}]'
+
+    # get list of all section headers in inp to use as section ending flags
+    headers = get_inp_sections_details(inp_path)
+    # and get the list of columns to use for parsing this section
+    end_strings = headers
+    cols = headers[sect]['columns']
+
+    # extract the string and read into a dataframe
+    s = extract_section_of_file(inp_path, sect, end_strings)
+    df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
+                     index_col=0, names=cols)
+
+    return df
+
+
+def dataframe_from_sections(m, inp_sections, rpt_sections, columns=None):
+
+    inp_sections = m.inp.headers
+    ops_cols = INP_OBJECTS['OPTIONS']['columns']
+    # create dataframes of relevant sections from the INP
+    for ix, sect in enumerate(inp_sections):
+        if ix == 0:
+            # df = create_dataframeINP(m.inp.path, sect, comment_cols=False)
+
+            # preprocess the section header
+            sect = f'[{sect.upper()}]'
+            s = extract_section_of_file(m.inp.path, sect, inp_sections)
+            ops_df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
+                                 index_col=0, names=ops_cols)
+
+
+
+        else:
+            df_other = create_dataframeINP(self.inp.path, sect, comment_cols=False)
+            df = df.join(df_other)
+
+    # if there is an RPT available, grab relevant sections
+    if self.rpt:
+        for rpt_sect in rpt_sections:
+            df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect))
+
 
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
@@ -147,43 +237,6 @@ def get_link_coords(row, nodexys, verticies):
     return [res]  # nest in a list to force a series to be returned in a df.apply
 
 
-def create_dataframeRPT(rpt_path, section='Link Flow Summary', element_id=None):
-    """
-    given a path to an RPT file, create a dataframe of data in the given
-    section.
-    """
-
-    # find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = funcs.complete_rpt_headers(rpt_path)
-    # create temp file with section isolated from rpt file
-    tempfilepath = txt.extract_section_from_rpt(rpt_path, section,
-                                                headerdefs=headerdefs,
-                                                element_id=element_id)
-
-    if not tempfilepath:
-        print('header "{}" not found in "{}"'.format(section, rpt_path))
-        return None
-
-    if headerdefs['headers'][section] == 'blob':
-        # return the whole row, without specifc col headers
-        df = pd.read_table(tempfilepath, delim_whitespace=False, comment=";")
-    else:
-        if element_id:
-            # we'retrying to pull a time series, parse the datetimes by
-            # concatenating the Date Time columns (cols 1,2)
-            df0 = pd.read_csv(tempfilepath, delim_whitespace=True)
-            df = df0[df0.columns[2:]]  # the data sans date time columns
-            df.index = pd.to_datetime(df0['Date'] + ' ' + df0['Time'])
-            df.index.name = "".join(df0.columns[:2])
-        else:
-            # this section header is recognized, will be organized into known cols
-            df = pd.read_csv(tempfilepath, delim_whitespace=True, index_col=0)
-
-    os.remove(tempfilepath)
-
-    return df
-
-
 def get_inp_options_df(inp_path):
     """
     Parse ONLY the OPTIONS section of the inp file into a dataframe
@@ -198,7 +251,7 @@ def get_inp_options_df(inp_path):
     INFILTRATION   HORTON
     FLOW_ROUTING  DYNWAVE
     """
-    from pandas.compat import StringIO
+    from io import StringIO
     from swmmio.defs import INP_SECTION_TAGS, INP_OBJECTS
     ops_tag = '[OPTIONS]'
     ops_cols = INP_OBJECTS['OPTIONS']['columns']

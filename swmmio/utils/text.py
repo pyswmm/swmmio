@@ -3,8 +3,7 @@
 
 import os
 
-from swmmio.utils.functions import random_alphanumeric, complete_inp_headers, complete_rpt_headers
-
+from swmmio.utils.functions import random_alphanumeric, get_inp_sections_details
 
 #default file path suffix
 txt = '.txt'
@@ -18,7 +17,7 @@ def inline_comments_in_inp(filepath, overwrite=False):
     """
     newfilename = os.path.splitext(os.path.basename(filepath))[0] + '_unGUI.inp'
     newfilepath = os.path.join(os.path.dirname(filepath), newfilename)
-    allheaders = complete_inp_headers(filepath)
+    allheaders = get_inp_sections_details(filepath)
 
     with open(filepath) as oldf:
         with open(newfilepath, 'w') as new:
@@ -62,14 +61,15 @@ def inline_comments_in_inp(filepath, overwrite=False):
         os.rename(newfilepath, filepath)
 
 
-def extract_section_of_file(file_path, start_string, end_string, comment_str=';'):
+def extract_section_of_file(file_path, start_strings, end_strings, comment_str=';'):
     """
-    Extract a portion of a file found between a start string and a end string/condition
-    :param file_path: path to file
-    :param start_string: token used to start the extraction (included)
-    :param end_string: token used to end the extraction
-    :param comment: ignore any text in a line behind a comment char
-    :return: string
+    Extract a portion of a file found between one or more start strings and the first
+    encountered end string.
+    :param file_path:
+    :param start_strings:
+    :param end_strings:
+    :param comment_str:
+    :return:
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment_str=None)
     >>> print(s.strip())
@@ -80,19 +80,33 @@ def extract_section_of_file(file_path, start_string, end_string, comment_str=';'
     DRY_ONLY         NO
     """
 
-    if isinstance(end_string, str):
-        end_string = [end_string]
+    if isinstance(end_strings, str):
+        end_strings = [end_strings]
 
+    if isinstance(start_strings, str):
+        start_strings = [start_strings]
+
+    starts_ix = 0
+    starts_len = len(start_strings)
     start_found = False
     out_string = ''
     with open(file_path, 'r') as f:
 
         for line in f:
 
-            if start_found and any(es in line for es in end_string):
-                # print('end found: {}'.format(line))
+            # the current string we are searching for
+            if starts_ix < starts_len:
+                search_str = start_strings[starts_ix]
+
+            if start_found and any(es in line for es in end_strings):
+                # if we found the start and the line contains any of
+                # the end strings, break out
                 break
-            elif not start_found and start_string in line:
+            elif not start_found and search_str.upper() in line.upper():
+                # increment the index of the start strings that have been found
+                starts_ix += 1
+            if starts_ix == starts_len:
+                # we found each of the start strings
                 start_found = True
 
             if start_found:
@@ -123,9 +137,9 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
     defined in swmmio.defs.sectionheaders (useful for creating dataframes)
     """
 
-    #headers = she.complete_inp_headers(inp)['headers']
+    # headers = she.get_inp_sections_details(inp)['headers']
     if not headerdefs:
-        allheaders = complete_inp_headers(filepath)
+        allheaders = get_inp_sections_details(filepath)
     else:
         allheaders = headerdefs
 
@@ -187,105 +201,6 @@ def extract_section_from_inp(filepath, sectionheader, cleanheaders=True,
         os.startfile(outfilepath)
 
     return outfilepath
-
-
-def extract_section_from_rpt(filepath, sectionheader, element_id=None, cleanheaders=True, startfile=False, headerdefs=None):
-    """
-    INPUT path to rpt file and a text string
-    matchig the section header of the to be extracted
-
-    creates a new text file in the same directory as the filepath
-    and returns the path to the new file.
-
-    optionally inserts row at begining of file with one-line headers that are
-    defined in swmmio.defs.sectionheaders (useful for creating dataframes)
-    dede
-    """
-    if not headerdefs:
-        allheaders = complete_rpt_headers(filepath)['headers']
-    else:
-        allheaders = headerdefs['headers']
-
-    with open(filepath) as f:
-
-
-        wd = os.path.dirname(filepath)
-        newfname = sectionheader + '_' + random_alphanumeric(6)
-        outfilepath = os.path.join(wd, newfname + txt)
-
-        sectionstartfound = False #where we see the section header name
-        elementstartfound = False #where we see the element time series
-        datastartfound = False #where we see actual data after the header text
-        endfound = False
-        hyphencount = 0 #count how many hyphen rows we pass after sectionstartfound
-
-        with open(outfilepath, 'w') as newf:
-
-            for line in f:
-
-                if sectionstartfound and line.strip() in allheaders:
-                    #if we've found the begining of the section and we run
-                    #into another known header, we're at the end
-                    endfound = True
-                    break
-
-                elif not sectionstartfound and sectionheader in line:
-                    #if we haven't found the start of the section yet, the
-                    #sectionheader is in the current line,
-                    #then we've found the begining of the section of interest
-                    #print '{} section found'.format(sectionheader)
-                    sectionstartfound = True
-
-                    #replace line with usable headers
-                    if cleanheaders and [sectionheader] != 'blob':
-                        headerrow = allheaders[sectionheader] + '\n'
-                        newf.write(headerrow)
-
-                if sectionstartfound and element_id:
-                    #keep searching for the start of actual good data
-                    #string starting an element time series e.g. <<< Node D68_1_4 >>>
-                    elem_start_string = ' '.join(["<<<", sectionheader.split()[0], element_id, ">>>"])
-
-                    if element_id and elem_start_string in line:
-                        print('element_id found: {}'.format(line))
-                        #if we should look for an element_id and it
-                        #is in the current line
-                        elementstartfound = True
-                        #datastartfound = True
-                    if elementstartfound:
-                        if hyphencount == 2:
-                            datastartfound = True
-                            newf.write(line) #write the first line
-                            if len(line.strip()) == 0:
-                                #if line is blank after we've found the data,
-                                #we can be confident that we've found the end
-                                break
-                        if '------------' in line:
-                            #track how many rows with hyphens are passed
-                            #two rows should occur before actual data is written
-                            hyphencount += 1
-                elif sectionstartfound and not element_id:
-
-                    if hyphencount == 2:
-                        datastartfound = True
-                        newf.write(line) #write the first line
-                        if len(line.strip()) == 0:
-                            #if line is blank after we've found the data,
-                            #we can be confident that we've found the end
-                            break
-                    if '------------' in line:
-                        #track how many rows with hyphens are passed
-                        #two rows should occur before actual data is written
-                        hyphencount += 1
-
-    if not sectionstartfound:
-        #input section header was not found in the file
-        return None
-    if startfile:
-        os.startfile(outfilepath)
-
-    return outfilepath
-    #pass
 
 
 def find_byte_range_of_section(path, start_string):

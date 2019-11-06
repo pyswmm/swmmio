@@ -55,9 +55,134 @@ inp_sections:
     EndCon, EndCoeff, Surcharge, RoadWidth, RoadSurf]
   '[XSECTIONS]': [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels]
 
+rpt_sections:
+  Cross Section Summary:
+    - Name
+    - Shape
+    - DFull
+    - AreaFull
+    - HydRad
+    - MaxW
+    - NumBarrels
+    - FullFlow
+  Link Flow Summary:
+    - Name
+    - Type
+    - MaxQ
+    - MaxDay
+    - MaxHr
+    - MaxV
+    - MaxQPerc
+    - MaxDPerc
+  Link Results:
+    - Date
+    - Time
+    - FlowCFS
+    - VelocityFPS
+    - DepthFt
+    - PercentFull
+  Link Summary:
+    - Name
+    - FromNode
+    - ToNode
+    - Type
+    - Length
+    - SlopePerc
+    - Roughness
+  Node Depth Summary:
+    - Name
+    - Type
+    - AvgDepth
+    - MaxNodeDepth
+    - MaxHGL
+    - MaxDay
+    - MaxHr
+    - MaxNodeDepthReported
+  Node Flooding Summary:
+    - Name
+    - HoursFlooded
+    - MaxQ
+    - MaxDay
+    - MaxHr
+    - TotalFloodVol
+    - MaximumPondDepth
+  Node Inflow Summary:
+    - Name
+    - Type
+    - MaxLatInflow
+    - MaxTotalInflow
+    - MaxDay
+    - MaxHr
+    - LatInflowV
+    - TotalInflowV
+    - FlowBalErrorPerc
+    - XXX
+  Node Results:
+    - Date
+    - Time
+    - InflowCFS
+    - FloodingCFS
+    - DepthFt
+    - HeadFt
+    - TSS
+    - TP
+    - TN
+  Node Summary:
+    - Name
+    - Type
+    - InvertEl
+    - MaxD
+    - PondedA
+    - ExternalInf
+  Node Surcharge Summary:
+    - Name
+    - Type
+    - HourSurcharged
+    - MaxHeightAboveCrown
+    - MinDepthBelowRim
+  Storage Volume Summary:
+    - Name
+    - AvgVolume
+    - AvgPctFull
+    - EvapPctLoss
+    - ExfilPctLoss
+    - MaxVolume
+    - MaxPctFull
+    - MaxDay
+    - MaxFullHr
+    - MaxOutflow
+  Subcatchment Results:
+    - Date
+    - Time
+    - PrecipInchPerHour
+    - LossesInchPerHr
+    - RunoffCFS
+  Subcatchment Runoff Summary:
+    - Name
+    - TotalPrecip
+    - TotalRunon
+    - TotalEvap
+    - TotalInfil
+    - TotalRunoffIn
+    - TotalRunoffMG
+    - PeakRunoff
+    - RunoffCoeff
+  Subcatchment Summary:
+    - Name
+    - Area
+    - Width
+    - ImpervPerc
+    - SlopePerc
+    - RainGage
+    - Outlet
+
 objects:
+  nodes:
+    inp_sections: [junctions, outfalls, storage]
+    rpt_sections: [Node Depth Summary, Node Flooding Summary, Node Inflow Summary]
   junctions:
-    cols: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
+    columns: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
+    inp_sections: []
   orifices:
     inp_sections: ['[ORIFICES]']
     rpt_sections: [Link Flow Summary]
@@ -72,3 +197,13 @@ objects:
     rpt_sections: []
 
 primary_objects:
+
+weirs:
+  columns: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate,
+            EndCon, EndCoeff, Surcharge, RoadWidth, RoadSurf]
+  columns:
+    Name: string
+    InletNode: string
+
+  type: link
+
