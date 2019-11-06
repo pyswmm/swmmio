@@ -9,7 +9,7 @@ import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
 from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords, \
-    create_dataframe_multi_index, get_inp_options_df
+    create_dataframe_multi_index, get_inp_options_df, dataframe_from_inp
 from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
@@ -17,8 +17,8 @@ import swmmio
 from swmmio.elements import ModelSection
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS
 
-from swmmio.utils.functions import trim_section_to_nodes, get_rpt_sections_details, get_inp_sections_details
-from swmmio.utils.text import find_byte_range_of_section
+from swmmio.utils.functions import trim_section_to_nodes
+from swmmio.utils.text import find_byte_range_of_section, get_inp_sections_details, get_rpt_sections_details
 
 
 class Model(object):
@@ -131,8 +131,8 @@ class Model(object):
         rpt = self.rpt
 
         # create dataframes of relevant sections from the INP
-        conduits_df = create_dataframeINP(inp.path, "[CONDUITS]", comment_cols=False)
-        xsections_df = create_dataframeINP(inp.path, "[XSECTIONS]", comment_cols=False)
+        conduits_df = dataframe_from_inp(inp.path, "CONDUITS")
+        xsections_df = dataframe_from_inp(inp.path, "XSECTIONS")
         conduits_df = conduits_df.join(xsections_df)
 
         if rpt:
@@ -188,7 +188,7 @@ class Model(object):
         rpt = self.rpt
 
         # create dataframes of relevant sections from the INP
-        weirs_df = create_dataframeINP(inp.path, "[WEIRS]", comment_cols=False)
+        weirs_df = dataframe_from_inp(inp.path, "[WEIRS]")
         if weirs_df.empty:
             return pd.DataFrame()
 
@@ -256,9 +256,9 @@ class Model(object):
         rpt = self.rpt
 
         # create dataframes of relevant sections from the INP
-        juncs_df = create_dataframeINP(inp.path, "[JUNCTIONS]", comment_cols=False)
-        outfalls_df = create_dataframeINP(inp.path, "[OUTFALLS]", comment_cols=False)
-        storage_df = create_dataframeINP(inp.path, "[STORAGE]", comment_cols=False)
+        juncs_df = dataframe_from_inp(inp.path, "[JUNCTIONS]")
+        outfalls_df = dataframe_from_inp(inp.path, "[OUTFALLS]")
+        storage_df = dataframe_from_inp(inp.path, "[STORAGE]")
 
         # concatenate the DFs and keep only relevant cols
         all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
@@ -295,7 +295,7 @@ class Model(object):
         collect all useful and available data related subcatchments and organize
         in one dataframe.
         """
-        subs = create_dataframeINP(self.inp.path, "[SUBCATCHMENTS]", comment_cols=False)
+        subs = dataframe_from_inp(self.inp.path, "[SUBCATCHMENTS]")
         polygons_df = self.inp.polygons
 
         if self.rpt:
@@ -586,6 +586,7 @@ class inp(SWMMIOFile):
         >>> model.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
         >>> model.inp.headers['[INFILTRATION]']
         ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
+        >>> model.inp.infiltration
         """
         if self._options_df is None:
             self._options_df = get_inp_options_df(self.path)
@@ -617,7 +618,7 @@ class inp(SWMMIOFile):
         Examples:
         """
         if self._files_df is None:
-            self._files_df = create_dataframeINP(self.path, "[FILES]", comment_cols=False)
+            self._files_df = dataframe_from_inp(self.path, "[FILES]")
         return self._files_df.reset_index()
 
     @files.setter
@@ -651,7 +652,7 @@ class inp(SWMMIOFile):
         5             2          5  400.00      0.01
         """
         if self._conduits_df is None:
-            self._conduits_df = create_dataframeINP(self.path, "[CONDUITS]", comment_cols=False)
+            self._conduits_df = dataframe_from_inp(self.path, "[CONDUITS]")
         return self._conduits_df
 
     @conduits.setter
@@ -665,7 +666,7 @@ class inp(SWMMIOFile):
         Get/set pumps section of the INP file.
         """
         if self._xsections_df is None:
-            self._xsections_df = create_dataframeINP(self.path, "[XSECTIONS]", comment_cols=False)
+            self._xsections_df = dataframe_from_inp(self.path, "[XSECTIONS]")
         return self._xsections_df
 
     @xsections.setter
@@ -679,7 +680,7 @@ class inp(SWMMIOFile):
         Get/set pumps section of the INP file.
         """
         if self._pumps_df is None:
-            self._pumps_df = create_dataframeINP(self.path, "[PUMPS]", comment_cols=False)
+            self._pumps_df = dataframe_from_inp(self.path, "[PUMPS]")
         return self._pumps_df
 
     @pumps.setter
@@ -693,7 +694,7 @@ class inp(SWMMIOFile):
         Get/set orifices section of the INP file.
         """
         if self._orifices_df is None:
-            self._orifices_df = create_dataframeINP(self.path, "[ORIFICES]", comment_cols=False)
+            self._orifices_df = dataframe_from_inp(self.path, "[ORIFICES]")
         return self._orifices_df
 
     @orifices.setter
@@ -707,7 +708,7 @@ class inp(SWMMIOFile):
         Get/set weirs section of the INP file.
         """
         if self._weirs_df is None:
-            self._weirs_df = create_dataframeINP(self.path, "[WEIRS]", comment_cols=False)
+            self._weirs_df = dataframe_from_inp(self.path, "[WEIRS]")
         return self._weirs_df
 
     @weirs.setter
@@ -740,7 +741,7 @@ class inp(SWMMIOFile):
         J2        13.000        15          0               0           0
         """
         if self._junctions_df is None:
-            self._junctions_df = create_dataframeINP(self.path, "[JUNCTIONS]", comment_cols=False)
+            self._junctions_df = dataframe_from_inp(self.path, "JUNCTIONS")
         return self._junctions_df
 
     @junctions.setter
@@ -767,7 +768,7 @@ class inp(SWMMIOFile):
         J4             0        FREE                NO       NaN
         """
         if self._outfalls_df is None:
-            self._outfalls_df = create_dataframeINP(self.path, "[OUTFALLS]", comment_cols=False)
+            self._outfalls_df = dataframe_from_inp(self.path, "[OUTFALLS]")
         return self._outfalls_df
 
     @outfalls.setter
@@ -786,7 +787,7 @@ class inp(SWMMIOFile):
         Examples:
         """
         if self._storage_df is None:
-            self._storage_df = create_dataframeINP(self.path, "[STORAGE]", comment_cols=False)
+            self._storage_df = dataframe_from_inp(self.path, "[STORAGE]")
         return self._storage_df
 
     @storage.setter
@@ -805,8 +806,7 @@ class inp(SWMMIOFile):
         Examples:
         """
         if self._subcatchments_df is None:
-            self._subcatchments_df = create_dataframeINP(self.path, "[SUBCATCHMENTS]", comment_cols=False,
-                                                         headers=self._inp_section_details)
+            self._subcatchments_df = dataframe_from_inp(self.path, "[SUBCATCHMENTS]")
         return self._subcatchments_df
 
     @subcatchments.setter
@@ -820,8 +820,7 @@ class inp(SWMMIOFile):
         Get/set subareas section of the INP file.
         """
         if self._subareas_df is None:
-            self._subareas_df = create_dataframeINP(self.path, "[SUBAREAS]", comment_cols=False,
-                                                    headers=self._inp_section_details)
+            self._subareas_df = dataframe_from_inp(self.path, "[SUBAREAS]")
         return self._subareas_df
 
     @subareas.setter
@@ -843,12 +842,9 @@ class inp(SWMMIOFile):
         S2                3.0      0.5      4        7         0
         S3                3.0      0.5      4        7         0
         S4                3.0      0.5      4        7         0
-        >>> m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
-        >>> m.inp.infiltration
         """
         if self._infiltration_df is None:
-            self._infiltration_df = create_dataframeINP(self.path, "[INFILTRATION]", comment_cols=False,
-                                                        headers=self.headers)
+            self._infiltration_df = dataframe_from_inp(self.path, "infiltration")
         return self._infiltration_df
 
     @infiltration.setter
@@ -864,8 +860,7 @@ class inp(SWMMIOFile):
         """
         if self._coordinates_df is not None:
             return self._coordinates_df
-        self._coordinates_df = create_dataframeINP(self.path, "[COORDINATES]", comment_cols=False,
-                                                        headers=self._inp_section_details)
+        self._coordinates_df = dataframe_from_inp(self.path, "COORDINATES")
         return self._coordinates_df
 
     @coordinates.setter
@@ -881,7 +876,7 @@ class inp(SWMMIOFile):
         """
         if self._vertices_df is not None:
             return self._vertices_df
-        self._vertices_df = create_dataframeINP(self.path, '[VERTICES]', comment_cols=False)
+        self._vertices_df = dataframe_from_inp(self.path, 'VERTICES')
         return self._vertices_df
 
     @vertices.setter
@@ -897,7 +892,7 @@ class inp(SWMMIOFile):
         """
         if self._polygons_df is not None:
             return self._polygons_df
-        self._polygons_df = create_dataframeINP(self.path, '[Polygons]', comment_cols=False)
+        self._polygons_df = dataframe_from_inp(self.path, '[Polygons]')
         return self._polygons_df
 
     @polygons.setter
@@ -913,7 +908,7 @@ class inp(SWMMIOFile):
         """
         if self._curves_df is not None:
             return self._curves_df
-        self._curves_df = create_dataframe_multi_index(self.path, '[CURVES]', comment_cols=False)
+        self._curves_df = create_dataframe_multi_index(self.path, '[CURVES]')
         return self._curves_df
 
     @curves.setter
@@ -1024,9 +1019,9 @@ def drop_invalid_model_elements(inp):
     Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
     """
 
-    juncs = create_dataframeINP(inp.path, "[JUNCTIONS]", comment_cols=False).index.tolist()
-    outfs = create_dataframeINP(inp.path, "[OUTFALLS]", comment_cols=False).index.tolist()
-    stors = create_dataframeINP(inp.path, "[STORAGE]", comment_cols=False).index.tolist()
+    juncs = dataframe_from_inp(inp.path, "[JUNCTIONS]").index.tolist()
+    outfs = dataframe_from_inp(inp.path, "[OUTFALLS]").index.tolist()
+    stors = dataframe_from_inp(inp.path, "[STORAGE]").index.tolist()
     nids = juncs + outfs + stors
 
     # drop links with bad refs to inlet/outlet nodes

@@ -1,4 +1,3 @@
-from collections import deque, OrderedDict
 import pandas as pd
 import networkx as nx
 # from swmmio import get_inp_options_df, INFILTRATION_COLS
@@ -161,42 +160,23 @@ def rotate_model(m, rads=0.5, origin=None):
     return m
 
 
-def get_rpt_sections_details(rpt_path):
+def remove_braces(string):
+    return string.replace('[', '').replace(']', '')
+
+
+def format_inp_section_header(string):
     """
-
-    :param rpt_path:
-    :param include_brackets:
-    :return:
-    # >>> MODEL_FULL_FEATURES__NET_PATH
-
+    Ensure a string is in the inp section header format: [UPPERCASE]
+    :param string:
+    :return: string
     """
-    from swmmio.defs import RPT_OBJECTS
-    found_sects = OrderedDict()
+    s = string.strip().upper()
+    if s[0] != '[':
+        s = f'[{s}'
+    if s[-1] != ']':
+        s = f'{s}]'
 
-    with open(rpt_path) as f:
-        buff3line = deque()
-        for line in f:
-            # maintains a 3 line buffer and looks for instances where
-            # a top and bottom line have '*****' and records the middle line
-            # typical of section headers in RPT files
-            buff3line.append(line)
-            if len(buff3line) > 3:
-                buff3line.popleft()
-
-            # search for section header between two rows of *'s
-            if ('***********' in buff3line[0] and
-                    '***********' in buff3line[2] and
-                    len(buff3line[1].strip()) > 0):
-                header = buff3line[1].strip()
-
-                if header in RPT_OBJECTS:
-                    found_sects[header] = RPT_OBJECTS[header]
-                else:
-                    # unrecognized section
-                    found_sects[header] = OrderedDict(columns=['blob'])
-
-    return found_sects
-
+    return s
 
 def merge_dicts(*dict_args):
     '''
@@ -245,52 +225,3 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
     return {'nodes': traced_nodes, 'conduits': traced_conduits}
 
 
-def get_inp_sections_details(inp_path, include_brackets=True, options=None):
-    """
-    creates a dictionary with all the headers found in an INP file
-    (which varies based on what the user has defined in a given model)
-    and updates them based on the definitions in inp_header_dict
-    this ensures the list is comprehensive
-    :param inp_path:
-    :param include_brackets: whether to parse sections including the []
-    :return:
-    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-    >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
-    >>> [header for header, cols in headers.items()][:4]
-    ['TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES']
-    >>> headers['SUBCATCHMENTS']['columns']
-    ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
-    """
-    from swmmio.defs import INP_OBJECTS
-
-    found_sects = OrderedDict()
-
-    with open(inp_path) as f:
-        for line in f:
-            sect_not_found = True
-            for sect_id, data in INP_OBJECTS.items():
-                # find the start of an INP section
-                search_tag = '[{}]'.format(sect_id.lower())
-                if search_tag.lower() in line.lower():
-                    if include_brackets:
-                        sect_id = '[{}]'.format(sect_id)
-                    found_sects[sect_id] = data
-                    sect_not_found = False
-                    break
-            if sect_not_found:
-                if '[' and ']' in line:
-                    h = line.strip()
-                    if not include_brackets:
-                        h = h.replace('[', '').replace(']', '')
-                    found_sects[h] = OrderedDict(columns=['blob'])
-
-    # # make necessary adjustments to columns that change based on options
-    # options = get_inp_options_df(inp_path) if options is None else options
-    #
-    # # select the correct infiltration column names
-    # infil_type = options.loc['INFILTRATION', 'Value']
-    # infil_cols = INFILTRATION_COLS[infil_type]
-    #
-    # # overwrite the dynamic sections with proper header cols
-    # found_sects['INFILTRATION']['columns'] = list(infil_cols)
-    return found_sects

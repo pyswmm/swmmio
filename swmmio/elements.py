@@ -2,9 +2,9 @@
 Objects encapsulating model elements
 """
 import swmmio
-from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords
+from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords, dataframe_from_inp
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
-from swmmio.defs import HEADERS, HEADERS_YML
+from swmmio.defs import COMPOSITE_OBJECTS
 from swmmio.utils.spatial import coords_series_to_geometry
 
 
@@ -41,7 +41,7 @@ class ModelSection(object):
         self.inp = self.model.inp
         self.rpt = self.model.rpt
         self.section_name = section_name
-        self.config = HEADERS[section_name.lower()]
+        self.config = COMPOSITE_OBJECTS[section_name.lower()]
 
     # def to_geojson(self, target_path=None):
     #     """
@@ -75,9 +75,9 @@ class ModelSection(object):
         # create dataframes of relevant sections from the INP
         for ix, sect in enumerate(self.config['inp_sections']):
             if ix == 0:
-                df = create_dataframeINP(self.inp.path, sect, comment_cols=False)
+                df = dataframe_from_inp(self.inp.path, sect)
             else:
-                df_other = create_dataframeINP(self.inp.path, sect, comment_cols=False)
+                df_other = dataframe_from_inp(self.inp.path, sect)
                 df = df.join(df_other)
 
         if df.empty:

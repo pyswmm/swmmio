@@ -59,6 +59,7 @@ inp_file_objects:
   REPORT: [Param, Status]
   TAGS: [ElementType, Name, Tag]
   ADJUSTMENTS: [blob]
+  CURVES: [Name, Type, X-Value, Y-Value]
 
 
 
@@ -73,18 +74,18 @@ inp_section_tags:
   '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
 
 
-objects:
-  junctions:
-    cols: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
-  orifices:
-    inp_sections: ['[ORIFICES]']
-    rpt_sections: [Link Flow Summary]
-  outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
-  pumps:
-    inp_sections: ['[PUMPS]']
-    rpt_sections: [Link Flow Summary]
-  subcatchments:
-    columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,
-              SnowPack]
-    inp_sections: ['[SUBCATCHMENTS]']
-    rpt_sections: []
+#objects:
+#  junctions:
+#    cols: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
+#  orifices:
+#    inp_sections: ['[ORIFICES]']
+#    rpt_sections: [Link Flow Summary]
+#  outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
+#  pumps:
+#    inp_sections: ['[PUMPS]']
+#    rpt_sections: [Link Flow Summary]
+#  subcatchments:
+#    columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,
+#              SnowPack]
+#    inp_sections: ['[SUBCATCHMENTS]']
+#    rpt_sections: []

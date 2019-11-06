@@ -2,27 +2,39 @@ import os
 from io import StringIO
 
 import pandas as pd
-from swmmio.utils.functions import get_rpt_sections_details, get_inp_sections_details
 
-from swmmio.defs import INP_OBJECTS, HEADERS
+from swmmio.defs import INP_OBJECTS, HEADERS_YML
 from swmmio.utils import text as txt
-from swmmio.utils.text import extract_section_of_file
+from swmmio.utils.functions import format_inp_section_header, remove_braces
+from swmmio.utils.text import extract_section_of_file, get_inp_sections_details, get_rpt_sections_details
+import warnings
 
 
-def create_dataframeBI(bi_path, section='[CONDUITS]'):
+def dataframe_from_bi(bi_path, section='[CONDUITS]'):
     """
     given a path to a build instructions file, create a dataframe of data in a
     given section
     """
-    headerdefs = get_inp_sections_details(bi_path)
-    headerlist = headerdefs[section]['columns'] + [';', 'Comment', 'Origin']
-    tempfilepath = txt.extract_section_from_inp(bi_path, section,
-                                                headerdefs=headerdefs,
-                                                skipheaders=True)
-    df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True,
-                     skiprows=[0], index_col=0, names=headerlist, comment=None)
 
-    os.remove(tempfilepath)  # clean up
+    df = dataframe_from_inp(bi_path, section,
+                            additional_cols=[';', 'Comment', 'Origin'],
+                            comment=';;')
+
+
+    # headerdefs = get_inp_sections_details(bi_path)
+    # headerlist = headerdefs[section]['columns'] + [';', 'Comment', 'Origin']
+    # tempfilepath = txt.extract_section_from_inp(bi_path, section,
+    #                                             headerdefs=headerdefs,
+    #                                             skipheaders=True)
+    # df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True,
+    #                  skiprows=[0], index_col=0, names=headerlist, comment=None)
+    #
+    # os.remove(tempfilepath)  # clean up
+
+    # s = extract_section_of_file(inp_path, start_string, end_strings,
+    #                             skip_headers=skip_headers, **kwargs)
+    # df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
+    #                  index_col=0, names=cols, **kwargs)
 
     return df
 
@@ -98,36 +110,36 @@ def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
     return df.rename(index=str)
 
 
-def create_dataframe_multi_index(inp_path, section='[CURVES]', ignore_comments=True,
-                        comment_str=';', comment_cols=True, headers=None):
-    # find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = get_inp_sections_details(inp_path)
-    # create temp file with section isolated from inp file
-    tempfilepath = txt.extract_section_from_inp(inp_path, section,
-                                                headerdefs=headerdefs,
-                                                ignore_comments=ignore_comments,
-                                                skipheaders=True)
+def create_dataframe_multi_index(inp_path, section='CURVES'):
 
-    headerlist = HEADERS['inp_sections'][section]
+    # format the section header for look up in headers OrderedDict
+    sect = remove_braces(section).upper()
 
-    with open(tempfilepath, 'r') as f:
-        data = []
-        for line in f.readlines():
-            items = line.strip().split()
-            if len(items) == 3:
-                items = [items[0], None, items[1], items[2]]
-            if len(items) == 4:
-                data.append(items)
+    # get list of all section headers in inp to use as section ending flags
+    headers = get_inp_sections_details(inp_path, include_brackets=False)
 
-    # df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-    #                  index_col=[0,1], names=headerlist, comment=comment_str)
+    if sect not in headers:
+        warnings.warn(f'{sect} section not found in {inp_path}')
+        return pd.DataFrame()
 
-    df = pd.DataFrame(data=data, columns=headerlist)
+    # extract the string and read into a dataframe
+    start_string = format_inp_section_header(section)
+    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    s = extract_section_of_file(inp_path, start_string, end_strings)
+    cols = headers[sect]['columns']
+
+    f = StringIO(s)
+    data = []
+    for line in f.readlines():
+        items = line.strip().split()
+        if len(items) == 3:
+            items = [items[0], None, items[1], items[2]]
+        if len(items) == 4:
+            data.append(items)
+
+    df = pd.DataFrame(data=data, columns=cols)
     df = df.set_index(['Name', 'Type'])
 
-
-    # os.startfile(tempfilepath)
-    os.remove(tempfilepath)
     return df
 
 
@@ -135,6 +147,10 @@ def dataframe_from_rpt(rpt_path, section):
 
     # get list of all section headers in rpt to use as section ending flags
     headers = get_rpt_sections_details(rpt_path)
+
+    if section not in headers:
+        warnings.warn(f'{section} section not found in {rpt_path}')
+        return pd.DataFrame()
 
     # and get the list of columns to use for parsing this section
     end_strings = list(headers.keys())
@@ -150,28 +166,38 @@ def dataframe_from_rpt(rpt_path, section):
     return df
 
 
-def dataframe_from_inp(inp_path, section):
+def dataframe_from_inp(inp_path, section, additional_cols=None,
+                       skip_headers=False, **kwargs):
 
     """
-
     :param inp_path:
     :param section:
+    :param additional_cols:
+    :param skip_headers:
     :return:
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> dataframe_from_inp(MODEL_FULL_FEATURES_XY, 'conduits')
     """
 
-    # format the section header string like: [UPPER]
-    sect = f'[{section.upper()}]'
+    # format the section header for look up in headers OrderedDict
+    sect = remove_braces(section).upper()
 
     # get list of all section headers in inp to use as section ending flags
-    headers = get_inp_sections_details(inp_path)
+    headers = get_inp_sections_details(inp_path, include_brackets=False)
+
+    if sect not in headers:
+        warnings.warn(f'{sect} section not found in {inp_path}')
+        return pd.DataFrame()
+
     # and get the list of columns to use for parsing this section
-    end_strings = headers
-    cols = headers[sect]['columns']
+    # add any additional columns needed for special cases (build instructions)
+    additional_cols = [] if additional_cols is None else additional_cols
+    cols = headers[sect]['columns'] + additional_cols
 
     # extract the string and read into a dataframe
-    s = extract_section_of_file(inp_path, sect, end_strings)
+    start_string = format_inp_section_header(section)
+    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
     df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
                      index_col=0, names=cols)
 
@@ -255,7 +281,7 @@ def get_inp_options_df(inp_path):
     from swmmio.defs import INP_SECTION_TAGS, INP_OBJECTS
     ops_tag = '[OPTIONS]'
     ops_cols = INP_OBJECTS['OPTIONS']['columns']
-    ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment_str=';')
+    ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment=';')
     ops_df = pd.read_csv(StringIO(ops_string), header=None, delim_whitespace=True, skiprows=[0],
                          index_col=0, names=ops_cols)
     return ops_df

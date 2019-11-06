@@ -2,8 +2,10 @@
 #STANDARD READING AND WRITING OF TEXT FILES (E.G. .INP AND .RPT)
 
 import os
-
-from swmmio.utils.functions import random_alphanumeric, get_inp_sections_details
+from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, INP_SECTION_TAGS
+from collections import OrderedDict, deque
+from io import StringIO
+from swmmio.utils.functions import random_alphanumeric, format_inp_section_header
 
 #default file path suffix
 txt = '.txt'
@@ -61,17 +63,18 @@ def inline_comments_in_inp(filepath, overwrite=False):
         os.rename(newfilepath, filepath)
 
 
-def extract_section_of_file(file_path, start_strings, end_strings, comment_str=';'):
+def extract_section_of_file(file_path, start_strings, end_strings, comment=';', **kwargs):
     """
     Extract a portion of a file found between one or more start strings and the first
     encountered end string.
     :param file_path:
     :param start_strings:
     :param end_strings:
-    :param comment_str:
+    :param skip_headers:
+    :param comment:
     :return:
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-    >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment_str=None)
+    >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment=None)
     >>> print(s.strip())
     [EVAPORATION]
     ;;Data Source    Parameters
@@ -110,12 +113,18 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment_str='
                 start_found = True
 
             if start_found:
-                if comment_str is not None:
+                if comment is not None:
                     # ignore anything after a comment
-                    if comment_str in line:
-                        s = line.split(comment_str)[0] + '\n'
+                    if comment in line:
+                        s = line.split(comment)[0] + '\n'
                         out_string += s
                     else:
+                        out_string += line
+                elif skip_headers:
+                    # check if we're at a inp header row with ';;' or the section
+                    # header e.g. [XSECTIONS]. If so, skip the row bc skipheader = True
+                    if line.strip()[:2] != ";;" and line.strip().upper() != search_str.upper():
+                        # newf.write(line)
                         out_string += line
                 else:
                     out_string += line
@@ -232,3 +241,102 @@ def find_byte_range_of_section(path, start_string):
     return [start, end]
 
 
+def get_inp_sections_details(inp_path, include_brackets=False, options=None):
+    """
+    creates a dictionary with all the headers found in an INP file
+    (which varies based on what the user has defined in a given model)
+    and updates them based on the definitions in inp_header_dict
+    this ensures the list is comprehensive
+    :param inp_path:
+    :param include_brackets: whether to parse sections including the []
+    :return: OrderedDict
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
+    >>> [header for header, cols in headers.items()][:4]
+    ['TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES']
+    >>> headers['SUBCATCHMENTS']['columns']
+    ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
+    """
+    from swmmio.defs import INP_OBJECTS
+    import pandas as pd
+    found_sects = OrderedDict()
+
+    with open(inp_path) as f:
+        for line in f:
+            sect_not_found = True
+            for sect_id, data in INP_OBJECTS.items():
+                # find the start of an INP section
+                search_tag = '[{}]'.format(sect_id.lower())
+                search_tag = format_inp_section_header(sect_id)
+                if search_tag.lower() in line.lower():
+                    if include_brackets:
+                        sect_id = '[{}]'.format(sect_id)
+                    found_sects[sect_id] = data
+                    sect_not_found = False
+                    break
+            if sect_not_found:
+                if '[' and ']' in line:
+                    h = line.strip()
+                    if not include_brackets:
+                        h = h.replace('[', '').replace(']', '')
+                    found_sects[h] = OrderedDict(columns=['blob'])
+
+    # make necessary adjustments to columns that change based on options
+    ops_cols = INP_OBJECTS['OPTIONS']['columns']
+    ops_string = extract_section_of_file(inp_path, '[OPTIONS]', INP_SECTION_TAGS, )
+    options = pd.read_csv(StringIO(ops_string), header=None,
+                          delim_whitespace=True, skiprows=[0], index_col=0,
+                          names=ops_cols)
+
+    # print(options)
+    # print(list(found_sects.keys()))
+    if 'INFILTRATION' in found_sects:
+        # select the correct infiltration column names
+        infil_type = options.loc['INFILTRATION', 'Value']
+        infil_cols = INFILTRATION_COLS[infil_type]
+
+        inf_id = 'INFILTRATION'
+        if include_brackets:
+            inf_id = '[{}]'.format('INFILTRATION')
+
+        # overwrite the dynamic sections with proper header cols
+
+        found_sects[inf_id]['columns'] = list(infil_cols)
+    return found_sects
+
+
+def get_rpt_sections_details(rpt_path):
+    """
+
+    :param rpt_path:
+    :param include_brackets:
+    :return:
+    # >>> MODEL_FULL_FEATURES__NET_PATH
+
+    """
+    from swmmio.defs import RPT_OBJECTS
+    found_sects = OrderedDict()
+
+    with open(rpt_path) as f:
+        buff3line = deque()
+        for line in f:
+            # maintains a 3 line buffer and looks for instances where
+            # a top and bottom line have '*****' and records the middle line
+            # typical of section headers in RPT files
+            buff3line.append(line)
+            if len(buff3line) > 3:
+                buff3line.popleft()
+
+            # search for section header between two rows of *'s
+            if ('***********' in buff3line[0] and
+                    '***********' in buff3line[2] and
+                    len(buff3line[1].strip()) > 0):
+                header = buff3line[1].strip()
+
+                if header in RPT_OBJECTS:
+                    found_sects[header] = RPT_OBJECTS[header]
+                else:
+                    # unrecognized section
+                    found_sects[header] = OrderedDict(columns=['blob'])
+
+    return found_sects

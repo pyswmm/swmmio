@@ -9,7 +9,8 @@ import pytest
 import shutil
 import os
 
-from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords
+from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp, dataframe_from_bi
+
 
 @pytest.fixture
 def test_model_01():
@@ -31,13 +32,14 @@ def makedirs(newdir):
     os.makedirs(newdir)
 
 
-def test_create_dataframeBI():
+def test_dataframe_from_bi():
 
-    # m = swmmio.Model(MODEL_BROWARD_COUNTY_PATH)
-    bi_juncs = swmmio.create_dataframeBI(BUILD_INSTR_01, section='[JUNCTIONS]')
-
-    assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
+    bi_juncs = dataframe_from_bi(BUILD_INSTR_01, 'junctions')
+    print(bi_juncs.to_string())
+    assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15.0, 0.01)
     assert bi_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
+
+    assert bi_juncs.loc['dummy_node5', 'Comment'] == 'Altered'
 
     # test with spaces in path
     temp_dir_01 = os.path.join(DATA_PATH, 'path with spaces')
@@ -45,13 +47,13 @@ def test_create_dataframeBI():
     shutil.copy(BUILD_INSTR_01, temp_dir_01)
     BUILD_INSTR_01_spaces = os.path.join(temp_dir_01, BUILD_INSTR_01)
 
-    bi_juncs = swmmio.create_dataframeBI(BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
+    bi_juncs = dataframe_from_bi(BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
     assert bi_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
     assert bi_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
     shutil.rmtree(temp_dir_01)
 
 
-def test_create_dataframeRPT(test_model_02):
+def test_dataframe_from_rpt(test_model_02):
     m = test_model_02
 
     depth_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Depth Summary")
@@ -106,8 +108,6 @@ def test_infiltration_section():
     print(xy)
 
 
-
-
 def test_model_to_networkx():
     m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
     G = m.network
@@ -149,7 +149,7 @@ def test_model_section():
         rpt = model.rpt
 
         # create dataframes of relevant sections from the INP
-        pumps_df = create_dataframeINP(inp.path, "[PUMPS]", comment_cols=False)
+        pumps_df = dataframe_from_inp(inp.path, "[PUMPS]")
         if pumps_df.empty:
             return pd.DataFrame()
 

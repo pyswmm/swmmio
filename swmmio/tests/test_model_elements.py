@@ -5,7 +5,7 @@ from swmmio import Model
 from swmmio.elements import ModelSection
 from swmmio.utils import functions
 import pytest
-from swmmio.utils.functions import get_rpt_sections_details
+from swmmio.utils.text import get_rpt_sections_details
 
 
 @pytest.fixture
@@ -31,13 +31,13 @@ def test_model_section(test_model_01):
 
 
 def test_complete_headers(test_model_01):
-    headers = swmmio.utils.functions.get_inp_sections_details(test_model_01.inp.path)
+    headers = swmmio.utils.text.get_inp_sections_details(test_model_01.inp.path)
     print (list(headers.keys()))
     sections_in_inp = [
-        '[TITLE]', '[OPTIONS]', '[EVAPORATION]', '[RAINGAGES]', '[SUBCATCHMENTS]', '[SUBAREAS]', '[INFILTRATION]',
-        '[JUNCTIONS]', '[OUTFALLS]', '[STORAGE]', '[CONDUITS]', '[PUMPS]', '[WEIRS]', '[XSECTIONS]', '[INFLOWS]',
-        '[CURVES]', '[TIMESERIES]', '[REPORT]', '[TAGS]', '[MAP]', '[COORDINATES]', '[VERTICES]', '[Polygons]',
-        '[SYMBOLS]'
+        'TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES', 'SUBCATCHMENTS', 'SUBAREAS', 'INFILTRATION',
+        'JUNCTIONS', 'OUTFALLS', 'STORAGE', 'CONDUITS', 'PUMPS', 'WEIRS', 'XSECTIONS', 'INFLOWS',
+        'CURVES', 'TIMESERIES', 'REPORT', 'TAGS', 'MAP', 'COORDINATES', 'VERTICES', 'Polygons',
+        'SYMBOLS'
     ]
     assert (all(section in headers for section in sections_in_inp))
 

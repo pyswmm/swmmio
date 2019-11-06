@@ -9,7 +9,7 @@ def search_for_duplicates(inp_path, verbose = False):
     scan an inp file and determine if any element IDs are duplicated in
     any section. Method: count the uniques and compare to total length
     """
-    headers = swmmio.utils.functions.get_inp_sections_details(inp_path)['headers']
+    headers = swmmio.utils.text.get_inp_sections_details(inp_path)['headers']
     dups_found = False
     for header, cols, in headers.items():
         if cols != 'blob':

@@ -25,12 +25,12 @@ def makedirs(newdir):
 
 def test_complete_inp_headers():
     headers = [
-        '[TITLE]', '[OPTIONS]', '[EVAPORATION]', '[JUNCTIONS]', '[OUTFALLS]',
-        '[CONDUITS]', '[XSECTIONS]', '[DWF]', '[REPORT]', '[TAGS]', '[MAP]',
-        '[COORDINATES]', '[VERTICES]',
+        'TITLE', 'OPTIONS', 'EVAPORATION', 'JUNCTIONS', 'OUTFALLS',
+        'CONDUITS', 'XSECTIONS', 'DWF', 'REPORT', 'TAGS', 'MAP',
+        'COORDINATES', 'VERTICES',
     ]
 
-    h1 = swmmio.utils.functions.get_inp_sections_details(MODEL_XSECTION_BASELINE)
+    h1 = swmmio.utils.text.get_inp_sections_details(MODEL_XSECTION_BASELINE)
 
     assert (all(h in h1 for h in headers))
     assert (list(h1.keys()) == headers)
@@ -47,8 +47,9 @@ def test_create_inp_build_instructions():
 
     latest_bi = vc_utils.newest_file(temp_vc_dir_01)
     bi = inp.BuildInstructions(latest_bi)
-
-    juncs = bi.instructions['[JUNCTIONS]']
+    print(bi.instructions)
+    juncs = bi.instructions['JUNCTIONS']
+    print(juncs)
     assert (all(j in juncs.altered.index for j in [
         'dummy_node1', 'dummy_node5']))
 

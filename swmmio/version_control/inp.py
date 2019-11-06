@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
-from swmmio.utils.functions import get_inp_sections_details
+from swmmio.utils.text import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.dataframes import create_dataframeINP, create_dataframeBI
+from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_bi
 import swmmio
 import pandas as pd
 import os
@@ -32,6 +32,7 @@ class BuildInstructions(object):
             allheaders = get_inp_sections_details(build_instr_file)
             instructions = {}
             for section, _ in allheaders.items():
+                print(section)
                 change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section: change})
 
@@ -104,7 +105,8 @@ class BuildInstructions(object):
                         and section in self.instructions):
 
                     # df of baseline model section
-                    basedf = create_dataframeINP(basemodel.inp.path, section, comment_cols=True)
+                    basedf = dataframe_from_bi(basemodel.inp.path, section)
+                    basedf[';'] = ';'
 
                     # grab the changes to
                     changes = self.instructions[section]
@@ -117,7 +119,8 @@ class BuildInstructions(object):
                     new_section = pd.concat([new_section, changes.altered, changes.added])
                 else:
                     # section is not well understood or is problematic, just blindly copy
-                    new_section = create_dataframeINP(basemodel.inp.path, section=section, comment_cols=True)
+                    new_section = dataframe_from_bi(basemodel.inp.path, section=section)
+                    new_section[';'] = ';'
 
                 # write the section
                 vc_utils.write_inp_section(f, allheaders, section, new_section)
@@ -139,8 +142,10 @@ class INPSectionDiff(object):
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
-            df1 = create_dataframeINP(model1.inp.path, section, comment_cols=True)
-            df2 = create_dataframeINP(model2.inp.path, section, comment_cols=True)
+            df1 = dataframe_from_bi(model1.inp.path, section)
+            df2 = dataframe_from_bi(model2.inp.path, section)
+            df1[';'] = ';'
+            df2[';'] = ';'
             m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
 
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
@@ -150,7 +155,7 @@ class INPSectionDiff(object):
             # find where elements were changed (but kept with same ID)
             common_ids = df1.index.difference(removed_ids)  # original - removed = in common
             # both dfs concatenated, with matched indices for each element
-            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]])
+            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]], sort=True)
             # remove whitespace
             full_set = full_set.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
             # drop dupes on the set, all things that did not changed should have 1 row
@@ -181,8 +186,8 @@ class INPSectionDiff(object):
 
         if build_instr_file:
             # if generating from a build instructions file, do this (more efficient)
-            df = create_dataframeBI(build_instr_file, section=section)
-
+            df = dataframe_from_bi(build_instr_file, section=section)
+            print(f'bi file: {build_instr_file}\ndf:\n{df.to_string()}')
             self.added = df.loc[df['Comment'] == 'Added']
             self.removed = df.loc[df['Comment'] == 'Removed']
             self.altered = df.loc[df['Comment'] == 'Altered']
@@ -325,7 +330,8 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                     and section in inp_diff.diffs):
 
                 # df of baseline model section
-                basedf = create_dataframeINP(m3.inp.path, section, comment_cols=True)
+                basedf = dataframe_from_bi(m3.inp.path, section)
+                basedf[';'] = ';'
 
                 # grab the changes to
                 changes = inp_diff.diffs[section]
@@ -339,7 +345,8 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                 new_section = pd.concat([new_section, changes.altered, changes.added])
             else:
                 # section is not well understood or is problematic, just blindly copy
-                new_section = create_dataframeINP(m3.inp.path, section=section, comment_cols=True)
+                new_section = dataframe_from_bi(m3.inp.path, section)
+                new_section[';'] = ';'
                 # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
             # print(new_section.head())

@@ -1,6 +1,6 @@
 from swmmio.version_control import utils as vc_utils
 import swmmio
-from swmmio.utils.functions import get_inp_sections_details
+from swmmio.utils.text import get_inp_sections_details
 import os
 
 

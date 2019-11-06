@@ -3,6 +3,8 @@ import os
 import json
 import shutil
 
+from swmmio.utils.functions import format_inp_section_header
+
 
 def copy_rpts_hsf(from_dir, to_dir, search_dir):
     """
@@ -44,6 +46,7 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
 
     f = file_object
     add_str = ''
+    sectionheader = format_inp_section_header(sectionheader)
     if not section_data.empty:
         if pad_top:
             f.write('\n\n' + sectionheader + '\n')  # add SWMM-friendly header e.g. [DWF]
