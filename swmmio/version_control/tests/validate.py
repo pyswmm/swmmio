@@ -1,10 +1,10 @@
-#METHODS USED TO VALIDATE INP FILES (e.g. ensure no duplicates exists)
+# METHODS USED TO VALIDATE INP FILES (e.g. ensure no duplicates exists)
 import swmmio.utils.functions
 import swmmio.utils.text
-from swmmio.utils import functions as funcs
-from swmmio.utils import dataframes
+from swmmio.utils.dataframes import dataframe_from_inp
 
-def search_for_duplicates(inp_path, verbose = False):
+
+def search_for_duplicates(inp_path, verbose=False):
     """
     scan an inp file and determine if any element IDs are duplicated in
     any section. Method: count the uniques and compare to total length
@@ -14,7 +14,7 @@ def search_for_duplicates(inp_path, verbose = False):
     for header, cols, in headers.items():
         if cols != 'blob':
 
-            df = dataframes.create_dataframeINP(inp_path, section=header)
+            df = dataframe_from_inp(inp_path, section=header)
             elements = df.index
             n_unique = len(elements.unique()) #number of unique elements
             n_total = len(elements) #total number of elements

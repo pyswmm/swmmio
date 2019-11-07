@@ -99,7 +99,6 @@ For example, climate change impacts can be investigated by creating a set of mod
 import os, shutil
 import swmmio
 from swmmio.utils.modify_model import replace_inp_section
-from swmmio import create_dataframeINP
 
 #initialize a baseline model object
 baseline = swmmio.Model(r'path\to\baseline.inp')
@@ -109,22 +108,22 @@ rise = 0.0 #set the starting sea level rise condition
 while rise <= 5:
 
     #create a dataframe of the model's outfalls
-    outfalls = create_dataframeINP(baseline.inp.path, '[OUTFALLS]')
+    outfalls = baseline.inp.outfalls
 
     #create the Pandas logic to access the StageOrTimeseries column of  FIXED outfalls
     slice_condition = outfalls.OutfallType == 'FIXED', 'StageOrTimeseries'
 
     #add the current rise to the outfalls' stage elevation
     outfalls.loc[slice_condition] = pd.to_numeric(outfalls.loc[slice_condition]) + rise
-
+    baseline.inp.outfalls = outfalls
+    
     #copy the base model into a new directory    
     newdir = os.path.join(baseline.inp.dir, str(rise))
     os.mkdir(newdir)
     newfilepath = os.path.join(newdir, baseline.inp.name + "_" + str(rise) + '_SLR.inp')
-    shutil.copyfile(baseline.inp.path, newfilepath)
-
+    
     #Overwrite the OUTFALLS section of the new model with the adjusted data
-    replace_inp_section(newfilepath, '[OUTFALLS]', outfalls)
+    baseline.inp.save(newfilepath)
 
     #increase sea level rise for the next loop
     rise += 0.25

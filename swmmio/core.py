@@ -4,7 +4,6 @@
 from time import ctime
 from datetime import timedelta, datetime
 import pandas as pd
-# import numpy as np
 import glob
 import math
 from swmmio.utils import spatial
@@ -19,7 +18,7 @@ from swmmio.elements import ModelSection
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS
 
 from swmmio.utils.functions import trim_section_to_nodes
-from swmmio.utils.text import find_byte_range_of_section, get_inp_sections_details, get_rpt_sections_details
+from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details
 
 
 class Model(object):

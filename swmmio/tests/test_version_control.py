@@ -5,7 +5,6 @@ from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
                                OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
-from swmmio.utils import functions as funcs
 from swmmio.version_control.inp import INPSectionDiff, merge_models
 from swmmio.utils.dataframes import dataframe_from_inp
 
@@ -22,7 +21,6 @@ def makedirs(newdir):
     if os.path.exists(newdir):
         shutil.rmtree(newdir)
     os.makedirs(newdir)
-
 
 
 def test_complete_inp_headers():

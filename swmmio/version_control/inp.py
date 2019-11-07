@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from swmmio.utils.text import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_bi, dataframe_from_inp
+from swmmio.utils.dataframes import dataframe_from_bi, dataframe_from_inp
 import swmmio
 import pandas as pd
 import os
@@ -141,8 +141,8 @@ class INPSectionDiff(object):
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
-            df1 = dataframe_from_inp(model1.inp.path, section)#, additional_cols=[';', 'Comment', 'Origin'])
-            df2 = dataframe_from_inp(model2.inp.path, section)# , additional_cols=[';', 'Comment', 'Origin'])
+            df1 = dataframe_from_inp(model1.inp.path, section)
+            df2 = dataframe_from_inp(model2.inp.path, section)
             df1[';'] = ';'
             df2[';'] = ';'
             col_order = list(df2.columns) + ['Comment', 'Origin']

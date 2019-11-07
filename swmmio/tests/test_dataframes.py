@@ -1,25 +1,25 @@
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03)
+from swmmio.utils.dataframes import (dataframe_from_rpt, get_link_coords,
+                                     dataframe_from_inp, dataframe_from_bi)
 import swmmio
-from swmmio import create_dataframeINP, Model
 
 import pandas as pd
 import pytest
 import shutil
 import os
 
-from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp, dataframe_from_bi
 
 
 @pytest.fixture
 def test_model_01():
-    return Model(MODEL_FULL_FEATURES_XY)
+    return swmmio.Model(MODEL_FULL_FEATURES_XY)
 
 
 @pytest.fixture
 def test_model_02():
-    return Model(MODEL_FULL_FEATURES__NET_PATH)
+    return swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
 
 
 def makedirs(newdir):
@@ -156,7 +156,6 @@ def test_model_section():
 
         # parse out the main objects of this model
         inp = model.inp
-        rpt = model.rpt
 
         # create dataframes of relevant sections from the INP
         pumps_df = dataframe_from_inp(inp.path, "[PUMPS]")

@@ -1,13 +1,9 @@
-import os
-from io import StringIO
-
-import pandas as pd
-
-from swmmio.defs import INP_OBJECTS, HEADERS_YML
-from swmmio.utils import text as txt
 from swmmio.utils.functions import format_inp_section_header, remove_braces
-from swmmio.utils.text import extract_section_of_file, get_inp_sections_details, get_rpt_sections_details
+from swmmio.utils.text import (extract_section_of_file, get_inp_sections_details,
+                               get_rpt_sections_details)
+from io import StringIO
 import warnings
+import pandas as pd
 
 
 def dataframe_from_bi(bi_path, section='[CONDUITS]'):
@@ -19,95 +15,7 @@ def dataframe_from_bi(bi_path, section='[CONDUITS]'):
     df = dataframe_from_inp(bi_path, section,
                             additional_cols=[';', 'Comment', 'Origin'],
                             comment=';;')
-
-
-    # headerdefs = get_inp_sections_details(bi_path)
-    # headerlist = headerdefs[section]['columns'] + [';', 'Comment', 'Origin']
-    # tempfilepath = txt.extract_section_from_inp(bi_path, section,
-    #                                             headerdefs=headerdefs,
-    #                                             skipheaders=True)
-    # df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True,
-    #                  skiprows=[0], index_col=0, names=headerlist, comment=None)
-    #
-    # os.remove(tempfilepath)  # clean up
-
-    # s = extract_section_of_file(inp_path, start_string, end_strings,
-    #                             skip_headers=skip_headers, **kwargs)
-    # df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
-    #                  index_col=0, names=cols, **kwargs)
-
     return df
-
-
-def create_dataframeINP(inp_path, section='[CONDUITS]', ignore_comments=True,
-                        comment_str=';', comment_cols=True, headers=None):
-    """
-
-    given a path to an INP file, create a dataframe of data in the given
-    section.
-
-    :param inp_path:
-    :param section:
-    :param ignore_comments:
-    :param comment_str:
-    :param comment_cols:
-    :param headers:
-    :return:
-    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-    >>> df = create_dataframeINP(MODEL_FULL_FEATURES_XY, '[CONDUITS]')
-    >>> df
-    """
-
-    # find all the headers and their defs (section title with cleaned one-liner column headers)
-    headerdefs = get_inp_sections_details(inp_path)
-    # print(f'headerdefs[{section}]: {headerdefs[section]}')
-    # create temp file with section isolated from inp file
-    tempfilepath = txt.extract_section_from_inp(inp_path, section,
-                                                headerdefs=headerdefs,
-                                                ignore_comments=ignore_comments)
-
-    if ignore_comments:
-        comment_str = None
-    if not tempfilepath:
-        # if this head (section) was not found in the textfile, return a
-        # blank dataframe with the appropriate schema
-        print('header {} not found in {}\nReturning empty DataFrame.'.format(section, inp_path))
-        # headerlist = headerdefs['headers'].get(section, 'blob').split() + [';', 'Comment', 'Origin']
-
-        headerlist = INP_OBJECTS[section.replace('[', '').replace(']', '')]['columns']
-        if headers is not None:
-            headerlist = headers[section]
-
-        if comment_cols:
-            headerlist = headerlist + [';', 'Comment', 'Origin']
-
-        blank_df = pd.DataFrame(data=None, columns=headerlist).set_index(headerlist[0])
-        return blank_df
-
-    if headerdefs[section]['columns'][0] == 'blob':
-        # return the whole row, without specifc col headers
-        df = pd.read_csv(tempfilepath, delim_whitespace=False, comment=comment_str)
-    elif section == '[CURVES]' or section == '[TIMESERIES]':
-        # return the whole row, without specifc col headers
-        df = pd.read_csv(tempfilepath, delim_whitespace=False)  # , index_col=0)#, skiprows=[0])
-    else:
-        # this section header is recognized and will be organized into known columns
-        headerlist = headerdefs[section]['columns']
-        if headers is not None:
-            headerlist = headers[section]
-        if comment_cols:
-            headerlist = headerlist + [';', 'Comment', 'Origin']
-        dtypes = {'InletNode': str, 'OutletNode': str}
-        df = pd.read_csv(tempfilepath, header=None, delim_whitespace=True, skiprows=[0],
-                           index_col=0, names=headerlist, comment=comment_str, dtype=dtypes)# , encoding='latin1')
-
-        if comment_cols:
-            # add new blank comment column after a semicolon column
-            df[';'] = ';'
-
-    os.remove(tempfilepath)
-
-    return df.rename(index=str)
 
 
 def create_dataframe_multi_index(inp_path, section='CURVES'):
@@ -144,6 +52,12 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
 
 
 def dataframe_from_rpt(rpt_path, section):
+    """
+    create a dataframe from a section of an RPT file
+    :param rpt_path:
+    :param section:
+    :return: pd.DataFrame
+    """
 
     # get list of all section headers in rpt to use as section ending flags
     headers = get_rpt_sections_details(rpt_path)
@@ -169,14 +83,13 @@ def dataframe_from_rpt(rpt_path, section):
 def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' ', **kwargs):
 
     """
+    create a dataframe from a section of an INP file
     :param inp_path:
     :param section:
     :param additional_cols:
     :param skip_headers:
     :param quote_replace:
     :return:
-    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-    >>> dataframe_from_inp(MODEL_FULL_FEATURES_XY, 'conduits')
     """
 
     # format the section header for look up in headers OrderedDict

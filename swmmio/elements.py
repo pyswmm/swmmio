@@ -2,32 +2,10 @@
 Objects encapsulating model elements
 """
 import swmmio
-from swmmio.utils.dataframes import create_dataframeINP, dataframe_from_rpt, get_link_coords, dataframe_from_inp
+from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
 from swmmio.defs import COMPOSITE_OBJECTS
 from swmmio.utils.spatial import coords_series_to_geometry
-
-
-class ModelStructure(object):
-    def __init__(self, model, inp_sections, rpt_sections, columns):
-        self.model = model
-        self.inp = self.model.inp
-        self.rpt = self.model.rpt
-
-        # create dataframes of relevant sections from the INP
-        for ix, sect in enumerate(inp_sections):
-            if ix == 0:
-                df = create_dataframeINP(self.inp.path, sect, comment_cols=False)
-            else:
-                df_other = create_dataframeINP(self.inp.path, sect, comment_cols=False)
-                df = df.join(df_other)
-
-        # if there is an RPT available, grab relevant sections
-        if self.rpt:
-            for rpt_sect in rpt_sections:
-                df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect))
-
-
 
 
 class ModelSection(object):
