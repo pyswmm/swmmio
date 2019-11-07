@@ -267,7 +267,6 @@ def get_inp_sections_details(inp_path, include_brackets=False, options=None):
             sect_not_found = True
             for sect_id, data in INP_OBJECTS.items():
                 # find the start of an INP section
-                search_tag = '[{}]'.format(sect_id.lower())
                 search_tag = format_inp_section_header(sect_id)
                 if search_tag.lower() in line.lower():
                     if include_brackets:
@@ -289,11 +288,14 @@ def get_inp_sections_details(inp_path, include_brackets=False, options=None):
                           delim_whitespace=True, skiprows=[0], index_col=0,
                           names=ops_cols)
 
-    # print(options)
+    # print(f'options:\n{options}')
     # print(list(found_sects.keys()))
     if 'INFILTRATION' in found_sects:
         # select the correct infiltration column names
-        infil_type = options.loc['INFILTRATION', 'Value']
+        # fall back to HORTON if invalid/unset infil type
+        infil_type = options['Value'].get('INFILTRATION', None)
+        if pd.isna(infil_type):
+            infil_type = 'HORTON'
         infil_cols = INFILTRATION_COLS[infil_type]
 
         inf_id = 'INFILTRATION'

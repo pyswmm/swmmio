@@ -206,10 +206,14 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
-        return pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
+        try:
+            df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
                            skiprows=[0], index_col=0, names=cols)
+        except IndexError:
+            print(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
+            raise
 
-    # return df
+    return df
 
 
 def get_link_coords(row, nodexys, verticies):

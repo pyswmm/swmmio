@@ -73,7 +73,7 @@ def test_create_inp_build_instructions():
     latest_bi_spaces = vc_utils.newest_file(temp_vc_dir_03)
     bi_sp = inp.BuildInstructions(latest_bi_spaces)
 
-    juncs_sp = bi_sp.instructions['[JUNCTIONS]']
+    juncs_sp = bi_sp.instructions['JUNCTIONS']
     print(juncs_sp.altered)
     assert (all(j in juncs_sp.altered.index for j in [
         'dummy_node1', 'dummy_node5']))
@@ -83,7 +83,7 @@ def test_create_inp_build_instructions():
 
 def test_inp_diff_from_bi():
 
-    change = INPSectionDiff(build_instr_file=BUILD_INSTR_01, section='[JUNCTIONS]')
+    change = INPSectionDiff(build_instr_file=BUILD_INSTR_01, section='JUNCTIONS')
 
     alt_juncs = change.altered
     assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
@@ -128,14 +128,8 @@ def test_inp_diff_from_bi():
 def test_add_models():
     """
     create build instructions for entire models with respect to a blank (empty) model
-    such that BIs include additions for each model element.
+    such that BIs include additions for each model element. This is experimental.
     """
-    # create blank model with all inp objects
-    # from swmmio.defs import INP_OBJECTS
-    # with open (MODEL_BLANK.replace('.inp', '_01.inp'), 'w') as f:
-    #     for header, _ in INP_OBJECTS.items():
-    #         s = '\n[{}]\n'.format(header)
-    #         f.write(s)
 
     tdir = os.path.join(DATA_PATH, 'vc_dir')
 

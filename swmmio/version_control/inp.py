@@ -32,7 +32,6 @@ class BuildInstructions(object):
             allheaders = get_inp_sections_details(build_instr_file)
             instructions = {}
             for section, _ in allheaders.items():
-                print(section)
                 change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section: change})
 
@@ -137,15 +136,16 @@ class INPSectionDiff(object):
 
     """
 
-    def __init__(self, model1=None, model2=None, section='[JUNCTIONS]', build_instr_file=None):
+    def __init__(self, model1=None, model2=None, section='JUNCTIONS', build_instr_file=None):
         self.model1 = model1 if model1 else ""
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
             df1 = dataframe_from_inp(model1.inp.path, section)#, additional_cols=[';', 'Comment', 'Origin'])
             df2 = dataframe_from_inp(model2.inp.path, section)# , additional_cols=[';', 'Comment', 'Origin'])
-            # df1[';'] = ';'
-            # df2[';'] = ';'
+            df1[';'] = ';'
+            df2[';'] = ';'
+            col_order = list(df2.columns) + ['Comment', 'Origin']
             m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
 
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
@@ -155,7 +155,7 @@ class INPSectionDiff(object):
             # find where elements were changed (but kept with same ID)
             common_ids = df1.index.difference(removed_ids)  # original - removed = in common
             # both dfs concatenated, with matched indices for each element
-            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]], sort=True)
+            full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]], sort=False)
             # remove whitespace
             full_set = full_set.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
             # drop dupes on the set, all things that did not changed should have 1 row
@@ -163,20 +163,26 @@ class INPSectionDiff(object):
             # duplicate indicies are rows that have changes, isolate these
             # idx[idx.duplicated()].unique()
             changed_ids = changes_with_dupes.index[changes_with_dupes.index.duplicated()].unique()  # .get_duplicates()
-
             added = df2.loc[added_ids].copy()
+
             added['Comment'] = 'Added'  # from model {}'.format(model2.inp.path)
             added['Origin'] = m2_origin_string
+
+            # print(col_order)
+            # print(added)
+            # added = added[col_order]
 
             altered = df2.loc[changed_ids].copy()
             altered['Comment'] = 'Altered'  # in model {}'.format(model2.inp.path)
             altered['Origin'] = m2_origin_string
+            # altered = altered[col_order]
 
             removed = df1.loc[removed_ids].copy()
             # comment out the removed elements
             # removed.index = ["; " + str(x) for x in removed.index]
             removed['Comment'] = 'Removed'  # in model {}'.format(model2.inp.path)
             removed['Origin'] = m2_origin_string
+            # removed = removed[col_order]
 
             self.old = df1
             self.new = df2
@@ -186,8 +192,10 @@ class INPSectionDiff(object):
 
         if build_instr_file:
             # if generating from a build instructions file, do this (more efficient)
+
+            print(f'section: {section}\tbi file: {build_instr_file}\n')
             df = dataframe_from_bi(build_instr_file, section=section)
-            print(f'bi file: {build_instr_file}\ndf:\n{df.to_string()}')
+            print(f'df:\n{df.to_string()}')
             self.added = df.loc[df['Comment'] == 'Added']
             self.removed = df.loc[df['Comment'] == 'Removed']
             self.altered = df.loc[df['Comment'] == 'Altered']
@@ -196,9 +204,10 @@ class INPSectionDiff(object):
 
         # this should be made more robust to catch conflicts
         change = INPSectionDiff()
-        change.added = self.added.append(other.added)
-        change.removed = self.removed.append(other.removed)
-        change.altered = self.altered.append(other.altered)
+        # change.added = self.added.append(other.added)
+        change.added = pd.concat([self.added, other.added], axis=0)
+        change.removed = pd.concat([self.removed, other.removed], axis=0)
+        change.altered = pd.concat([self.altered, other.altered], axis=0)
 
         return change
 
@@ -238,8 +247,8 @@ class INPDiff(object):
         self.m2 = m2
         self.diffs = OrderedDict()
 
-        m1_sects = get_inp_sections_details(m1.inp.path, include_brackets=True)
-        m2_sects = get_inp_sections_details(m2.inp.path, include_brackets=True)
+        m1_sects = get_inp_sections_details(m1.inp.path)
+        m2_sects = get_inp_sections_details(m2.inp.path)
 
         # get union of sections found, maintain order
         sects = list(m1_sects.keys()) + list(m2_sects.keys())
@@ -280,7 +289,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
         os.makedirs(path)
     filepath = os.path.join(path, filename) + '.txt'
 
-    problem_sections = ['[TITLE]', '[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
+    problem_sections = ['TITLE', 'CURVES', 'TIMESERIES', 'RDII', 'HYDROGRAPHS']
     with open(filepath, 'w') as newf:
 
         # write meta data
@@ -299,7 +308,7 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
             if section not in problem_sections:
                 # calculate the changes in the current section
                 changes = INPSectionDiff(modela, modelb, section)
-                data = pd.concat([changes.removed, changes.added, changes.altered])
+                data = pd.concat([changes.removed, changes.added, changes.altered], axis=0, sort=False)
                 # vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
                 vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
                                            na_fill='NaN')  # na fill fixes SNOWPACK blanks spaces issue
@@ -343,7 +352,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                 new_section = basedf.drop(remove_ids)
 
                 # add elements
-                new_section = pd.concat([new_section, changes.altered, changes.added], axis=0)
+                new_section = pd.concat([new_section, changes.altered, changes.added], axis=0, sort=False)
             else:
                 # section is not well understood or is problematic, just blindly copy
                 new_section = dataframe_from_inp(m3.inp.path, section, additional_cols=[';', 'Comment', 'Origin'])

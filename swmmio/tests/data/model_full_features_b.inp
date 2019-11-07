@@ -6,7 +6,7 @@ more notes
 [OPTIONS]
 ;;Option             Value
 FLOW_UNITS           CFS
-INFILTRATION         GREEN_AMPT
+INFILTRATION         HORTON
 FLOW_ROUTING         DYNWAVE
 LINK_OFFSETS         DEPTH
 MIN_SLOPE            0
@@ -68,12 +68,12 @@ S3_b             0.01       0.1        0.05       0.05       25         OUTLET
 S4_b             0.01       0.1        0.05       0.05       25         OUTLET    
 
 [INFILTRATION]
-;;Subcatchment   Suction    Ksat       IMD       
-;;-------------- ---------- ---------- ----------
-S1_b             3          0.5        4         
-S2_b             3          0.5        4         
-S3_b             3          0.5        4         
-S4_b             3.0        0.5        4         
+;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil  
+;;-------------- ---------- ---------- ---------- ---------- ----------
+S1_b             3          0.5        4          7          0         
+S2_b             3          0.5        4          7          0         
+S3_b             3          0.5        4          7          0         
+S4_b             3.0        0.5        4          7          0         
 
 [JUNCTIONS]
 ;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   
