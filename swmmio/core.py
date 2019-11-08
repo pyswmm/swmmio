@@ -14,8 +14,8 @@ from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
 import swmmio
-from swmmio.elements import ModelSection
-from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS
+from swmmio.elements import ModelSection, Links
+from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_OBJECTS
 
 from swmmio.utils.functions import trim_section_to_nodes
 from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details
@@ -227,6 +227,7 @@ class Model(object):
 
         return pumps_df
 
+    @property
     def links(self):
         """
         create a DataFrame containing all link objects in the model including
@@ -235,9 +236,9 @@ class Model(object):
         """
         if self._links_df is not None:
             return self._links_df
-
-        df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
-        df['facilityid'] = df.index
+        df = Links(model=self, **COMPOSITE_OBJECTS['links'])
+        # df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
+        # df.dataframe['facilityid'] = df.dataframe.index
         self._links_df = df
         return df
 
@@ -311,20 +312,6 @@ class Model(object):
 
         return subs
 
-    def node(self, node, conduit=None):
-        '''
-        To be removed in v0.4.0
-        '''
-
-        def wrn():
-            w = "Depreciated. Use model.nodes().loc['{}'] instead".format(node)
-            warnings.warn(w, DeprecationWarning)
-            return self.nodes().loc[node]
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("always")
-            wrn()
-
     @property
     def network(self):
         """
@@ -393,7 +380,10 @@ class Model(object):
         :param target_path: target path of geojson (optional)
         :return: GeoJSON representation of model
         """
+
         raise NotImplementedError
+
+        self.nodes()
 
     def export_to_shapefile(self, shpdir, prj=None):
         """
@@ -418,7 +408,6 @@ class SWMMIOFile(object):
     defaultSection = "Link Flow Summary"
 
     def __init__(self, file_path):
-
         # file name and path variables
         self.path = file_path
         self.name = os.path.splitext(os.path.basename(file_path))[0]
@@ -470,6 +459,8 @@ class rpt(SWMMIOFile):
         return self._rpt_section_details
 
 
+# setattr(rpt, 'link_flow_summary', property(get_rpt_df('Link Flow Summary')))
+
 class inp(SWMMIOFile):
 
     # creates an accessible SWMM .inp object
@@ -499,25 +490,25 @@ class inp(SWMMIOFile):
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
         self._sections = [
-                '[OPTIONS]',
-                '[FILES]',
-                '[CONDUITS]',
-                '[XSECTIONS]',
-                '[PUMPS]',
-                '[ORIFICES]',
-                '[WEIRS]',
-                '[JUNCTIONS]',
-                '[STORAGE]',
-                '[OUTFALLS]',
-                '[VERTICES]',
-                '[SUBCATCHMENTS]',
-                '[SUBAREAS]',
-                '[INFILTRATION]',
-                '[CURVES]',
-                '[COORDINATES]',
-                '[INFLOWS]',
-                '[Polygons]'
-            ]
+            '[OPTIONS]',
+            '[FILES]',
+            '[CONDUITS]',
+            '[XSECTIONS]',
+            '[PUMPS]',
+            '[ORIFICES]',
+            '[WEIRS]',
+            '[JUNCTIONS]',
+            '[STORAGE]',
+            '[OUTFALLS]',
+            '[VERTICES]',
+            '[SUBCATCHMENTS]',
+            '[SUBAREAS]',
+            '[INFILTRATION]',
+            '[CURVES]',
+            '[COORDINATES]',
+            '[INFLOWS]',
+            '[Polygons]'
+        ]
 
     def save(self, target_path=None):
         '''
@@ -936,92 +927,6 @@ class inp(SWMMIOFile):
         self._curves_df = df
 
 
-class out(SWMMIOFile):
-    def __init__(self, file_path):
-
-        SWMMIOFile.__init__(self, file_path)
-
-    def __call__(self, element_id, element_type='NODE',
-                    attribute='INVERT_DEPTH'):
-                    # attribute=oapi.NodeAttribute.INVERT_DEPTH):
-        """
-        Read a time series from a SWMM output file into a Pandas.Series object
-        :param element_id:
-        :param element_type: SUBCATCH, NODE, LINK, SYSTEM
-        :param attribute:
-            NODE:
-                INVERT_DEPTH, HYDRAULIC_HEAD, PONDED_VOLUME, LATERAL_INFLOW,
-                TOTAL_INFLOW, FLOODING_LOSSES, POLLUT_CONC
-            LINK:
-                FLOW_RATE, FLOW_DEPTH, FLOW_VELOCITY, FLOW_VOLUME, CAPACITY,
-                POLLUT_CONC
-        :return:
-        >>> ts = series_from_out('97200', element_type='NODE')
-        >>> ts.head()
-        2018-01-01 00:00:00    0.279042
-        2018-01-01 00:15:00    0.612898
-        2018-01-01 00:30:00    0.566697
-        2018-01-01 00:45:00    0.637005
-        2018-01-01 01:00:00    0.526333
-        Name: 97200, dtype: float64
-        """
-        try:
-            import swmm_output as oapi
-        except ImportError:
-            raise ImportError('Failed to import swmm_output package. To install ' \
-                              'from source, clone the Stormwater Management Model ' \
-                              'reposity from Open Water Analytics:\n ' \
-                              'https://github.com/OpenWaterAnalytics/Stormwater-Management-Model')
-
-        # create handle, open file
-        handle = oapi.smo_init()
-        oapi.smo_open(handle, self.path)
-
-        # for example:  oapi.NodeAttribute.INVERT_DEPTH
-        attr_accessor = getattr(oapi, f'{element_type.lower().capitalize()}Attribute')
-        attribute = getattr(attr_accessor, attribute)
-        element_type = getattr(oapi.ElementType, element_type)
-        # print (element_type, attribute)
-
-        # get time duration
-        nperiods = oapi.smo_get_times(handle, oapi.Time.NUM_PERIODS)
-        dt_sec = oapi.smo_get_times(handle, oapi.Time.REPORT_STEP)
-        dt_day = dt_sec / 86400.0
-
-        # print('Start Date: {}'.format(oapi.smo_get_start_date(handle)))
-        start_date = oapi.smo_get_start_date(handle)
-
-        def from_excel_ordinal(ordinal, _epoch=datetime(1900, 1, 1)):
-            '''https://stackoverflow.com/questions/29387137/how-to-convert-
-            a-given-ordinal-number-from-excel-to-a-date'''
-            if ordinal > 59:
-                ordinal -= 1  # Excel leap year bug, 1900 is not a leap year!
-            seconds = (ordinal - 1) * 24 * 60 * 60
-            return _epoch + timedelta(seconds=seconds)  # epoch is day 1
-
-        def find_nodeid_index(element_id):
-            # print(f'searching for {element_id}')
-            i = 0
-            while True:
-                if oapi.smo_get_element_name(handle, element_type, i) == element_id:
-                    break
-                i += 1
-            return i
-
-        elem_index = find_nodeid_index(element_id)
-        t_array = [from_excel_ordinal(start_date + i * dt_day) for i in range(nperiods)]
-
-        if element_type == oapi.ElementType.NODE:
-            d_array = oapi.smo_get_node_series(handle, elem_index, attribute, 0, nperiods)
-
-        if element_type == oapi.ElementType.LINK:
-            d_array = oapi.smo_get_link_series(handle, elem_index, attribute, 0, nperiods)
-
-        handle = oapi.smo_close()
-
-        return pd.Series(data=d_array, index=t_array, name=element_id)
-
-
 def drop_invalid_model_elements(inp):
     """
     Identify references to elements in the model that are undefined and remove them from the
@@ -1034,7 +939,7 @@ def drop_invalid_model_elements(inp):
     >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
     >>> drop_invalid_model_elements(m.inp)
     ['InvalidLink2', 'InvalidLink1']
-    >>> m.inp.conduits.index
+    >>> m.inp
     Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
     """
 
@@ -1061,3 +966,23 @@ def drop_invalid_model_elements(inp):
     inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
 
     return invalid_links + invalid_subcats
+
+
+# dynamically add read properties to rpt object
+def add_rpt_dataframe_properties(rpt_section):
+    fn_name = rpt_section.replace(' ', '_').lower()
+    private_df_name = f'_{fn_name}'
+
+    def fn(self):
+        if private_df_name not in self.__dict__:
+            self.__dict__[private_df_name] = dataframe_from_rpt(self.path, rpt_section)
+        return self.__dict__[private_df_name]
+
+    fn.__name__ = fn_name
+    fn.__doc__ = "Return values for the {0} description".format(rpt_section)
+    setattr(rpt, fn_name, property(fn))
+
+
+for section in RPT_OBJECTS:
+    print(f'adding section: {section}')
+    add_rpt_dataframe_properties(section)

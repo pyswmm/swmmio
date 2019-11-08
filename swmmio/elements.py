@@ -5,7 +5,110 @@ import swmmio
 from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
 from swmmio.defs import COMPOSITE_OBJECTS
-from swmmio.utils.spatial import coords_series_to_geometry
+from swmmio.utils.spatial import coords_series_to_geometry, write_geojson
+import pandas as pd
+
+
+def dataframe_from_composite(model, inp_sections, rpt_sections, geometry_type):
+
+    for ix, sect in enumerate(inp_sections):
+        if ix == 0:
+            df = dataframe_from_inp(model.inp.path, sect)
+        else:
+            df_other = dataframe_from_inp(model.inp.path, sect)
+            df = df.join(df_other)
+
+    if df.empty:
+        return df
+
+    # if there is an RPT available, grab relevant sections
+    if model.rpt:
+        for rpt_sect in rpt_sections:
+            df = df.join(dataframe_from_rpt(model.rpt.path, rpt_sect))
+
+    # add conduit coordinates
+    xys = df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
+    df = df.assign(coords=xys.map(lambda x: x[0]))
+
+    # make inlet/outlet node IDs string type
+    df.InletNode = df.InletNode.astype(str)
+    df.OutletNode = df.OutletNode.astype(str)
+
+    nodes = model.nodes(inp_sections='storage', rpt_sections='Node Inflow Summary')
+    nodes.to_geojson('nodes.geojson')
+    model.nodes.geojson()
+
+
+class Links(object):
+    def __init__(self, model, inp_sections, join_sections, rpt_sections, columns=None):
+
+        self.model = model
+        self.inp_sections = inp_sections
+        self.join_sections = join_sections
+        self.rpt_sections = rpt_sections
+        self.columns = columns
+        self._df = None
+
+    @property
+    def dataframe(self):
+        return self.__call__()
+
+    @property
+    def geojson(self):
+        return write_geojson(self.dataframe, geomtype='linestring')
+
+    @property
+    def geodataframe(self):
+        # uses GeoPandas
+        try:
+            import geopandas as gp
+        except ImportError:
+            raise ImportError('geopandas module needed. Install GeoPandas with conda: ',
+                              'conda install geopandas')
+
+        df = self.__call__()
+        df['geometry'] = coords_series_to_geometry(df['coords'], geomtype='linestring', format='shape')
+        df = df.drop(['coords'], axis=1)
+        return gp.GeoDataFrame(df, crs=self.model.crs)
+
+    def __call__(self):
+
+        model = self.model
+        inp = model.inp
+        inp_sections = self.inp_sections
+        join_sections = self.join_sections
+        rpt_sections = self.rpt_sections
+
+        # concat inp sections with unique element IDs
+        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections]
+        df1 = pd.concat(dfs, axis=0, sort=False)
+
+        # join to this any sections with matching IDs (e.g. XSECTIONS)
+        for sect in join_sections:
+            df1 = df1.join(dataframe_from_inp(inp.path, sect))
+
+        if df1.empty:
+            return df1
+
+        # if there is an RPT available, grab relevant sections
+        if model.rpt:
+            for rpt_sect in rpt_sections:
+                df = df1.join(dataframe_from_rpt(model.rpt.path, rpt_sect))
+
+        # add conduit coordinates
+        xys = df.apply(lambda r: get_link_coords(r, model.inp.coordinates, model.inp.vertices), axis=1)
+        df = df.assign(coords=xys.map(lambda x: x[0]))
+
+        # make inlet/outlet node IDs string type
+        df.InletNode = df.InletNode.astype(str)
+        df.OutletNode = df.OutletNode.astype(str)
+
+        # trim to desired columns
+        if self.columns is not None:
+            df = df[self.columns]
+
+        self._df = df
+        return df
 
 
 class ModelSection(object):

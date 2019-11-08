@@ -96,16 +96,16 @@ def coords_series_to_geometry(coords, geomtype='linestring', format='geojson'):
     return pd.Series(index=coords.index, name='geometry', data=geoms)
 
 
-def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
-    try:
-        import pyproj
-    except ImportError:
-        raise ImportError('pyproj module needed. get this package here: ',
-                          'https://pypi.python.org/pypi/pyproj')
-
-    # SET UP THE TO AND FROM COORDINATE PROJECTION
-    pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
-    wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84')  # google maps, etc
+def write_geojson(df, filename=None, geomtype='linestring'):
+    # try:
+    #     import pyproj
+    # except ImportError:
+    #     raise ImportError('pyproj module needed. get this package here: ',
+    #                       'https://pypi.python.org/pypi/pyproj')
+    #
+    # # SET UP THE TO AND FROM COORDINATE PROJECTION
+    # pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
+    # wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84')  # google maps, etc
 
     # CONVERT THE DF INTO JSON
     df['Name'] = df.index  # add a name column (we wont have the index)
@@ -119,7 +119,9 @@ def write_geojson(df, filename=None, geomtype='linestring', inproj='epsg:2272'):
         del rec['coords']  # delete the coords so they aren't in the properties
 
         # transform to the typical 'WGS84' coord system
-        latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in coordinates]
+        # latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in coordinates]
+        latlngs = coordinates
+        # print(latlngs)
 
         if geomtype == 'linestring':
             geometry = LineString(latlngs)

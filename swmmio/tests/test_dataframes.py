@@ -1,3 +1,5 @@
+from io import StringIO
+
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03)
@@ -118,18 +120,6 @@ def test_inflow_dwf_dataframe():
     assert (pd.isna(inf.loc['dummy_node6', 'Time Series']))
 
 
-def test_model_to_networkx():
-    m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-    G = m.network
-
-    assert (G['J2']['J3']['C2.1']['Length'] == 666)
-    assert (G['J1']['J2']['C1:C2']['Length'] == 244.63)
-    assert (round(G.nodes['J2']['InvertElev'], 3) == 13.0)
-
-    links = m.links()
-    assert(len(links) == len(G.edges()))
-
-
 def test_coordinates():
     m = swmmio.Model(MODEL_FULL_FEATURES_XY)
     coordinates = m.inp.coordinates
@@ -181,4 +171,32 @@ def test_model_section():
 def test_dataframe_from_rpt(test_model_02):
 
     link_flow_summary = dataframe_from_rpt(test_model_02.rpt.path, 'Link Flow Summary')
-    print(link_flow_summary)
+    # print(f'\n{link_flow_summary.to_string()}')
+    s = '''
+    Name   Type  MaxQ  MaxDay  MaxHr  MaxV  MaxQPerc  MaxDPerc                                                      
+    C1:C2  CONDUIT  2.45       0  10:19  6.23      1.32      0.50
+    C2.1   CONDUIT  0.00       0  00:00  0.00      0.00      0.50
+    1      CONDUIT  2.54       0  10:00  3.48      1.10      0.89
+    2      CONDUIT  2.38       0  10:03  3.64      1.03      0.85
+    3      CONDUIT  1.97       0  09:59  2.92      0.67      1.00
+    4      CONDUIT  0.16       0  10:05  0.44      0.10      0.63
+    5      CONDUIT  0.00       0  00:00  0.00      0.00      0.50
+    C2        PUMP  4.33       0  10:00  0.22       NaN       NaN
+    C3        WEIR  7.00       0  10:00  0.33       NaN       NaN
+    '''
+    lfs_df = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+    assert(lfs_df.equals(link_flow_summary))
+
+
+def test_dataframe_composite(test_model_02):
+    m = test_model_02
+    links = m.links
+
+    feat = links.geojson[2]
+    assert feat['properties']['Name'] == '1'
+    assert feat['properties']['MaxQ'] == 2.54
+
+    links_gdf = links.geodataframe
+    assert links_gdf.index[2] == '1'
+    assert links_gdf.loc['1', 'MaxQ'] == 2.54
+    

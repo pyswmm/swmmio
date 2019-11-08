@@ -184,11 +184,16 @@ composite:
     columns: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
     inp_sections: []
   orifices:
-    inp_sections: ['[ORIFICES]']
+    inp_sections: ['ORIFICES']
     rpt_sections: [Link Flow Summary]
   outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
+  links:
+    inp_sections: [CONDUITS, WEIRS, ORIFICES, PUMPS]
+    join_sections: [XSECTIONS]
+    rpt_sections: [Link Flow Summary]
+    columns: [InletNode, OutletNode, Geom1, Type, MaxQ, MaxQPerc, coords]
   pumps:
-    inp_sections: ['[PUMPS]']
+    inp_sections: ['PUMPS']
     rpt_sections: [Link Flow Summary]
   subcatchments:
     columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,

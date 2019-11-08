@@ -20,7 +20,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
 
 
     if model2 is not None:
-        changes = INPSectionDiff(model1, model2, section='[CONDUITS]')
+        changes = INPSectionDiff(model1, model2, section='CONDUITS')
         df = pd.concat([changes.added, changes.altered])
         subset = df.index.tolist()
 
@@ -31,7 +31,7 @@ def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
     if crs is None:
         #default coordinate system (http://spatialreference.org/ref/epsg/2272/):
         #NAD_1983_StatePlane_Pennsylvania_South_FIPS_3702_Feet
-        crs =  {"type": "name","properties": {"name": "EPSG:2272"}}
+        crs = {"type": "name","properties": {"name": "EPSG:2272"}}
 
     pa_plane = pyproj.Proj(init='epsg:2272', preserve_units=True)
     wgs = pyproj.Proj(proj='latlong', datum='WGS84', ellps='WGS84') #google maps, etc
