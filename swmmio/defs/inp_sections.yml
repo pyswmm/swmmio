@@ -48,7 +48,7 @@ inp_file_objects:
   SUBAREAS: [Name, N-Imperv, N-Perv, S-Imperv, S-Perv, PctZero, RouteTo, PctRouted]
   WEIRS: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate, EndCon, EndCoeff,
           Surcharge, RoadWidth, RoadSurf]
-  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels]
+  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
 
 

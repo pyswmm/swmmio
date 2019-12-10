@@ -191,7 +191,6 @@ composite:
     inp_sections: [CONDUITS, WEIRS, ORIFICES, PUMPS]
     join_sections: [XSECTIONS]
     rpt_sections: [Link Flow Summary]
-    columns: [InletNode, OutletNode, Geom1, Type, MaxQ, MaxQPerc, coords]
   pumps:
     inp_sections: ['PUMPS']
     rpt_sections: [Link Flow Summary]

@@ -548,7 +548,7 @@ class inp(SWMMIOFile):
         if self._inp_section_details is None:
             self._inp_section_details = get_inp_sections_details(self.path,
                                                                  include_brackets=True,
-                                                                 options=self.options)
+                                                                 )
 
         # select the correct infiltration column names
         infil_type = self.options.loc['INFILTRATION', 'Value']
@@ -984,5 +984,5 @@ def add_rpt_dataframe_properties(rpt_section):
 
 
 for section in RPT_OBJECTS:
-    print(f'adding section: {section}')
+    # print(f'adding section: {section}')
     add_rpt_dataframe_properties(section)

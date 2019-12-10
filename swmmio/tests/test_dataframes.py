@@ -199,4 +199,3 @@ def test_dataframe_composite(test_model_02):
     links_gdf = links.geodataframe
     assert links_gdf.index[2] == '1'
     assert links_gdf.loc['1', 'MaxQ'] == 2.54
-    

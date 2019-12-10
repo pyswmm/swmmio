@@ -8,6 +8,8 @@ from swmmio.defs import COMPOSITE_OBJECTS
 from swmmio.utils.spatial import coords_series_to_geometry, write_geojson
 import pandas as pd
 
+from swmmio.utils.text import get_inp_sections_details
+
 
 def dataframe_from_composite(model, inp_sections, rpt_sections, geometry_type):
 
@@ -78,22 +80,23 @@ class Links(object):
         inp_sections = self.inp_sections
         join_sections = self.join_sections
         rpt_sections = self.rpt_sections
+        headers = get_inp_sections_details(inp.path)
 
         # concat inp sections with unique element IDs
-        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections]
-        df1 = pd.concat(dfs, axis=0, sort=False)
+        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections if sect in headers]
+        df = pd.concat(dfs, axis=0, sort=False)
 
         # join to this any sections with matching IDs (e.g. XSECTIONS)
         for sect in join_sections:
-            df1 = df1.join(dataframe_from_inp(inp.path, sect))
+            df = df.join(dataframe_from_inp(inp.path, sect))
 
-        if df1.empty:
-            return df1
+        if df.empty:
+            return df
 
         # if there is an RPT available, grab relevant sections
         if model.rpt:
             for rpt_sect in rpt_sections:
-                df = df1.join(dataframe_from_rpt(model.rpt.path, rpt_sect))
+                df = df.join(dataframe_from_rpt(model.rpt.path, rpt_sect))
 
         # add conduit coordinates
         xys = df.apply(lambda r: get_link_coords(r, model.inp.coordinates, model.inp.vertices), axis=1)
@@ -105,7 +108,7 @@ class Links(object):
 
         # trim to desired columns
         if self.columns is not None:
-            df = df[self.columns]
+            df = df[[c for c in self.columns if c in df.columns]]
 
         self._df = df
         return df

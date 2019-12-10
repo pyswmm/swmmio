@@ -242,7 +242,7 @@ def find_byte_range_of_section(path, start_string):
     return [start, end]
 
 
-def get_inp_sections_details(inp_path, include_brackets=False, options=None):
+def get_inp_sections_details(inp_path, include_brackets=False):
     """
     creates a dictionary with all the headers found in an INP file
     (which varies based on what the user has defined in a given model)
