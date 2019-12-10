@@ -1,5 +1,6 @@
 from io import StringIO
 
+from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03)
@@ -80,6 +81,29 @@ def test_conduits_dataframe(test_model_01):
     m = swmmio.Model(MODEL_FULL_FEATURES_PATH)
     conduits = m.conduits()
     assert (list(conduits.index) == ['C1:C2'])
+
+
+def test_pumps_composite(test_model_01):
+
+    # load with Links composite object
+    pumps = Links(model=test_model_01, inp_sections=['pumps'],
+                  rpt_sections=['Link Flow Summary'])
+    assert pumps.dataframe.loc['C2', 'PumpCurve'] == 'P1_Curve'
+    assert pumps.geojson['features'][0]['properties']['PumpCurve'] == 'P1_Curve'
+    assert pumps.geodataframe.loc['C2', 'PumpCurve'] == 'P1_Curve'
+
+    # access from model attribute
+    pumps = test_model_01.pumps
+    assert pumps.dataframe.loc['C2', 'PumpCurve'] == 'P1_Curve'
+    assert pumps.geojson['features'][0]['properties']['PumpCurve'] == 'P1_Curve'
+    assert pumps.geodataframe.loc['C2', 'PumpCurve'] == 'P1_Curve'
+
+
+def test_weirs_composite(test_model_01):
+    weirs = test_model_01.weirs
+    df = weirs.dataframe
+    print(df)
+    assert df.loc['C3', 'DischCoeff'] == 3.33
 
 
 def test_nodes_dataframe():

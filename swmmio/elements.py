@@ -1,6 +1,7 @@
 """
 Objects encapsulating model elements
 """
+import math
 import swmmio
 from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
@@ -42,12 +43,12 @@ def dataframe_from_composite(model, inp_sections, rpt_sections, geometry_type):
 
 
 class Links(object):
-    def __init__(self, model, inp_sections, join_sections, rpt_sections, columns=None):
+    def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
 
         self.model = model
         self.inp_sections = inp_sections
-        self.join_sections = join_sections
-        self.rpt_sections = rpt_sections
+        self.join_sections = join_sections if join_sections is not None else []
+        self.rpt_sections = rpt_sections if rpt_sections is not None else []
         self.columns = columns
         self._df = None
 
@@ -83,7 +84,7 @@ class Links(object):
         headers = get_inp_sections_details(inp.path)
 
         # concat inp sections with unique element IDs
-        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections if sect in headers]
+        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections if sect.upper() in headers]
         df = pd.concat(dfs, axis=0, sort=False)
 
         # join to this any sections with matching IDs (e.g. XSECTIONS)
@@ -105,6 +106,86 @@ class Links(object):
         # make inlet/outlet node IDs string type
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
+
+        # trim to desired columns
+        if self.columns is not None:
+            df = df[[c for c in self.columns if c in df.columns]]
+
+        self._df = df
+        return df
+
+
+class Nodes(object):
+    def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
+
+        self.model = model
+        self.inp_sections = inp_sections
+        self.join_sections = join_sections if join_sections is not None else []
+        self.rpt_sections = rpt_sections if rpt_sections is not None else []
+        self.columns = columns
+        self._df = None
+
+    @property
+    def dataframe(self):
+        return self.__call__()
+
+    @property
+    def geojson(self):
+        return write_geojson(self.dataframe, geomtype='point')
+
+    @property
+    def geodataframe(self):
+        # uses GeoPandas
+        try:
+            import geopandas as gp
+        except ImportError:
+            raise ImportError('geopandas module needed. Install GeoPandas with conda: ',
+                              'conda install geopandas')
+
+        df = self.__call__()
+        df['geometry'] = coords_series_to_geometry(df['coords'], geomtype='point', format='shape')
+        df = df.drop(['coords'], axis=1)
+        return gp.GeoDataFrame(df, crs=self.model.crs)
+
+    def __call__(self):
+
+        model = self.model
+        inp = model.inp
+        inp_sections = self.inp_sections
+        join_sections = self.join_sections
+        rpt_sections = self.rpt_sections
+        headers = get_inp_sections_details(inp.path)
+
+        # concat inp sections with unique element IDs
+        dfs = [dataframe_from_inp(inp.path, sect) for sect in inp_sections if sect.upper() in headers]
+        df = pd.concat(dfs, axis=0, sort=False)
+
+        # join to this any sections with matching IDs (e.g. XSECTIONS)
+        for sect in join_sections:
+            rsuffix = f"_{sect.replace(' ', '_')}"
+            df = df.join(dataframe_from_inp(inp.path, sect), rsuffix=rsuffix)
+
+        if df.empty:
+            return df
+
+        # if there is an RPT available, grab relevant sections
+        if model.rpt:
+            for rpt_sect in rpt_sections:
+                df = df.join(dataframe_from_rpt(model.rpt.path, rpt_sect))
+
+        # add coordinates
+        def nodexy(row):
+            if math.isnan(row.X) or math.isnan(row.Y):
+                return None
+            else:
+                return [(row.X, row.Y)]
+
+        df = df.join(model.inp.coordinates[['X', 'Y']])
+        xys = df.apply(lambda r: nodexy(r), axis=1)
+        df = df.assign(coords=xys)
+
+        # confirm index name is string
+        df = df.rename(index=str)
 
         # trim to desired columns
         if self.columns is not None:

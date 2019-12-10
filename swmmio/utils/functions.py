@@ -1,5 +1,6 @@
 import pandas as pd
 import networkx as nx
+import warnings
 # from swmmio import get_inp_options_df, INFILTRATION_COLS
 
 
@@ -35,17 +36,6 @@ def model_to_networkx(model, drop_cycles=True):
 
     # parse swmm model results with swmmio, concat all links into one dataframe
     nodes = model.nodes()
-    if model.rpt is not None:
-        inflow_cols = [
-            'MaxLatInflow',
-            'MaxTotalInflow',
-            'LatInflowV',
-            'TotalInflowV',
-            'FlowBalErrorPerc']
-        flows = dataframe_from_rpt(
-            model.rpt.path, "Node Inflow Summary")[inflow_cols]
-        nodes = nodes.join(flows)
-
     links = model.links()
     links['facilityid'] = links.index
 
@@ -65,7 +55,7 @@ def model_to_networkx(model, drop_cycles=True):
         # remove cycles
         cycles = list(nx.simple_cycles(G))
         if len(cycles) > 0:
-            print('cycles detected and removed: {}'.format(cycles))
+            warnings.warn(f'cycles detected and removed: {cycles}')
             G.remove_edges_from(cycles)
 
     G.graph['crs'] = model.crs

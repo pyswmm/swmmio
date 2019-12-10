@@ -14,7 +14,7 @@ from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
 import warnings
 import swmmio
-from swmmio.elements import ModelSection, Links
+from swmmio.elements import ModelSection, Links, Nodes
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_OBJECTS
 
 from swmmio.utils.functions import trim_section_to_nodes
@@ -173,6 +173,7 @@ class Model(object):
 
         return df
 
+    @property
     def weirs(self):
         """
         collect all useful and available data related model weirs and
@@ -183,26 +184,9 @@ class Model(object):
         if self._weirs_df is not None:
             return self._weirs_df
 
-        # parse out the main objects of this model
-        inp = self.inp
-        rpt = self.rpt
-
-        # create dataframes of relevant sections from the INP
-        weirs_df = dataframe_from_inp(inp.path, "[WEIRS]")
-        if weirs_df.empty:
-            return pd.DataFrame()
-
-        weirs_df = weirs_df[['InletNode', 'OutletNode', 'WeirType', 'CrestHeight']]
-
-        # add conduit coordinates
-        xys = weirs_df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
-        df = weirs_df.assign(coords=xys.map(lambda x: x[0]))
-        df.InletNode = df.InletNode.astype(str)
-        df.OutletNode = df.OutletNode.astype(str)
-
-        self._weirs_df = df
-
-        return df
+        self._weirs_df = Links(model=self, inp_sections=['weirs'],
+                               rpt_sections=['Link Flow Summary'])
+        return self._weirs_df
 
     @property
     def pumps(self):
@@ -213,19 +197,15 @@ class Model(object):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
-        >>> pumps = model.pumps()
+        >>> pumps = model.pumps.dataframe
         >>> pumps[['PumpCurve', 'InitStatus']]
              PumpCurve InitStatus
         Name
         C2    P1_Curve         ON
-        >>> pumps = model.pumps.to_gdf()
-        >>> pumps
         """
 
-        pumps_df = ModelSection(self, 'pumps')
-        self._pumps_df = pumps_df
-
-        return pumps_df
+        self._pumps_df = Links(model=self, **COMPOSITE_OBJECTS['pumps'])
+        return self._pumps_df
 
     @property
     def links(self):
@@ -237,12 +217,12 @@ class Model(object):
         if self._links_df is not None:
             return self._links_df
         df = Links(model=self, **COMPOSITE_OBJECTS['links'])
-        # df = pd.concat([self.conduits(), self.orifices(), self.weirs(), self.pumps()], sort=True)
         # df.dataframe['facilityid'] = df.dataframe.index
         self._links_df = df
         return df
 
-    def nodes(self, bbox=None, subset=None):
+    @property
+    def nodes(self, bbox=None):
         """
         collect all useful and available data related model nodes and organize
         in one dataframe.
@@ -252,44 +232,9 @@ class Model(object):
         if self._nodes_df is not None and bbox == self.bbox:
             return self._nodes_df
 
-        # parse out the main objects of this model
-        inp = self.inp
-        rpt = self.rpt
-
-        # create dataframes of relevant sections from the INP
-        juncs_df = dataframe_from_inp(inp.path, "[JUNCTIONS]")
-        outfalls_df = dataframe_from_inp(inp.path, "[OUTFALLS]")
-        storage_df = dataframe_from_inp(inp.path, "[STORAGE]")
-
-        # concatenate the DFs and keep only relevant cols
-        all_nodes = pd.concat([juncs_df, outfalls_df, storage_df], sort=True)
-        cols = ['InvertElev', 'MaxDepth', 'SurchargeDepth', 'PondedArea']
-        all_nodes = all_nodes[cols]
-
-        if rpt:
-            # add results data if a rpt file was found
-            depth_summ = dataframe_from_rpt(rpt.path, "Node Depth Summary")
-            flood_summ = dataframe_from_rpt(rpt.path, "Node Flooding Summary")
-
-            # join the rpt data (index on depth df, suffixes for common cols)
-            rpt_df = depth_summ.join(
-                flood_summ, lsuffix='_depth', rsuffix='_flood')
-            all_nodes = all_nodes.join(rpt_df)  # join to the all_nodes df
-
-        all_nodes = all_nodes.join(self.inp.coordinates[['X', 'Y']])
-
-        def nodexy(row):
-            if math.isnan(row.X) or math.isnan(row.Y):
-                return None
-            else:
-                return [(row.X, row.Y)]
-
-        xys = all_nodes.apply(lambda r: nodexy(r), axis=1)
-        all_nodes = all_nodes.assign(coords=xys)
-        all_nodes = all_nodes.rename(index=str)
-        self._nodes_df = all_nodes
-
-        return all_nodes
+        df = Nodes(model=self, **COMPOSITE_OBJECTS['nodes'])
+        self._nodes_df = df
+        return df
 
     def subcatchments(self):
         """
