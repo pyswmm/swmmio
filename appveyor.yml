@@ -3,10 +3,15 @@ environment:
     # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
     - PYTHON: "C:\\Python36"
+      MINICONDA: "C:\\Miniconda36"
     - PYTHON: "C:\\Python37"
+      MINICONDA: "C:\\Miniconda37"
 
 install:
-  - "%PYTHON%\\python.exe -m pip install geopandas"
+  # install geopandas with conda into root python environment
+  - "conda install geopandas --prefix %PYTHON% -y"
+  - "set PROJ_LIB=%PYTHON%\\Library\\share"
+
   - "%PYTHON%\\python setup.py develop"
   - "%PYTHON%\\python.exe -m pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt -q"
 
