@@ -9,6 +9,7 @@ environment:
 
 install:
   # install geopandas with conda into root python environment
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - "conda install geopandas --prefix %PYTHON% -y"
   - "set PROJ_LIB=%PYTHON%\\Library\\share"
 
