@@ -157,7 +157,7 @@ class INPSectionDiff(object):
             # both dfs concatenated, with matched indices for each element
             full_set = pd.concat([df1.loc[common_ids], df2.loc[common_ids]], sort=False)
             # remove whitespace
-            full_set = full_set.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+            full_set = full_set.apply(lambda x: x.astype(str).str.strip() if x.dtype == "object" else x)
             # drop dupes on the set, all things that did not changed should have 1 row
             changes_with_dupes = full_set.drop_duplicates()
             # duplicate indicies are rows that have changes, isolate these

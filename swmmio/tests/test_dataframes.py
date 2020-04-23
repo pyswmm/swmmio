@@ -56,7 +56,7 @@ def test_dataframe_from_bi():
     shutil.rmtree(temp_dir_01)
 
 
-def test_dataframe_from_rpt(test_model_02):
+def test_node_dataframe_from_rpt(test_model_02):
     m = test_model_02
 
     depth_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Depth Summary")
@@ -65,7 +65,6 @@ def test_dataframe_from_rpt(test_model_02):
     print(inflo_summ)
     flood_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Flooding Summary")
     print(flood_summ)
-
 
     assert (inflo_summ.loc['J3', 'TotalInflowV'] == 6.1)
     assert (inflo_summ.loc['J1', 'MaxTotalInflow'] == 3.52)
@@ -192,7 +191,7 @@ def test_model_section():
     assert(pumps_old_method.equals(pumps))
 
 
-def test_dataframe_from_rpt(test_model_02):
+def test_links_dataframe_from_rpt(test_model_02):
 
     link_flow_summary = dataframe_from_rpt(test_model_02.rpt.path, 'Link Flow Summary')
     # print(f'\n{link_flow_summary.to_string()}')
