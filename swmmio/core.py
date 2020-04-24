@@ -521,10 +521,9 @@ class inp(SWMMIOFile):
         Name: INFILTRATION, dtype: object
         >>> model.inp.headers['[INFILTRATION]']
         ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
-        >>> model.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
+        >>> model.inp.options.loc['INFILTRATION', 'Value'] = 'GREEN_AMPT'
         >>> model.inp.headers['[INFILTRATION]']
         ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
-        >>> model.inp.infiltration
         """
         if self._options_df is None:
             self._options_df = get_inp_options_df(self.path)

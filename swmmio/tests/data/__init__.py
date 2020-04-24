@@ -20,7 +20,10 @@ MODEL_FULL_FEATURES_XY_B = os.path.join(DATA_PATH, 'model_full_features_b.inp')
 MODEL_FULL_FEATURES__NET_PATH = os.path.join(
     DATA_PATH, 'model_full_features_network.inp')
 MODEL_FULL_FEATURES_INVALID = os.path.join(DATA_PATH, 'invalid_model.inp')
-MODEL_BROWARD_COUNTY_PATH = os.path.join(DATA_PATH, 'RUNOFF46_SW5.inp')
+MODEL_GREEN_AMPT = os.path.join(DATA_PATH, 'model_green_ampt.inp')
+MODEL_MOD_GREEN_AMPT = os.path.join(DATA_PATH, 'model_mod_green_ampt.inp')
+MODEL_CURVE_NUMBER = os.path.join(DATA_PATH, 'model_curve_num.inp')
+MODEL_MOD_HORTON = os.path.join(DATA_PATH, 'model_mod_horton.inp')
 
 # version control test models
 MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')

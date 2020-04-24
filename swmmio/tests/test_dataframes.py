@@ -3,7 +3,8 @@ from io import StringIO
 from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
-                               MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03)
+                               MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
+                               MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT)
 from swmmio.utils.dataframes import (dataframe_from_rpt, get_link_coords,
                                      dataframe_from_inp, dataframe_from_bi)
 import swmmio
@@ -121,16 +122,34 @@ def test_nodes_dataframe():
 
 
 def test_infiltration_section():
+    # horton
     m = swmmio.Model(MODEL_FULL_FEATURES_XY)
     inf = m.inp.infiltration
     assert(inf.columns.tolist() == ['MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil'])
 
-    # print(m.inp.headers)
-    # m.inp.options.loc['INFILTRATION'] = 'GREEN_AMPT'
-    print (m.inp.infiltration)
-    # print(m.inp.headers)
-    xy = m.inp.coordinates
-    print(xy)
+    # curve number
+    m = swmmio.Model(MODEL_CURVE_NUMBER)
+    inf = m.inp.infiltration
+    assert m.inp.options.loc['INFILTRATION', 'Value'] == 'CURVE_NUMBER'
+    assert (inf.columns.tolist() == ['CurveNum', 'Conductivity (depreciated)', 'DryTime'])
+
+    # mod horton
+    m = swmmio.Model(MODEL_MOD_HORTON)
+    inf = m.inp.infiltration
+    assert m.inp.options.loc['INFILTRATION', 'Value'] == 'MODIFIED_HORTON'
+    assert (inf.columns.tolist() == ['MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil'])
+
+    # green ampt
+    m = swmmio.Model(MODEL_GREEN_AMPT)
+    inf = m.inp.infiltration
+    assert m.inp.options.loc['INFILTRATION', 'Value'] == 'GREEN_AMPT'
+    assert (inf.columns.tolist() == ['Suction', 'HydCon', 'IMDmax'])
+
+    # mod green ampt
+    m = swmmio.Model(MODEL_MOD_GREEN_AMPT)
+    inf = m.inp.infiltration
+    assert m.inp.options.loc['INFILTRATION', 'Value'] == 'MODIFIED_GREEN_AMPT'
+    assert (inf.columns.tolist() == ['Suction', 'Ksat', 'IMD'])
 
 
 def test_inflow_dwf_dataframe():
