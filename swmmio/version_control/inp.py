@@ -168,18 +168,11 @@ class INPSectionDiff(object):
             added['Comment'] = 'Added'  # from model {}'.format(model2.inp.path)
             added['Origin'] = m2_origin_string
 
-            # print(col_order)
-            # print(added)
-            # added = added[col_order]
-
             altered = df2.loc[changed_ids].copy()
             altered['Comment'] = 'Altered'  # in model {}'.format(model2.inp.path)
             altered['Origin'] = m2_origin_string
-            # altered = altered[col_order]
 
             removed = df1.loc[removed_ids].copy()
-            # comment out the removed elements
-            # removed.index = ["; " + str(x) for x in removed.index]
             removed['Comment'] = 'Removed'  # in model {}'.format(model2.inp.path)
             removed['Origin'] = m2_origin_string
             # removed = removed[col_order]
@@ -192,10 +185,7 @@ class INPSectionDiff(object):
 
         if build_instr_file:
             # if generating from a build instructions file, do this (more efficient)
-
-            print(f'section: {section}\tbi file: {build_instr_file}\n')
             df = dataframe_from_bi(build_instr_file, section=section)
-            print(f'df:\n{df.to_string()}')
             self.added = df.loc[df['Comment'] == 'Added']
             self.removed = df.loc[df['Comment'] == 'Removed']
             self.altered = df.loc[df['Comment'] == 'Altered']
@@ -204,7 +194,6 @@ class INPSectionDiff(object):
 
         # this should be made more robust to catch conflicts
         change = INPSectionDiff()
-        # change.added = self.added.append(other.added)
         change.added = pd.concat([self.added, other.added], axis=0)
         change.removed = pd.concat([self.removed, other.removed], axis=0)
         change.altered = pd.concat([self.altered, other.altered], axis=0)
@@ -320,9 +309,10 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
     """
     Merge two separate swmm models into one model. This creates a diff, ignores
     removed sections, and uses inp1 settings where conflicts exist (altered sections in diff)
-    :param m1:
-    :param m2:
-    :return:
+    :param inp1: swmmio.Model.inp object to be combined with inp2
+    :param inp2: swmmio.Model.inp object to be combined with inp1
+    :param target: path of new model
+    :return: path to target
     """
     # model object to store resulting merged model
     m3 = swmmio.Model(inp1)
