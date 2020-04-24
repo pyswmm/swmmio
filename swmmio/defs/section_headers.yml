@@ -59,7 +59,7 @@ rpt_sections:
   Node Flooding Summary:
     - Name
     - HoursFlooded
-    - MaxQ
+    - MaxQFlooding
     - MaxDay_Node_Flooding_Summary
     - MaxHr_Node_Flooding_Summary
     - TotalFloodVol

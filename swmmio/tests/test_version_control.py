@@ -166,7 +166,8 @@ def test_merge_models():
     assert conds_ab.equals(conds_ab_merged)
     assert conds_ab.equals(conds_ba_merged)
 
-    # os.remove(target_merged_model_ab)
+    os.remove(target_merged_model_ab)
+    os.remove(target_merged_model_ba)
 
 
 def test_modify_model():
