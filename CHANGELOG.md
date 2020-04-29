@@ -1,3 +1,33 @@
+## Version 0.4.0 (2020/04/29)
+
+### Issues Closed
+
+#### Enhancements
+
+* [Issue 77](https://github.com/aerispaha/swmmio/issues/77) - add node inflow report into nodes dataframe
+* [Issue 65](https://github.com/aerispaha/swmmio/issues/65) - Add auto release logic to appveyor.yml
+* [Issue 50](https://github.com/aerispaha/swmmio/issues/50) - Support for adding/joining models 
+* [Issue 38](https://github.com/aerispaha/swmmio/issues/38) - Add readthedocs  ([PR 42](https://github.com/aerispaha/swmmio/pull/42))
+* [Issue 36](https://github.com/aerispaha/swmmio/issues/36) - Optionally specify which attributes to return in model.conduits() ?
+* [Issue 31](https://github.com/aerispaha/swmmio/issues/31) - Return GeoJSON representation of Model
+* [Issue 18](https://github.com/aerispaha/swmmio/issues/18) - considered using GeoPandas for spatial functions?
+
+#### Bugs fixed
+
+* [Issue 64](https://github.com/aerispaha/swmmio/issues/64) - Pandas 0.25.x drops support for Python 2.7
+* [Issue 61](https://github.com/aerispaha/swmmio/issues/61) - error "no module named swmmio" ([PR 63](https://github.com/aerispaha/swmmio/pull/63))
+* [Issue 59](https://github.com/aerispaha/swmmio/issues/59) - parsing fails when TITLE section has commas
+* [Issue 45](https://github.com/aerispaha/swmmio/issues/45) - future warning from pandas 
+
+In this release 11 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 63](https://github.com/aerispaha/swmmio/pull/63) - Update __main__.py ([61](https://github.com/aerispaha/swmmio/issues/61))
+* [PR 42](https://github.com/aerispaha/swmmio/pull/42) - Adds basic readthedocs configuration ([38](https://github.com/aerispaha/swmmio/issues/38))
+
+In this release 2 pull requests were closed.
+
 ## Version 0.3.7 (2019/10/25)
 
 ### Issues Closed
