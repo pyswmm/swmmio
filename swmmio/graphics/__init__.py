@@ -1,5 +1,5 @@
 from swmmio.defs.config import FONT_PATH
-from swmmio.defs.constants import *
+from swmmio.defs.constants import park_green, water_grey, lightgrey, grey
 
 
 class _dotdict(dict):

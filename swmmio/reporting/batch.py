@@ -3,13 +3,12 @@ from swmmio.reporting import reporting, serialize
 from swmmio.reporting import functions
 from swmmio.utils import spatial
 from swmmio.graphics import swmm_graphics as sg
-# from swmmio.utils import swmm_utils as su
 from time import strftime
 import os
 import shutil
 import math
 from itertools import chain
-from swmmio.defs.config import *
+from swmmio.defs.config import REPORT_DIR_NAME
 import pandas as pd
 
 

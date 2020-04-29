@@ -1,17 +1,17 @@
-from swmmio.defs.constants import *
+from swmmio.defs.constants import red, purple, lightblue, lightgreen
 
 FLOOD_IMPACT_CATEGORIES = {
-    'increased_flooding':{
-        'fill':red,
+    'increased_flooding': {
+        'fill': red,
     },
-    'new_flooding':{
-        'fill':purple,
+    'new_flooding': {
+        'fill': purple,
     },
-    'decreased_flooding':{
-        'fill':lightblue,
+    'decreased_flooding': {
+        'fill': lightblue,
     },
-    'eliminated_flooding':{
-        'fill':lightgreen,
+    'eliminated_flooding': {
+        'fill': lightgreen,
     },
 
 }

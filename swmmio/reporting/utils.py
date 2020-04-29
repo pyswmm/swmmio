@@ -1,4 +1,4 @@
-from swmmio.defs.config import *
+from swmmio.defs.config import BASEMAP_PATH
 import shutil
 
 #THIS STUFF IS INCOMPLETE/ MAYBE BROKEN

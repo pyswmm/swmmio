@@ -1,8 +1,9 @@
 # graphical functions for SWMM files
-# from swmmio.graphics import config, options
-# from swmmio.graphics.constants import * #constants
-# from swmmio.graphics.utils import *
-from swmmio.graphics.drawing import *
+from swmmio.graphics import config
+from swmmio.defs.constants import white
+from swmmio.graphics.utils import px_to_irl_coords, save_image
+from swmmio.graphics.drawing import (annotate_streets, annotate_title, annotate_details, annotate_timestamp,
+                                     draw_conduit, draw_node)
 from swmmio.utils import spatial
 
 import os
@@ -96,8 +97,10 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     nodes.apply(lambda row: draw_node(row, draw), axis=1)
 
     # ADD ANNOTATION AS NECESSARY
-    if title: annotate_title(title, draw)
-    if annotation: annotate_details(annotation, draw)
+    if title:
+        annotate_title(title, draw)
+    if annotation:
+        annotate_details(annotation, draw)
     annotate_timestamp(draw)
 
     # SAVE IMAGE TO DISK
