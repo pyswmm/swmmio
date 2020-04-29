@@ -1,13 +1,13 @@
 #=================
 #DEFINE INP HEADER THAT SHOULD BE REPLACED
 #=================
-
+from collections import OrderedDict
 
 inp_header_dict = {
     '[TITLE]':'blob',
     '[OPTIONS]':'Name Value',
     '[FILES]': 'Action FileType FileName',
-    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InletOffset OutletOffset InitFlow MaxFlow',
+    '[CONDUITS]': 'Name InletNode OutletNode Length ManningN InOffset OutOffset InitFlow MaxFlow',
     '[COORDINATES]': 'Name X Y',
     '[JUNCTIONS]': 'Name InvertElev MaxDepth InitDepth SurchargeDepth PondedArea',
     '[ORIFICES]': 'Name InletNode OutletNode OrificeType CrestHeight DischCoeff FlapGate OpenCloseTime',
@@ -31,22 +31,50 @@ inp_header_dict = {
     #'[TIMESERIES]':'Name Date Time Value'
 }
 
-#=================
-#DEFINE RPT HEADER THAT SHOULD BE REPLACED
-#=================
-rpt_header_dict={
-    'Subcatchment Summary':"Name Area Width ImpervPerc SlopePerc RainGage Outlet",
-    'Node Summary':"Name Type InvertEl MaxD PondedA ExternalInf",
-    'Link Summary':'Name FromNode ToNode Type Length SlopePerc Roughness',
-    'Cross Section Summary':'Name Shape DFull AreaFull HydRad MaxW NumBarrels FullFlow',
-    'Subcatchment Runoff Summary':'Name TotalPrecip TotalRunon TotalEvap TotalInfil TotalRunoffIn TotalRunoffMG PeakRunoff RunoffCoeff',
-    'Node Flooding Summary':'Name HoursFlooded MaxQ MaxDay MaxHr TotalFloodVol MaximumPondDepth',
-    'Node Inflow Summary':'Name Type MaxLatInflow MaxTotalInflow MaxDay MaxHr LatInflowV TotalInflowV FlowBalErrorPerc XXX',
-    'Node Surcharge Summary':'Name Type HourSurcharged MaxHeightAboveCrown MinDepthBelowRim',
-    'Storage Volume Summary':'Name AvgVolume AvgPctFull EvapPctLoss ExfilPctLoss MaxVolume MaxPctFull MaxDay MaxFullHr MaxOutflow',
-    'Node Depth Summary':'Name Type AvgDepth MaxNodeDepth MaxHGL MaxDay MaxHr MaxNodeDepthReported',
-    'Link Flow Summary':'Name Type MaxQ MaxDay MaxHr MaxV MaxQPerc MaxDPerc',
-    'Subcatchment Results':     'Date Time PrecipInchPerHour LossesInchPerHr RunoffCFS',
-    'Node Results':             'Date Time InflowCFS FloodingCFS DepthFt HeadFt TSS TP TN',
-    'Link Results':             'Date Time FlowCFS VelocityFPS DepthFt PercentFull',
-}
+
+
+def parse_inp_section_config(raw_conf):
+    """
+    normalize the config information in the YAML
+    :return:
+    >>> from swmmio.defs import INP_OBJECTS
+    >>> conds_config = INP_OBJECTS['CONDUITS']
+    >>> parse_inp_section_config(conds_config)
+    OrderedDict([('columns', ['Name', 'InletNode', 'OutletNode', 'Length', 'ManningN', 'InOffset', 'OutOffset', 'InitFlow', 'MaxFlow'])])
+    >>> parse_inp_section_config(INP_OBJECTS['LOSSES'])
+    OrderedDict([('columns', ['Link', 'Inlet', 'Outlet', 'Average', 'Flap Gate', 'SeepageRate'])])
+    """
+
+    conf = OrderedDict()
+    if isinstance(raw_conf, list):
+        # has a simple list, assumed to be columns
+        conf['columns'] = raw_conf
+    elif isinstance(raw_conf, (dict, OrderedDict)):
+        if 'keys' in raw_conf:
+            # object is special case like OPTIONS
+            conf.update(raw_conf)
+            conf['columns'] = ['Key', 'Value']
+        else:
+            conf.update(raw_conf)
+
+    return conf
+
+
+def normalize_inp_config(inp_obects):
+    """
+    Unpack the config details for each inp section and organize in a standard format.
+    This allows the YAML file to be more short hand and human readable.
+    :param inp_obects:
+    :return:
+    >>> from swmmio.defs import INP_OBJECTS
+    >>> conf = normalize_inp_config(INP_OBJECTS)
+    >>> print(conf['JUNCTIONS'])
+    >>> print(conf)
+    OrderedDict([('columns', ['Name', 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea'])])
+    """
+    normalized = OrderedDict()
+    for sect, raw_conf in inp_obects.items():
+        conf = parse_inp_section_config(raw_conf)
+        normalized[sect] = conf
+
+    return normalized

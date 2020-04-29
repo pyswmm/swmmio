@@ -6,7 +6,7 @@ from swmmio.defs.sectionheaders import inp_header_dict
 current_dir = os.path.dirname(__file__)
 sets = j(current_dir, 'inp_settings')
 
-
+# TODO: do something about his silly file
 OPTIONS_no_rain = pd.read_table(
                                 j(sets, 'OPTIONS_no_rain.txt'),
                                 delim_whitespace=True,

@@ -38,6 +38,7 @@ install_requires = [
     'pyshp==2.1.0',
     'geojson==2.4.1',
     'networkx>=2.4',
+    'pyyaml>=3.12',
 ]
 
 tests_require = [

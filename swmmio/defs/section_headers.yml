@@ -1,0 +1,161 @@
+analysis_options: [FLOW_UNITS, INFILTRATION, FLOW_ROUTING, START_DATE, START_TIME,
+  END_DATE, END_TIME, REPORT_START_DATE, REPORT_START_TIME, SWEEP_START, SWEEP_END,
+  DRY_DAYS, WET_STEP, DRY_STEP, ROUTING_STEP, REPORT_STEP, RULE_STEP, ALLOW_PONDING,
+  INERTIAL_DAMPING, SLOPE_WEIGHTING, VARIABLE_STEP, NORMAL_FLOW_LIMITED, LENGTHENING_STEP,
+  MIN_SURFAREA, COMPATIBILITY, SKIP_STEADY_STATE, TEMPDIR, IGNORE_RAINFALL, FORCE_MAIN_EQUATION,
+  LINK_OFFSETS, MIN_SLOPE, IGNORE_SNOWMELT, IGNORE_GROUNDWATER, IGNORE_ROUTING, IGNORE_QUALITY,
+  MAX_TRIALS, HEAD_TOLERANCE, SYS_FLOW_TOL, LAT_FLOW_TOL, IGNORE_RDII, MINIMUM_STEP,
+  THREADS, SURCHARGE_METHOD]
+conduits:
+  columns: [Name, InletNode, OutletNode, Length, ManningN, InOffset, OutOffset,
+    InitFlow, MaxFlow]
+  inp_sections: ['[CONDUITS]', '[XSECTIONS]']
+  rpt_sections: [Link Flow Summary]
+
+
+rpt_sections:
+  Cross Section Summary:
+    - Name
+    - Shape
+    - DFull
+    - AreaFull
+    - HydRad
+    - MaxW
+    - NumBarrels
+    - FullFlow
+  Link Flow Summary:
+    - Name
+    - Type
+    - MaxQ
+    - MaxDay
+    - MaxHr
+    - MaxV
+    - MaxQPerc
+    - MaxDPerc
+  Link Results:
+    - Date
+    - Time
+    - FlowCFS
+    - VelocityFPS
+    - DepthFt
+    - PercentFull
+  Link Summary:
+    - Name
+    - FromNode
+    - ToNode
+    - Type
+    - Length
+    - SlopePerc
+    - Roughness
+  Node Depth Summary:
+    - Name
+    - Type_Node_Depth_Summary
+    - AvgDepth
+    - MaxNodeDepth
+    - MaxHGL
+    - MaxDay_Node_Depth_Summary
+    - MaxHr_Node_Depth_Summary
+    - MaxNodeDepthReported
+  Node Flooding Summary:
+    - Name
+    - HoursFlooded
+    - MaxQFlooding
+    - MaxDay_Node_Flooding_Summary
+    - MaxHr_Node_Flooding_Summary
+    - TotalFloodVol
+    - MaximumPondDepth
+  Node Inflow Summary:
+    - Name
+    - Type
+    - MaxLatInflow
+    - MaxTotalInflow
+    - MaxDay
+    - MaxHr
+    - LatInflowV
+    - TotalInflowV
+    - FlowBalErrorPerc
+    - XXX
+  Node Results:
+    - Date
+    - Time
+    - InflowCFS
+    - FloodingCFS
+    - DepthFt
+    - HeadFt
+    - TSS
+    - TP
+    - TN
+  Node Summary:
+    - Name
+    - Type_Node_Summary
+    - InvertEl
+    - MaxD
+    - PondedA
+    - ExternalInf
+  Node Surcharge Summary:
+    - Name
+    - Type_Node_Surcharge_Summary
+    - HourSurcharged
+    - MaxHeightAboveCrown
+    - MinDepthBelowRim
+  Storage Volume Summary:
+    - Name
+    - AvgVolume
+    - AvgPctFull
+    - EvapPctLoss
+    - ExfilPctLoss
+    - MaxVolume
+    - MaxPctFull
+    - MaxDay
+    - MaxFullHr
+    - MaxOutflow
+  Subcatchment Results:
+    - Date
+    - Time
+    - PrecipInchPerHour
+    - LossesInchPerHr
+    - RunoffCFS
+  Subcatchment Runoff Summary:
+    - Name
+    - TotalPrecip
+    - TotalRunon
+    - TotalEvap
+    - TotalInfil
+    - TotalRunoffIn
+    - TotalRunoffMG
+    - PeakRunoff
+    - RunoffCoeff
+  Subcatchment Summary:
+    - Name
+    - Area
+    - Width
+    - ImpervPerc
+    - SlopePerc
+    - RainGage
+    - Outlet
+
+composite:
+  nodes:
+    inp_sections: [junctions, outfalls, storage]
+    rpt_sections: [Node Depth Summary, Node Flooding Summary, Node Inflow Summary]
+  junctions:
+    columns: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
+    inp_sections: []
+  orifices:
+    inp_sections: ['ORIFICES']
+    rpt_sections: [Link Flow Summary]
+  outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
+  links:
+    inp_sections: [CONDUITS, WEIRS, ORIFICES, PUMPS]
+    join_sections: [XSECTIONS]
+    rpt_sections: [Link Flow Summary]
+  pumps:
+    inp_sections: [pumps]
+    rpt_sections: [Link Flow Summary]
+  subcatchments:
+    columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,
+              SnowPack]
+    inp_sections: ['[SUBCATCHMENTS]']
+    rpt_sections: []
+
+

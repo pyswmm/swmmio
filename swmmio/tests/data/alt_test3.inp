@@ -23,7 +23,7 @@ DRY_DAYS             0
 REPORT_STEP          00:15:00
 WET_STEP             00:05:00
 DRY_STEP             01:00:00
-ROUTING_STEP         0:00:30
+ROUTING_STEP         0:00:30 
 
 INERTIAL_DAMPING     PARTIAL
 NORMAL_FLOW_LIMITED  BOTH
@@ -45,45 +45,61 @@ CONSTANT         0.0
 DRY_ONLY         NO
 
 [JUNCTIONS]
-;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded
+;;Name           Elevation  MaxDepth   InitDepth  SurDepth   Aponded   
 ;;-------------- ---------- ---------- ---------- ---------- ----------
-dummy_node1      -15        30         0          0          0
-dummy_node2      -9.24      20         0          0          0
-dummy_node3      -7.76      20         0          0          0
-dummy_node4      -6.98      12.59314   0          0          177885
-dummy_node5      -6.96      15         0          0          73511
-dummy_node6      -6.8       13.27183   0          0          0
+dummy_node1      -15        30         0          0          0         
+dummy_node2      -9.24      20         0          0          0         
+dummy_node3      -7.76      20         0          0          0         
+dummy_node4      -6.98      12.59314   0          0          177885    
+dummy_node5      -6.96      15         0          0          73511     
+dummy_node6      -6.8       13.27183   0          0          0         
 
 [OUTFALLS]
-;;Name           Elevation  Type       Stage Data       Gated    Route To
+;;Name           Elevation  Type       Stage Data       Gated    Route To        
 ;;-------------- ---------- ---------- ---------------- -------- ----------------
-dummy_outfall    -11        FREE                        YES
+dummy_outfall    -11        FREE                        YES                      
 
 [CONDUITS]
-;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow
+;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
 ;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------
-outfall_pipe     dummy_node1      dummy_outfall    200        0.013      0          0          0          0
-pipe1            dummy_node2      dummy_node1      1675       0.013      0          0          0          0
-pipe2            dummy_node3      dummy_node2      400        0.01       0          0          0          0
-pipe3            dummy_node4      dummy_node3      594        0.013      0          0          0          0
-pipe4            dummy_node5      dummy_node4      400        0.013      0          0          0          0
-pipe5            dummy_node6      dummy_node5      666        0.013      0          0          0          0
+outfall_pipe     dummy_node1      dummy_outfall    200        0.013      0          0          0          0         
+pipe1            dummy_node2      dummy_node1      1675       0.013      0          0          0          0         
+pipe2            dummy_node3      dummy_node2      400        0.01       0          0          0          0         
+pipe3            dummy_node4      dummy_node3      594        0.013      0          0          0          0         
+pipe4            dummy_node5      dummy_node4      400        0.013      0          0          0          0         
+pipe5            dummy_node6      dummy_node5      666        0.013      0          0          0          0         
 
 [XSECTIONS]
-;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert
+;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert   
 ;;-------------- ------------ ---------------- ---------- ---------- ---------- ---------- ----------
-outfall_pipe     RECT_CLOSED  7                14         0          0          1
-pipe1            RECT_TRIANGULAR 7                14         1.5        0          1
-pipe2            RECT_TRIANGULAR 7                14         1.5        0          1
-pipe3            RECT_TRIANGULAR 7                14         1.5        0          1
-pipe4            RECT_TRIANGULAR 6.5              13         1.434756791 0          1
-pipe5            RECT_TRIANGULAR 6.5              13         1.434756791 0          1
+outfall_pipe     RECT_CLOSED  7                14         0          0          1                    
+pipe1            RECT_TRIANGULAR 7                14         1.5        0          1                    
+pipe2            RECT_TRIANGULAR 7                14         1.5        0          1                    
+pipe3            RECT_TRIANGULAR 7                14         1.5        0          1                    
+pipe4            RECT_TRIANGULAR 6.5              13         1.434756791 0          1                    
+pipe5            RECT_TRIANGULAR 6.5              13         1.434756791 0          1                    
+
+[INFLOWS]
+;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------
+dummy_node2      FLOW             my_time_series   FLOW     1.0      1.0      0.0333  
+dummy_node6      FLOW             ""               FLOW     1.0      1.0      0.6666  
 
 [DWF]
-;;Node           Constituent      Baseline   Patterns
+;;Node           Constituent      Baseline   Patterns  
 ;;-------------- ---------------- ---------- ----------
-dummy_node2      FLOW             0.000275704 "" "" ""
+dummy_node2      FLOW             0.000275   "" "" ""
 dummy_node6      FLOW             0.008150676 "" "" ""
+
+[TIMESERIES]
+;;Name           Date       Time       Value     
+;;-------------- ---------- ---------- ----------
+;cool
+my_time_series              0          0         
+my_time_series              1          1         
+my_time_series              2          2         
+my_time_series              3          1         
+my_time_series              4          0         
 
 [REPORT]
 ;;Reporting Options
@@ -96,20 +112,21 @@ LINKS ALL
 [TAGS]
 
 [MAP]
-DIMENSIONS 0.000 0.000 10000.000 10000.000
+DIMENSIONS -13594.704 4798.556 5809.792 15410.113
 Units      None
 
 [COORDINATES]
-;;Node           X-Coord            Y-Coord
+;;Node           X-Coord            Y-Coord           
 ;;-------------- ------------------ ------------------
-dummy_node1      2054.575           6051.364
-dummy_node2      -2937.400          7704.655
-dummy_node3      -4205.457          9695.024
-dummy_node4      -6163.724          12857.143
-dummy_node5      -9871.589          13723.917
-dummy_node6      -12712.681         14927.769
-dummy_outfall    4927.769           5280.899
+dummy_node1      2054.575           6051.364          
+dummy_node2      -2937.400          7704.655          
+dummy_node3      -4205.457          9695.024          
+dummy_node4      -6163.724          12857.143         
+dummy_node5      -9871.589          13723.917         
+dummy_node6      -12712.681         14927.769         
+dummy_outfall    4927.769           5280.899          
 
 [VERTICES]
-;;Link           X-Coord            Y-Coord
+;;Link           X-Coord            Y-Coord           
 ;;-------------- ------------------ ------------------
+

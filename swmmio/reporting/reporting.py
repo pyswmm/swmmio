@@ -6,7 +6,7 @@ from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import drawing
 from swmmio.utils import spatial
-from swmmio.version_control.inp import INPDiff
+from swmmio.version_control.inp import INPSectionDiff
 from swmmio import swmmio
 import math
 import pandas as pd
@@ -88,7 +88,7 @@ class ComparisonReport(object):
         baseline_flooding = baseline_report.parcel_flooding
         proposed_flooding = alt_report.parcel_flooding
 
-        conduitdiff = INPDiff(basemodel, altmodel, '[CONDUITS]')
+        conduitdiff = INPSectionDiff(basemodel, altmodel, '[CONDUITS]')
         new_cond_ids = pd.concat([conduitdiff.added, conduitdiff.altered]).index
 
         self.baseline_report = baseline_report

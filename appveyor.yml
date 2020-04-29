@@ -3,27 +3,38 @@ environment:
     # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
     - PYTHON: "C:\\Python36"
+      MINICONDA: "C:\\Miniconda36"
+      PYTHON_VERSION: 3.6
     - PYTHON: "C:\\Python37"
+      MINICONDA: "C:\\Miniconda37"
+      PYTHON_VERSION: 3.7
 
 install:
-  - "%PYTHON%\\python setup.py develop"
-  - "%PYTHON%\\python.exe -m pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt -q"
+  # install geopandas with conda into root python environment
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - "conda config --set always_yes yes --set changeps1 no"
+  - "conda update -q conda"
+  # Useful for debugging any issues with conda
+  - "conda info -a"
+  # create test environment with geopandas installed
+  - "conda create -q -n test-env python=%PYTHON_VERSION% geopandas"
+  - "activate test-env"
+
+  - "python setup.py develop"
+  - "pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt -q"
 
 build: off
 
 test_script:
-  - "%PYTHON%\\Scripts\\pytest %APPVEYOR_BUILD_FOLDER%"
+  - "pytest %APPVEYOR_BUILD_FOLDER%"
 
 
 on_success:
   - >
-    IF "%APPVEYOR_REPO_BRANCH%" == "master"
-    (
     IF "%APPVEYOR_REPO_TAG%" == "true"
     (
     %PYTHON%\\python.exe -m pip install wheel
     %PYTHON%\\python.exe setup.py bdist_wheel
     %PYTHON%\\python.exe -m pip install twine &&
     %PYTHON%\\python.exe -m twine upload dist/* -u %PYPI_USERNAME% -p %PYPI_PASSWORD%
-    )
     )
