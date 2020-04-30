@@ -1,4 +1,7 @@
 # graphical functions for SWMM files
+import pandas as pd
+
+from swmmio.defs.config import REPORT_DIR_NAME, BETTER_BASEMAP_PATH
 from swmmio.graphics import config
 from swmmio.defs.constants import white
 from swmmio.graphics.utils import px_to_irl_coords, save_image
@@ -8,6 +11,8 @@ from swmmio.utils import spatial
 
 import os
 from PIL import Image, ImageDraw
+
+from swmmio.version_control.inp import INPSectionDiff
 
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
@@ -108,3 +113,60 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
         save_image(img, file_path)
 
     return img
+
+
+def create_map(model1, model2=None, bbox=None, crs=None, filename=None,
+               subset=None, return_data=False):
+    """
+    export model as a geojson object
+    """
+
+    import geojson
+    from geojson import LineString, FeatureCollection
+    # try:
+    #     import pyproj
+    # except ImportError:
+    #     raise ImportError('pyproj module needed. get this package here: ',
+    #                       'https://pypi.python.org/pypi/pyproj')
+
+    if model2 is not None:
+        changes = INPSectionDiff(model1, model2, section='CONDUITS')
+        df = pd.concat([changes.added, changes.altered])
+        subset = df.index.tolist()
+
+    # links2 = model2.links.
+    # else:
+    #     model2 = model1 #stupid, for file path
+
+    # geometries = []  # array of features
+    # # collect the links
+    # for k, v in list(model2.list_objects('conduit', bbox, subset=subset).items()):
+    #     props = {
+    #         'MaxQPercent': v.maxQpercent,
+    #         'id': v.id,
+    #         'lifecycle': v.lifecycle,
+    #         'geom1': v.geom1,
+    #         'geom2': v.geom2,
+    #     }
+    #
+    #     latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in v.coordinates]
+    #     geometry = LineString(latlngs, properties=props)
+    #     geometries.append(geometry)
+
+    if return_data is True:
+        return model2.links.geojson
+
+    if filename is None:
+        filename = os.path.join(model2.inp.dir,
+                                REPORT_DIR_NAME,
+                                model2.name + '.html')
+
+    # start writing that thing
+    with open(BETTER_BASEMAP_PATH, 'r') as bm:
+        with open(filename, 'w') as newmap:
+            for line in bm:
+                if 'INSERT GEOJSON HERE' in line:
+                    newmap.write(f'conduits = {geojson.dumps(model2.links.geojson)}\n')
+                    newmap.write(f'nodes = {geojson.dumps(model2.nodes.geojson)}\n')
+                else:
+                    newmap.write(line)

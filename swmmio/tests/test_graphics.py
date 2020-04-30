@@ -24,3 +24,11 @@ def test_draw_red_and_grey_nodes():
     sg.draw_model(conduits=m.conduits(), nodes=nodes, file_path=target_img_pth)
     assert os.path.exists(target_img_pth)
     os.remove(target_img_pth)
+
+
+def test_web_map_01():
+    m1 = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    m2 = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH, crs="+init=EPSG:2272")
+
+    m2.to_crs("+init=EPSG:4326")
+    sg.create_map(m1, m2, filename='test-map.html')

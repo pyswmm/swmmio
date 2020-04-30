@@ -3,7 +3,6 @@ import swmmio.utils.text
 from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH
 from swmmio import Model
 from swmmio.elements import ModelSection
-from swmmio.utils import functions
 import pytest
 from swmmio.utils.text import get_rpt_sections_details
 
