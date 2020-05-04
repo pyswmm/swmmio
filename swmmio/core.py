@@ -236,26 +236,18 @@ class Model(object):
         self._nodes_df = df
         return df
 
+    @property
     def subcatchments(self):
         """
         collect all useful and available data related subcatchments and organize
         in one dataframe.
         """
-        subs = dataframe_from_inp(self.inp.path, "[SUBCATCHMENTS]")
-        polygons_df = self.inp.polygons
+        if self._subcatchments_df is not None:
+            return self._subcatchments_df
 
-        if self.rpt:
-            flw = dataframe_from_rpt(
-                self.rpt.path, 'Subcatchment Runoff Summary')
-            subs = subs.join(flw)
-
-            # more accurate runoff calculations
-            subs['RunoffAcFt'] = subs.TotalRunoffIn / 12.0 * subs.Area
-            subs['RunoffMGAccurate'] = subs.RunoffAcFt / 3.06888785
-
-        self._subcatchments_df = subs
-
-        return subs
+        df = ModelSection(model=self, **COMPOSITE_OBJECTS['subcatchments'])
+        self._subcatchments_df = df
+        return df
 
     @property
     def network(self):

@@ -96,6 +96,15 @@ class ModelSection(object):
             df.InletNode = df.InletNode.astype(str)
             df.OutletNode = df.OutletNode.astype(str)
 
+        elif self.geomtype == 'polygon':
+            p = self.inp.polygons
+
+            # take stacked coordinates and orient in list of tuples,
+            xys = p.groupby(by=p.index).apply(lambda r: [(xy['X'], xy['Y']) for ix, xy in r.iterrows()])
+            # copy the first point to the last position
+            xys = xys.apply(lambda r: r + [r[0]])
+            df = df.assign(coords=xys)
+
         # confirm index name is string
         df = df.rename(index=str)
 

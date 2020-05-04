@@ -270,8 +270,8 @@ def get_inp_sections_details(inp_path, include_brackets=False):
                 search_tag = format_inp_section_header(sect_id)
                 if search_tag.lower() in line.lower():
                     if include_brackets:
-                        sect_id = '[{}]'.format(sect_id)
-                    found_sects[sect_id] = data
+                        sect_id = '[{}]'.format(sect_id.upper())
+                    found_sects[sect_id.upper()] = data
                     sect_not_found = False
                     break
             if sect_not_found:

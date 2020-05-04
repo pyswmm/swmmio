@@ -14,6 +14,7 @@ import pytest
 import shutil
 import os
 
+from swmmio.utils.text import get_inp_sections_details
 
 
 @pytest.fixture
@@ -241,3 +242,44 @@ def test_dataframe_composite(test_model_02):
     links_gdf = links.geodataframe
     assert links_gdf.index[2] == '1'
     assert links_gdf.loc['1', 'MaxQ'] == 2.54
+
+
+def test_subcatchment_composite(test_model_02):
+
+    subs = test_model_02.subcatchments
+    assert subs.dataframe.loc['S3', 'Outlet'] == 'j3'
+    assert subs.dataframe['TotalRunoffIn'].sum() == pytest.approx(2.45, 0.001)
+
+    print(subs.dataframe[['TotalRunoffIn', 'Outlet', 'coords']])
+
+    print(subs.geojson)
+
+
+def test_polygons(test_model_02):
+    s = """
+    Name        X        Y 
+    S1    110.154  195.885
+    S1    110.154   47.351
+    S1    -56.323   42.367
+    S1    -63.301  181.928
+    S1    110.154  195.885
+    S2    394.261  131.088
+    S2    410.211  -20.436
+    S2    245.728  -19.439
+    S2    235.759  110.154
+    S2    394.261  131.088
+    S3    660.425   55.326
+    S3    657.435 -104.173
+    S3    519.867  -96.198
+    S3    509.898   50.342
+    S3    660.425   55.326
+    S4    -63.523 -116.383
+    S4    -82.996 -174.805
+    S4   -154.695 -168.608
+    S4   -148.499 -126.120
+    """
+    poly1 = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+
+    assert poly1.equals(test_model_02.inp.polygons)
+
+    # print()
