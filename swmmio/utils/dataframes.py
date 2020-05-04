@@ -1,3 +1,5 @@
+import math
+
 from swmmio.utils.functions import format_inp_section_header, remove_braces
 from swmmio.utils.text import (extract_section_of_file, get_inp_sections_details,
                                get_rpt_sections_details)
@@ -183,3 +185,10 @@ def get_inp_options_df(inp_path):
     ops_df = pd.read_csv(StringIO(ops_string), header=None, delim_whitespace=True, skiprows=[0],
                          index_col=0, names=ops_cols)
     return ops_df
+
+
+def nodexy(row):
+    if math.isnan(row.X) or math.isnan(row.Y):
+        return None
+    else:
+        return [(row.X, row.Y)]
