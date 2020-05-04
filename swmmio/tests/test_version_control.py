@@ -1,7 +1,6 @@
 import swmmio.utils.functions
 import swmmio.utils.text
-from swmmio.tests.data import (DATA_PATH, MODEL_XSECTION_BASELINE,
-                               MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
+from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
                                OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
@@ -10,6 +9,7 @@ from swmmio.utils.dataframes import dataframe_from_inp
 
 import os
 import shutil
+import tempfile
 import pytest
 
 
@@ -37,46 +37,41 @@ def test_complete_inp_headers():
 
 
 def test_create_inp_build_instructions():
-    temp_vc_dir_01 = os.path.join(DATA_PATH, 'vc_dir')
-    temp_vc_dir_02 = os.path.join(DATA_PATH, 'vc root with spaces')
-    temp_vc_dir_03 = os.path.join(temp_vc_dir_02, 'vc_dir')
-    inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE,
-                                      MODEL_XSECTION_ALT_03,
-                                      temp_vc_dir_01,
-                                      'test_version_id', 'cool comments')
+    with tempfile.TemporaryDirectory() as tempdir:
+        temp_vc_dir_01 = os.path.join(tempdir, 'vc_dir')
+        temp_vc_dir_02 = os.path.join(tempdir, 'vc root with spaces')
+        temp_vc_dir_03 = os.path.join(temp_vc_dir_02, 'vc_dir')
+        inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE,
+                                          MODEL_XSECTION_ALT_03,
+                                          temp_vc_dir_01,
+                                          'test_version_id', 'cool comments')
 
-    latest_bi = vc_utils.newest_file(temp_vc_dir_01)
-    bi = inp.BuildInstructions(latest_bi)
-    print(bi.instructions)
-    juncs = bi.instructions['JUNCTIONS']
-    print(juncs)
-    assert (all(j in juncs.altered.index for j in [
-        'dummy_node1', 'dummy_node5']))
+        latest_bi = vc_utils.newest_file(temp_vc_dir_01)
+        bi = inp.BuildInstructions(latest_bi)
+        juncs = bi.instructions['JUNCTIONS']
 
-    # assert (filecmp.cmp(latest_bi, BUILD_INSTR_01))
-    shutil.rmtree(temp_vc_dir_01)
+        assert (all(j in juncs.altered.index for j in [
+            'dummy_node1', 'dummy_node5']))
 
-    # reproduce test with same files in a directory structure with spaces in path
-    makedirs(temp_vc_dir_02)
-    shutil.copy(MODEL_XSECTION_BASELINE, temp_vc_dir_02)
-    shutil.copy(MODEL_XSECTION_ALT_03, temp_vc_dir_02)
-    MODEL_XSECTION_BASELINE_spaces = os.path.join(temp_vc_dir_02, MODEL_XSECTION_BASELINE)
-    MODEL_XSECTION_ALT_03_spaces = os.path.join(temp_vc_dir_02, MODEL_XSECTION_ALT_03)
+        # reproduce test with same files in a directory structure with spaces in path
+        makedirs(temp_vc_dir_02)
+        shutil.copy(MODEL_XSECTION_BASELINE, temp_vc_dir_02)
+        shutil.copy(MODEL_XSECTION_ALT_03, temp_vc_dir_02)
+        MODEL_XSECTION_BASELINE_spaces = os.path.join(temp_vc_dir_02, MODEL_XSECTION_BASELINE)
+        MODEL_XSECTION_ALT_03_spaces = os.path.join(temp_vc_dir_02, MODEL_XSECTION_ALT_03)
 
-    inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE_spaces,
-                                      MODEL_XSECTION_ALT_03_spaces,
-                                      temp_vc_dir_03,
-                                      'test_version_id', 'cool comments')
+        inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE_spaces,
+                                          MODEL_XSECTION_ALT_03_spaces,
+                                          temp_vc_dir_03,
+                                          'test_version_id', 'cool comments')
 
-    latest_bi_spaces = vc_utils.newest_file(temp_vc_dir_03)
-    bi_sp = inp.BuildInstructions(latest_bi_spaces)
+        latest_bi_spaces = vc_utils.newest_file(temp_vc_dir_03)
+        bi_sp = inp.BuildInstructions(latest_bi_spaces)
 
-    juncs_sp = bi_sp.instructions['JUNCTIONS']
-    print(juncs_sp.altered)
-    assert (all(j in juncs_sp.altered.index for j in [
-        'dummy_node1', 'dummy_node5']))
-
-    shutil.rmtree(temp_vc_dir_02)
+        juncs_sp = bi_sp.instructions['JUNCTIONS']
+        print(juncs_sp.altered)
+        assert (all(j in juncs_sp.altered.index for j in [
+            'dummy_node1', 'dummy_node5']))
 
 
 def test_inp_diff_from_bi():
@@ -87,40 +82,38 @@ def test_inp_diff_from_bi():
     assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
     assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
 
-    # test with spaces in path
-    temp_dir_01 = os.path.join(DATA_PATH, 'path with spaces')
-    makedirs(temp_dir_01)
-    shutil.copy(BUILD_INSTR_01, temp_dir_01)
-    BUILD_INSTR_01_spaces = os.path.join(temp_dir_01, BUILD_INSTR_01)
+    with tempfile.TemporaryDirectory() as tempdir:
+        # test with spaces in path
+        temp_dir_01 = os.path.join(tempdir, 'path with spaces')
+        makedirs(temp_dir_01)
+        shutil.copy(BUILD_INSTR_01, temp_dir_01)
+        BUILD_INSTR_01_spaces = os.path.join(temp_dir_01, BUILD_INSTR_01)
 
-    change = INPSectionDiff(build_instr_file=BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
+        change = INPSectionDiff(build_instr_file=BUILD_INSTR_01_spaces, section='[JUNCTIONS]')
 
-    alt_juncs = change.altered
-    assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
-    assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
+        alt_juncs = change.altered
+        assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
+        assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
 
-    # test with parent models in directory structure with spaces in path
-    temp_dir_02 = os.path.join(DATA_PATH, 'root with spaces')
-    temp_dir_03 = os.path.join(temp_dir_02, 'vc_dir')
-    makedirs(temp_dir_02)
-    shutil.copy(MODEL_XSECTION_BASELINE, temp_dir_02)
-    shutil.copy(MODEL_XSECTION_ALT_03, temp_dir_02)
-    MODEL_XSECTION_BASELINE_spaces = os.path.join(temp_dir_02, MODEL_XSECTION_BASELINE)
-    MODEL_XSECTION_ALT_03_spaces = os.path.join(temp_dir_02, MODEL_XSECTION_ALT_03)
+        # test with parent models in directory structure with spaces in path
+        temp_dir_02 = os.path.join(tempdir, 'root with spaces')
+        temp_dir_03 = os.path.join(temp_dir_02, 'vc_dir')
+        makedirs(temp_dir_02)
+        shutil.copy(MODEL_XSECTION_BASELINE, temp_dir_02)
+        shutil.copy(MODEL_XSECTION_ALT_03, temp_dir_02)
+        MODEL_XSECTION_BASELINE_spaces = os.path.join(temp_dir_02, MODEL_XSECTION_BASELINE)
+        MODEL_XSECTION_ALT_03_spaces = os.path.join(temp_dir_02, MODEL_XSECTION_ALT_03)
 
-    inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE_spaces,
-                                      MODEL_XSECTION_ALT_03_spaces,
-                                      temp_dir_03,
-                                      'test_version_id', 'cool comments')
+        inp.create_inp_build_instructions(MODEL_XSECTION_BASELINE_spaces,
+                                          MODEL_XSECTION_ALT_03_spaces,
+                                          temp_dir_03,
+                                          'test_version_id', 'cool comments')
 
-    latest_bi_spaces = vc_utils.newest_file(temp_dir_03)
-    change = INPSectionDiff(build_instr_file=latest_bi_spaces, section='[JUNCTIONS]')
-    alt_juncs = change.altered
-    assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
-    assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
-
-    shutil.rmtree(temp_dir_01)
-    shutil.rmtree(temp_dir_02)
+        latest_bi_spaces = vc_utils.newest_file(temp_dir_03)
+        change = INPSectionDiff(build_instr_file=latest_bi_spaces, section='[JUNCTIONS]')
+        alt_juncs = change.altered
+        assert alt_juncs.loc['dummy_node1', 'InvertElev'] == pytest.approx(-15, 0.01)
+        assert alt_juncs.loc['dummy_node5', 'InvertElev'] == pytest.approx(-6.96, 0.01)
 
 
 def test_add_models():
@@ -128,54 +121,50 @@ def test_add_models():
     create build instructions for entire models with respect to a blank (empty) model
     such that BIs include additions for each model element. This is experimental.
     """
+    with tempfile.TemporaryDirectory() as tempdir:
 
-    tdir = os.path.join(DATA_PATH, 'vc_dir')
+        bi_b = inp.create_inp_build_instructions(MODEL_BLANK,
+                                                 MODEL_FULL_FEATURES_XY_B,
+                                                 tempdir,
+                                                 'from_blank_model_b', 'cool comments')
+        bi_a = inp.create_inp_build_instructions(MODEL_BLANK,
+                                                 MODEL_FULL_FEATURES_XY,
+                                                 tempdir,
+                                                 'from_blank_model_a', 'should have all we need')
 
-    bi_b = inp.create_inp_build_instructions(MODEL_BLANK,
-                                      MODEL_FULL_FEATURES_XY_B,
-                                      tdir,
-                                      'from_blank_model_b', 'cool comments')
-    bi_a = inp.create_inp_build_instructions(MODEL_BLANK,
-                                      MODEL_FULL_FEATURES_XY,
-                                      tdir,
-                                      'from_blank_model_a', 'should have all we need')
-
-    bi_final = bi_a + bi_b
-    bi_final.save(tdir, 'merged-build-instr.txt')
-    bi_final.build(MODEL_BLANK, os.path.join(tdir, 'merged-model.inp'))
+        bi_final = bi_a + bi_b
+        bi_final.save(tempdir, 'merged-build-instr.txt')
+        bi_final.build(MODEL_BLANK, os.path.join(tempdir, 'merged-model.inp'))
+        assert os.path.exists(os.path.join(tempdir, 'merged-model.inp'))
 
 
 def test_merge_models():
 
     from swmmio import Model
     import pandas as pd
-    # MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
-    target_merged_model_ab = os.path.join(DATA_PATH, 'merged-model-test-ab.inp')
-    target_merged_model_ba = os.path.join(DATA_PATH, 'merged-model-test-ba.inp')
-    merged_model_ab = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B, target_merged_model_ab)
-    merged_model_ba = merge_models(MODEL_FULL_FEATURES_XY_B, MODEL_FULL_FEATURES_XY, target_merged_model_ba)
-    ma = Model(MODEL_FULL_FEATURES_XY)
-    mb = Model(MODEL_FULL_FEATURES_XY_B)
+    with tempfile.TemporaryDirectory() as tempdir:
+        # MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
+        target_merged_model_ab = os.path.join(tempdir, 'merged-model-test-ab.inp')
+        target_merged_model_ba = os.path.join(tempdir, 'merged-model-test-ba.inp')
+        merged_model_ab = merge_models(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B, target_merged_model_ab)
+        merged_model_ba = merge_models(MODEL_FULL_FEATURES_XY_B, MODEL_FULL_FEATURES_XY, target_merged_model_ba)
+        ma = Model(MODEL_FULL_FEATURES_XY)
+        mb = Model(MODEL_FULL_FEATURES_XY_B)
 
-    conds_ab = pd.concat([ma.inp.conduits, mb.inp.conduits]).sort_index()
-    mab = Model(merged_model_ab)
-    mba = Model(merged_model_ba)
-    conds_ab_merged = mab.inp.conduits.sort_index()
-    conds_ba_merged = mba.inp.conduits.sort_index()
+        conds_ab = pd.concat([ma.inp.conduits, mb.inp.conduits]).sort_index()
+        mab = Model(merged_model_ab)
+        mba = Model(merged_model_ba)
+        conds_ab_merged = mab.inp.conduits.sort_index()
+        conds_ba_merged = mba.inp.conduits.sort_index()
 
-    assert conds_ab.equals(conds_ab_merged)
-    assert conds_ab.equals(conds_ba_merged)
-
-    os.remove(target_merged_model_ab)
-    os.remove(target_merged_model_ba)
+        assert conds_ab.equals(conds_ab_merged)
+        assert conds_ab.equals(conds_ba_merged)
 
 
 def test_modify_model():
     from swmmio.utils.modify_model import replace_inp_section
     from swmmio import Model
     import pandas as pd
-    import os
-    import shutil
 
     # initialize a baseline model object
     baseline = Model(MODEL_FULL_FEATURES_XY)
@@ -190,17 +179,16 @@ def test_modify_model():
     outfalls.loc[:, 'InvertElev'] = pd.to_numeric(outfalls.loc[:, 'InvertElev']) + rise
     of_test.loc[:, 'InvertElev'] = pd.to_numeric(of_test.loc[:, 'InvertElev'])
 
-    # copy the base model into a new directory
-    newdir = os.path.join(baseline.inp.dir, str(rise))
-    makedirs(newdir)
-    newfilepath = os.path.join(newdir, baseline.inp.name + "_" + str(rise) + '_SLR.inp')
-    shutil.copyfile(baseline.inp.path, newfilepath)
+    with tempfile.TemporaryDirectory() as tempdir:
+        # copy the base model into a new directory
+        newdir = os.path.join(tempdir, str(rise))
+        makedirs(newdir)
+        newfilepath = os.path.join(newdir, baseline.inp.name + "_" + str(rise) + '_SLR.inp')
+        shutil.copyfile(baseline.inp.path, newfilepath)
 
-    # Overwrite the OUTFALLS section of the new model with the adjusted data
-    replace_inp_section(newfilepath, '[OUTFALLS]', outfalls)
+        # Overwrite the OUTFALLS section of the new model with the adjusted data
+        replace_inp_section(newfilepath, '[OUTFALLS]', outfalls)
 
-    m2 = Model(newfilepath)
-    of2 = m2.inp.outfalls
-    shutil.rmtree(newdir)
-    # of2.to_csv(os.path.join(newdir, baseline.inp.name + "_new_outfalls.csv"))
-    assert (of2.loc['J4', 'InvertElev'].round(1) == of_test.loc['J4', 'InvertElev'].round(1))
+        m2 = Model(newfilepath)
+        of2 = m2.inp.outfalls
+        assert (of2.loc['J4', 'InvertElev'].round(1) == of_test.loc['J4', 'InvertElev'].round(1))
