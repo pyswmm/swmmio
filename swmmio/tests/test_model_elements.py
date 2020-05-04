@@ -36,7 +36,7 @@ def test_complete_headers(test_model_01):
     sections_in_inp = [
         'TITLE', 'OPTIONS', 'EVAPORATION', 'RAINGAGES', 'SUBCATCHMENTS', 'SUBAREAS', 'INFILTRATION',
         'JUNCTIONS', 'OUTFALLS', 'STORAGE', 'CONDUITS', 'PUMPS', 'WEIRS', 'XSECTIONS', 'INFLOWS',
-        'CURVES', 'TIMESERIES', 'REPORT', 'TAGS', 'MAP', 'COORDINATES', 'VERTICES', 'Polygons',
+        'CURVES', 'TIMESERIES', 'REPORT', 'TAGS', 'MAP', 'COORDINATES', 'VERTICES', 'POLYGONS',
         'SYMBOLS'
     ]
     assert (all(section in headers for section in sections_in_inp))
