@@ -1,7 +1,9 @@
-from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH)
+import os
+import tempfile
+from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH)
 import swmmio
 from swmmio.graphics import swmm_graphics as sg
-import os
+from swmmio.utils.spatial import centroid_and_bbox_from_coords, change_crs
 
 
 def test_draw_model():
@@ -27,8 +29,34 @@ def test_draw_red_and_grey_nodes():
 
 
 def test_web_map_01():
-    m1 = swmmio.Model(MODEL_FULL_FEATURES_XY)
-    m2 = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH, crs="+init=EPSG:2272")
 
-    m2.to_crs("+init=EPSG:4326")
-    sg.create_map(m1, m2, filename='test-map.html')
+    m = swmmio.Model(MODEL_A_PATH,  crs="+init=EPSG:2817")
+    with tempfile.TemporaryDirectory() as tempdir:
+        fname = os.path.join(tempdir, 'test-map.html')
+        sg.create_map(m, filename=fname)
+
+        assert os.path.exists(fname)
+
+
+def test_centroid_and_bbox_from_coords():
+
+    m = swmmio.Model(MODEL_A_PATH, crs="+init=EPSG:2817")
+    m.to_crs("+init=EPSG:4326")
+
+    c, bbox = centroid_and_bbox_from_coords(m.nodes.dataframe['coords'])
+    assert c == (-70.97068150884797, 43.74695249578866)
+    assert bbox == [-70.97068150884797, 43.74695249578866, -70.97068150884797, 43.74695249578866]
+
+    c, bbox = centroid_and_bbox_from_coords([(0, 0), (0, 10), (10, 10), (10, 0)])
+    assert c == (5, 5)
+    assert bbox == [0, 0, 10, 10]
+
+
+def test_change_crs():
+
+    m = swmmio.Model(MODEL_A_PATH, crs="+init=EPSG:2817")
+    # xys = change_crs(m.inp.coordinates, m.crs, "+init=EPSG:4326")
+    # pgons = change_crs(m.inp.polygons, m.crs, "+init=EPSG:4326")
+    v1 = m.inp.vertices
+    v2 = change_crs(m.inp.vertices, m.crs, "+init=EPSG:4326")
+    assert v1.shape == v2.shape

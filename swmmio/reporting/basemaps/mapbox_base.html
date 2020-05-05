@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset='utf-8' />
-    <title></title>
+    <title>swmmio map</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
@@ -15,13 +15,6 @@
 <body>
 
 <div id='map'></div>
-<!-- <div class='col12 clearfix'>
-  <div class='pill'>
-    <a href='#' class='col12 button' data-path="P:\02_Projects\SouthPhila\SE_SFR\MasterModels\Combinations\M03_R05_W05\Report\new_conduits.json">Pizza Dog</a>
-    <a href='#' class='col12 button' data-path='cool'>Penny Dog</a>
-    <a href='#' class='col12 button' data-path='coolded'>Charlotte Dog</a>
-  </div>
-</div> -->
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -29,15 +22,14 @@
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw';
 var map = new mapboxgl.Map({
     style:'mapbox://styles/mapbox/dark-v9',
-    center: [-75.148946, 39.921685],
+    // center: [-75.148946, 39.921685],
+    // INSERT MAP CENTER HERE
     zoom: 15,
-    //pitch: 20,
-    //bearing: -17.6,
     container: 'map',
 });
 
-//INSERT BBOX HERE
-//INSERT GEOJSON HERE ~~~~~
+// INSERT BBOX HERE
+// INSERT GEOJSON HERE ~~~~~
 var sewer_source, parcel_source;
 $('.button').click(function() {
   var pth = $(this).data('path')
@@ -63,14 +55,8 @@ map.on('load', function() {
       'type': 'line',
       "source": "sewer-data",
       'paint': {
-          'line-color': {
-              property: 'Geom1',
-              stops: [
-                [1, '#343332'],//'#343332'],
-                [6, '#64bab4']
-              ]
-        },
-          'line-opacity': 0.75,
+          'line-color': '#64bab4',
+          'line-opacity': 0.85,
   	      'line-width':3,
       }
 	});
@@ -91,35 +77,11 @@ map.on('load', function() {
         'type': 'circle',
         "source": "node-data",
         'paint': {
-            'circle-color': 'rgb(220, 50, 60)',
+            'circle-color': '#DC323C',
             'circle-opacity': 0.75,
-    	      'circle-radius':6,
+    	      'circle-radius':60,
         }
   	});
-
-  // map.addLayer({
-  //     "id": "parcel-extrusion",
-  //     'type': 'fill-extrusion',
-  //     "source": "parcel-data",
-  //     'paint': {
-  //         'fill-extrusion-color': {
-  //             property: 'HoursFlooded',
-  //             stops: [
-  //               [0.0833, '#343332'],
-  //               [2.0, '#f91313']
-  //             ]
-  //           },
-  //           'fill-extrusion-height': {
-  //               property: 'HoursFlooded',
-  //               stops: [
-  //                 [0.0833, 0],
-  //                 [2.0, 200]
-  //               ]
-  //           },
-  //         'fill-extrusion-opacity': 0.85,
-  //     }
-	// });
-
 
     // When a click event occurs near a polygon, open a popup at the location of
     // the feature, with description HTML from its properties.
