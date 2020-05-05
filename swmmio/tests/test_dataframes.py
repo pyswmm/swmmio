@@ -14,8 +14,6 @@ import pytest
 import shutil
 import os
 
-from swmmio.utils.text import get_inp_sections_details
-
 
 @pytest.fixture
 def test_model_01():

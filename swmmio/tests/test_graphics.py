@@ -1,5 +1,7 @@
 import os
 import tempfile
+from io import StringIO
+import pandas as pd
 from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH)
 import swmmio
 from swmmio.graphics import swmm_graphics as sg
@@ -55,8 +57,15 @@ def test_centroid_and_bbox_from_coords():
 def test_change_crs():
 
     m = swmmio.Model(MODEL_A_PATH, crs="+init=EPSG:2817")
-    # xys = change_crs(m.inp.coordinates, m.crs, "+init=EPSG:4326")
-    # pgons = change_crs(m.inp.polygons, m.crs, "+init=EPSG:4326")
     v1 = m.inp.vertices
     v2 = change_crs(m.inp.vertices, m.crs, "+init=EPSG:4326")
     assert v1.shape == v2.shape
+    s = """
+    Name      X          Y              
+    J4-001.1 -70.959386  43.732851
+    J4-001.1 -70.958415  43.732578
+    J4-001.1 -70.959423  43.730452
+    J2-095.1 -70.951378  43.767796
+    """
+    v2_test = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+    assert v2.to_string() == v2_test.to_string()
