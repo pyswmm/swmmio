@@ -1,3 +1,20 @@
+###############################################################################
+## Version 0.4.1 (2020/05/05)
+
+### Issues Closed
+
+#### Enhancements
+
+* [Issue 85](https://github.com/aerispaha/swmmio/issues/85) - provide access to model.subcatchments.geojson
+
+#### Bugs fixed
+
+* [Issue 82](https://github.com/aerispaha/swmmio/issues/82) - "vc_dir" artifact lingers after some unit tests
+* [Issue 81](https://github.com/aerispaha/swmmio/issues/81) - FileNotFoundError: [Errno 2] inp_sections.yml
+
+In this release 3 issues were closed.
+
+
 ## Version 0.4.0 (2020/04/29)
 
 ### Issues Closed
