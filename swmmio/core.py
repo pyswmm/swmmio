@@ -2,17 +2,14 @@
 # coding:utf-8
 
 from time import ctime
-from datetime import timedelta, datetime
+import os
 import pandas as pd
 import glob
-import math
 from swmmio.utils import spatial
 from swmmio.utils import functions
 from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, \
     create_dataframe_multi_index, get_inp_options_df, dataframe_from_inp
-from swmmio.defs.config import *
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY
-import warnings
 import swmmio
 from swmmio.elements import ModelSection, Links, Nodes
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_OBJECTS

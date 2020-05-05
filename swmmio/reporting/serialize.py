@@ -1,12 +1,9 @@
-#READ/WRITE REPORTS AS JSON
+# READ/WRITE REPORTS AS JSON
 import json
 import pandas as pd
 from pandas.io.json import json_normalize
 from swmmio.utils import spatial
 from swmmio.graphics import swmm_graphics as sg
-from swmmio.reporting.reporting import FloodReport
-from swmmio.defs.config import *
-import geojson
 
 
 def decode_report(rpt_path):

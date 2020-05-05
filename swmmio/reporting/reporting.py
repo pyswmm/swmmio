@@ -1,7 +1,7 @@
 #Module is intended to provide high level access to post processing routines
 #such that standard reporting and figures can be generated to report on the
 #perfomance of given SFR alternatives/options
-from swmmio.reporting.functions import *
+from swmmio.reporting.functions import conduits_cost_estimate
 from swmmio.damage import parcels
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.graphics import drawing
@@ -9,9 +9,10 @@ from swmmio.utils import spatial
 from swmmio.version_control.inp import INPSectionDiff
 from swmmio import swmmio
 import math
+import os
 import pandas as pd
-from swmmio.defs.config import *
-from swmmio.defs.constants import *
+from swmmio.defs.config import BETTER_BASEMAP_PATH
+from swmmio.defs.constants import d68d70, study_area
 import geojson
 
 
@@ -56,7 +57,6 @@ class FloodReport(object):
         ffrac = round(self.flood_vol_mg / self.runoff_vol_mg *100, 1)
         d = 'Volume Flooded: {}MG ({}%)'.format(round(self.flood_vol_mg, 1), ffrac)
 
-        #return '{}\n{}'.format(a, '\n'.join(b))
         return '\n'.join([a]+ b + [c, d])
 
 

@@ -55,6 +55,7 @@ inp_file_objects:
   COORDINATES: [Name, X, Y]
   VERTICES: [Name, X, Y]
   Polygons: [Name, X, Y]
+  POLYGONS: [Name, X, Y]
   MAP: [Param, x1, y1, x2, y2]
   REPORT: [Param, Status]
   TAGS: [ElementType, Name, Tag]
@@ -69,6 +70,6 @@ inp_section_tags:
   '[OUTLET', '[XSECT', '[TRANSECT', '[LOSS', '[CONTROL', '[POLLUT', '[LANDUSE', '[BUILDUP',
   '[WASHOFF', '[COVERAGE', '[INFLOW', '[DWF', '[PATTERN', '[RDII', '[HYDROGRAPH',
   '[LOADING', '[TREATMENT', '[CURVE', '[TIMESERIES', '[REPORT', '[MAP', '[COORDINATE',
-  '[VERTICES', '[POLYGON', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
+  '[VERTICES', '[POLYGON', '[Polygons', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
   '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
 

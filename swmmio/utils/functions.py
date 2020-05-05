@@ -156,11 +156,14 @@ def remove_braces(string):
 
 def format_inp_section_header(string):
     """
-    Ensure a string is in the inp section header format: [UPPERCASE]
+    Ensure a string is in the inp section header format: [UPPERCASE],
+    except in the case of the [Polygons] section with is capitalized case
     :param string:
     :return: string
     """
     s = string.strip().upper()
+    if s == 'POLYGONS':
+        s = s.capitalize()
     if s[0] != '[':
         s = f'[{s}'
     if s[-1] != ']':

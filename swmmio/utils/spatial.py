@@ -199,3 +199,31 @@ def read_shapefile(shp_path):
     df = df.assign(coords=shps)
 
     return df
+
+
+def centroid_and_bbox_from_coords(coords):
+    """
+    return a bounding box that encapsulates all coordinates
+    :param coords: pd.Series of coordinates
+    :return: boudning list of coordinates
+    """
+    if isinstance(coords, pd.Series):
+        # assume the series with coords format [(x1, y1), (x2, y2), ...]
+        coords = coords.to_list()[0]
+    elif isinstance(coords, pd.DataFrame):
+        # assume dataframe with X, Y columns
+        coords = list(zip(coords.X, coords.Y))
+
+    xs = [xys[0] for xys in coords]
+    ys = [xys[1] for xys in coords]
+
+    # center
+    xc = sum(xs) / len(xs)
+    yc = sum(ys) / len(ys)
+
+    # bbox
+    x1, x2 = min(xs), max(xs)
+    y1, y2 = min(ys), max(ys)
+
+    return (xc, yc), [x1, y1, x2, y2]
+

@@ -1,7 +1,9 @@
-from swmmio.defs.constants import *
-from swmmio.graphics.utils import *
+from swmmio.defs.constants import red, purple, lightblue, lightgreen, black, lightgrey, grey
+from swmmio.defs.config import FONT_PATH
+from swmmio.graphics.utils import circle_bbox, length_bw_coords, angle_bw_points, midpoint
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from time import strftime
+import math
 import os
 
 

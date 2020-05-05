@@ -1,12 +1,19 @@
 # graphical functions for SWMM files
-# from swmmio.graphics import config, options
-# from swmmio.graphics.constants import * #constants
-# from swmmio.graphics.utils import *
-from swmmio.graphics.drawing import *
+import pandas as pd
+
+from swmmio.defs.config import REPORT_DIR_NAME, BETTER_BASEMAP_PATH
+from swmmio.graphics import config
+from swmmio.defs.constants import white
+from swmmio.graphics.utils import px_to_irl_coords, save_image
+from swmmio.graphics.drawing import (annotate_streets, annotate_title, annotate_details, annotate_timestamp,
+                                     draw_conduit, draw_node)
 from swmmio.utils import spatial
 
 import os
 from PIL import Image, ImageDraw
+
+from swmmio.utils.spatial import centroid_and_bbox_from_coords
+from swmmio.version_control.inp import INPSectionDiff
 
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
@@ -96,8 +103,10 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     nodes.apply(lambda row: draw_node(row, draw), axis=1)
 
     # ADD ANNOTATION AS NECESSARY
-    if title: annotate_title(title, draw)
-    if annotation: annotate_details(annotation, draw)
+    if title:
+        annotate_title(title, draw)
+    if annotation:
+        annotate_details(annotation, draw)
     annotate_timestamp(draw)
 
     # SAVE IMAGE TO DISK
@@ -105,3 +114,37 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
         save_image(img, file_path)
 
     return img
+
+
+def create_map(model=None, filename=None):
+    """
+    export model as a geojson object
+    """
+
+    import geojson
+    if filename is None:
+        filename = f'{model.name}.html'
+
+    if model.crs:
+        model.to_crs("+init=EPSG:4326")
+    else:
+        raise ValueError('Model object must have a valid crs')
+
+    # get map centroid and bbox
+    c, bbox = centroid_and_bbox_from_coords(model.inp.coordinates)
+
+    # start writing that thing
+    with open(BETTER_BASEMAP_PATH, 'r') as bm:
+        with open(filename, 'w') as newmap:
+            for line in bm:
+                if 'INSERT GEOJSON HERE' in line:
+                    newmap.write(f'conduits = {geojson.dumps(model.links.geojson)}\n')
+                    newmap.write(f'nodes = {geojson.dumps(model.nodes.geojson)}\n')
+                elif '// INSERT MAP CENTER HERE' in line:
+                    newmap.write('\tcenter:[{}, {}],\n'.format(c[0], c[1]))
+                elif '// INSERT BBOX HERE' in line and bbox is not None:
+                    newmap.write('\tmap.fitBounds([[{}, {}], [{}, {}]]);\n'
+                                 .format(bbox[0], bbox[1], bbox[2],
+                                         bbox[3]))
+                else:
+                    newmap.write(line)

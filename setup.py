@@ -51,7 +51,7 @@ setup(name='swmmio',
       author=AUTHOR_NAME,
       url='https://github.com/aerispaha/swmmio',
       author_email=AUTHOR_EMAIL,
-      packages=find_packages(exclude=('tests')),
+      packages=find_packages(exclude='tests'),
       entry_points={
           "console_scripts": ['swmmio_run = swmmio.run_models.run:run_simple']
       },
@@ -66,7 +66,7 @@ setup(name='swmmio',
           "Development Status :: 3 - Alpha",
           "License :: OSI Approved :: MIT License",
           "Operating System :: OS Independent",
-          "Programming Language :: Python :: 2.7",
           "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
       ]
       )

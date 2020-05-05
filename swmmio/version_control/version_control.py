@@ -49,8 +49,6 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
         bi.build(baseline_dir, model.inp.path) #overwrite old inp
 
 
-
-
 def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
                         comments=''):
 

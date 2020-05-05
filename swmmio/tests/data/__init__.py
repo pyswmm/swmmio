@@ -13,6 +13,7 @@ import os
 DATA_PATH = os.path.abspath(os.path.dirname(__file__))
 
 # Test models paths
+MODEL_A_PATH = os.path.join(DATA_PATH, 'model_state_plane.inp')
 MODEL_FULL_FEATURES_PATH = os.path.join(DATA_PATH, 'model_full_features.inp')
 MODEL_FULL_FEATURES_XY = os.path.join(
     DATA_PATH, 'model_full_features_network_xy.inp')
