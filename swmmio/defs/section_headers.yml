@@ -153,9 +153,9 @@ composite:
     inp_sections: [pumps]
     rpt_sections: [Link Flow Summary]
   subcatchments:
-    columns: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope, CurbLength,
-              SnowPack]
-    inp_sections: ['[SUBCATCHMENTS]']
-    rpt_sections: []
+    inp_sections: [subcatchments]
+    join_sections: [subareas]
+    rpt_sections: [Subcatchment Runoff Summary]
+    geomtype: polygon
 
 
