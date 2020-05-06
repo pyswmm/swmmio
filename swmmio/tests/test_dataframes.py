@@ -5,8 +5,7 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT)
-from swmmio.utils.dataframes import (dataframe_from_rpt, get_link_coords,
-                                     dataframe_from_inp, dataframe_from_bi)
+from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 import swmmio
 
 import pandas as pd
@@ -172,43 +171,6 @@ def test_coordinates():
     # change projection
 
 
-def test_model_section():
-    m = swmmio.Model(MODEL_FULL_FEATURES_XY)
-
-    def pumps_old_method(model):
-        """
-        collect all useful and available data related model pumps and
-        organize in one dataframe.
-        """
-
-        # check if this has been done already and return that data accordingly
-        if model._pumps_df is not None:
-            return model._pumps_df
-
-        # parse out the main objects of this model
-        inp = model.inp
-
-        # create dataframes of relevant sections from the INP
-        pumps_df = dataframe_from_inp(inp.path, "[PUMPS]")
-        if pumps_df.empty:
-            return pd.DataFrame()
-
-        # add conduit coordinates
-        xys = pumps_df.apply(lambda r: get_link_coords(r, inp.coordinates, inp.vertices), axis=1)
-        df = pumps_df.assign(coords=xys.map(lambda x: x[0]))
-        df.InletNode = df.InletNode.astype(str)
-        df.OutletNode = df.OutletNode.astype(str)
-
-        model._pumps_df = df
-
-        return df
-
-    pumps_old_method = pumps_old_method(m)
-    pumps = m.pumps()
-
-    assert(pumps_old_method.equals(pumps))
-
-
 def test_links_dataframe_from_rpt(test_model_02):
 
     link_flow_summary = dataframe_from_rpt(test_model_02.rpt.path, 'Link Flow Summary')
@@ -227,30 +189,6 @@ def test_links_dataframe_from_rpt(test_model_02):
     '''
     lfs_df = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
     assert(lfs_df.equals(link_flow_summary))
-
-
-def test_dataframe_composite(test_model_02):
-    m = test_model_02
-    links = m.links
-
-    feat = links.geojson[2]
-    assert feat['properties']['Name'] == '1'
-    assert feat['properties']['MaxQ'] == 2.54
-
-    links_gdf = links.geodataframe
-    assert links_gdf.index[2] == '1'
-    assert links_gdf.loc['1', 'MaxQ'] == 2.54
-
-
-def test_subcatchment_composite(test_model_02):
-
-    subs = test_model_02.subcatchments
-    assert subs.dataframe.loc['S3', 'Outlet'] == 'j3'
-    assert subs.dataframe['TotalRunoffIn'].sum() == pytest.approx(2.45, 0.001)
-
-    print(subs.dataframe[['TotalRunoffIn', 'Outlet', 'coords']])
-
-    print(subs.geojson)
 
 
 def test_polygons(test_model_02):

@@ -1,16 +1,18 @@
 import swmmio.utils.functions
 import swmmio.utils.text
 from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
-                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK)
+                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK, MODEL_A_PATH)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
-from swmmio.version_control.inp import INPSectionDiff, merge_models
+from swmmio.version_control.inp import INPSectionDiff, merge_models, INPDiff
 from swmmio.utils.dataframes import dataframe_from_inp
+from swmmio.utils.text import get_inp_sections_details
 
 import os
 import shutil
 import tempfile
 import pytest
+import filecmp
 
 
 def makedirs(newdir):
@@ -192,3 +194,29 @@ def test_modify_model():
         m2 = Model(newfilepath)
         of2 = m2.inp.outfalls
         assert (of2.loc['J4', 'InvertElev'].round(1) == of_test.loc['J4', 'InvertElev'].round(1))
+
+
+def test_modify_inp_sections():
+    m1 = swmmio.Model(MODEL_A_PATH)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        cp_path = os.path.join(tempdir, f'{m1.inp.name}.inp')
+        m1.inp.save(cp_path)
+
+        # first confirm saving a copy produces same content
+        assert filecmp.cmp(MODEL_A_PATH, cp_path)
+
+        # change a section
+        m2_path = os.path.join(tempdir, f'{m1.inp.name}_nodes_99.inp')
+        m1.inp.junctions['InvertElev'] = 99
+        m1.inp.save(m2_path)
+        m2 = swmmio.Model(m2_path)
+
+        # confirm the change worked
+        assert m2.inp.junctions['InvertElev'].min() == 99
+        assert m2.inp.junctions['InvertElev'].max() == 99
+
+        # confirm all sections are in the new model
+        sects1 = get_inp_sections_details(m1.inp.path)
+        sects2 = get_inp_sections_details(m2.inp.path)
+        assert all([x in sects1 for x in sects2])

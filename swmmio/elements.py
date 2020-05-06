@@ -66,6 +66,11 @@ class ModelSection(object):
         # concat inp sections with unique element IDs
         headers = get_inp_sections_details(self.inp.path)
         dfs = [dataframe_from_inp(self.inp.path, sect) for sect in self.inp_sections if sect.upper() in headers]
+
+        # return empty df if no inp sections found
+        if len(dfs) == 0:
+            return pd.DataFrame()
+
         df = pd.concat(dfs, axis=0, sort=False)
 
         # join to this any sections with matching IDs (e.g. XSECTIONS)
