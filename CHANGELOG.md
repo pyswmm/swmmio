@@ -1,4 +1,14 @@
-###############################################################################
+## Version 0.4.2 (2020/05/06)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 90](https://github.com/aerispaha/swmmio/issues/90) - changing an inp section removes all subsequent sections during model.inp.save()
+* [Issue 87](https://github.com/aerispaha/swmmio/issues/87) - Model.subcacthments() fails in models with no subcatchments
+
+In this release 2 issues were closed.
+
 ## Version 0.4.1 (2020/05/05)
 
 ### Issues Closed
