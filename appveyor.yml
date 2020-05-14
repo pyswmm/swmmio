@@ -2,9 +2,6 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
-    - PYTHON: "C:\\Python36"
-      MINICONDA: "C:\\Miniconda36"
-      PYTHON_VERSION: 3.6
     - PYTHON: "C:\\Python37"
       MINICONDA: "C:\\Miniconda37"
       PYTHON_VERSION: 3.7

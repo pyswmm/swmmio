@@ -1,18 +1,14 @@
-#UTILITY FUNCTIONS AIMED AT I/O OPERATIONS WITH TEXT FILES
-#STANDARD READING AND WRITING OF TEXT FILES (E.G. .INP AND .RPT)
+# UTILITY FUNCTIONS AIMED AT I/O OPERATIONS WITH TEXT FILES
+# STANDARD READING AND WRITING OF TEXT FILES (E.G. .INP AND .RPT)
 
 import os
-from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, INP_SECTION_TAGS
+from swmmio.defs import INFILTRATION_COLS, INP_SECTION_TAGS
 from collections import OrderedDict, deque
 from io import StringIO
-from swmmio.utils.functions import random_alphanumeric, format_inp_section_header
-
-#default file path suffix
-txt = '.txt'
+from swmmio.utils.functions import format_inp_section_header
 
 
 def inline_comments_in_inp(filepath, overwrite=False):
-
     """
     with an existing INP file, shift any comments that have been placed above the
     element (behavoir from saving in GUI) and place them to the right, inline with
@@ -25,29 +21,26 @@ def inline_comments_in_inp(filepath, overwrite=False):
     with open(filepath) as oldf:
         with open(newfilepath, 'w') as new:
 
-            comment_concat = [] #to hold list of comments (handles multiline comments)
+            # to hold list of comments (handles multiline comments)
+            comment_concat = []
             current_section = list(allheaders.keys())[0]
             for line in oldf:
 
-                #determine what section we are in by noting when we pass double brackets
+                # determine what section we are in by noting when we pass double brackets
                 if '[' and ']' in line:
                     current_section = line.strip()
 
-
-                #if line.count(';') == 1 and line.strip()[0]==';':
                 if len(line.strip()) > 1:
-                    if line.strip()[0]==';' and ''.join(line.strip()[:2]) != ';;':
-                        #print line.strip()[:2]
-                        #this is a comment bc first char is ; and there
-                        #seconf char is not (which would resember the header section)
+                    if line.strip()[0] == ';' and ''.join(line.strip()[:2]) != ';;':
+                        # this is a comment bc first char is ; and the
+                        # second char is not (which would resemble the header section)
                         words = line.split()
-                        hdrs = allheaders[current_section]['columns']#headerrow.split()
+                        hdrs = allheaders[current_section]['columns']
                         perc_match_to_header = float(len([x for x in words if x in hdrs])) / float(len(hdrs))
                         if perc_match_to_header <= 0.75:
                             comment_concat.append(line.strip())
                     else:
-                        #print comment_concat
-                        #this row has data, tack any comment to the line end
+                        # this row has data, tack any comment to the line end
                         comment_string = ''
                         if len(comment_concat) > 0:
                             comment_string = r' '.join(comment_concat)
@@ -55,10 +48,10 @@ def inline_comments_in_inp(filepath, overwrite=False):
                         new.write(newlinestring)
                         comment_concat = []
                 else:
-                    #write the short line
+                    # write the short line
                     new.write(line)
 
-    #rename files and remove old if we should overwrite
+    # rename files and remove old if we should overwrite
     if overwrite:
         os.remove(filepath)
         os.rename(newfilepath, filepath)
@@ -68,12 +61,11 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
     """
     Extract a portion of a file found between one or more start strings and the first
     encountered end string.
-    :param file_path:
-    :param start_strings:
-    :param end_strings:
-    :param skip_headers:
-    :param comment:
-    :return:
+    :param file_path: path to the source file
+    :param start_strings: string or list of strings from which to start extracting
+    :param end_strings: string or list of strings at which to stop extracting
+    :param comment: comment string used to ignore parts of source file
+    :return: string extracted from source file
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment=None)
     >>> print(s.strip())
@@ -121,12 +113,6 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
                         out_string += s
                     else:
                         out_string += line
-                # elif skip_headers:
-                #     # check if we're at a inp header row with ';;' or the section
-                #     # header e.g. [XSECTIONS]. If so, skip the row bc skipheader = True
-                #     if line.strip()[:2] != ";;" and line.strip().upper() != search_str.upper():
-                #         # newf.write(line)
-                #         out_string += line
                 else:
                     out_string += line
 
@@ -208,8 +194,6 @@ def get_inp_sections_details(inp_path, include_brackets=False):
                           delim_whitespace=True, skiprows=[0], index_col=0,
                           names=ops_cols)
 
-    # print(f'options:\n{options}')
-    # print(list(found_sects.keys()))
     if 'INFILTRATION' in found_sects:
         # select the correct infiltration column names
         # fall back to HORTON if invalid/unset infil type
@@ -223,7 +207,6 @@ def get_inp_sections_details(inp_path, include_brackets=False):
             inf_id = '[{}]'.format('INFILTRATION')
 
         # overwrite the dynamic sections with proper header cols
-
         found_sects[inf_id]['columns'] = list(infil_cols)
     return found_sects
 

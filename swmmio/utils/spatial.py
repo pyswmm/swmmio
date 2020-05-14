@@ -61,11 +61,12 @@ def change_crs(series, in_crs, to_crs):
             return get_xys([series])
 
 
-def coords_series_to_geometry(coords, geomtype='linestring', format='geojson'):
+def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
     """
     Convert a series of coords (list of list(s)) to a series of geometry objects.
     :param coords: series of lists of xy coordinates
-    :param format: format of geometry objects to be created ('geojson', 'shapely')
+    :param geomtype: geometry type of target 
+    :param dtype: format of geometry objects to be created ('geojson', 'shapely')
     :return: series of geometry objects
     >>> import swmmio
     >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -84,7 +85,7 @@ def coords_series_to_geometry(coords, geomtype='linestring', format='geojson'):
     elif geomtype == 'polygon':
         geoms = [Polygon([latlngs]) for latlngs in coords]
 
-    if format.lower() == 'shape':
+    if dtype.lower() == 'shape':
         # convert to shapely objects
         try:
             from shapely.geometry import shape
@@ -96,16 +97,50 @@ def coords_series_to_geometry(coords, geomtype='linestring', format='geojson'):
     return pd.Series(index=coords.index, name='geometry', data=geoms)
 
 
-def write_geojson(df, filename=None, geomtype='linestring'):
-    # try:
-    #     import pyproj
-    # except ImportError:
-    #     raise ImportError('pyproj module needed. get this package here: ',
-    #                       'https://pypi.python.org/pypi/pyproj')
-    #
-    # # SET UP THE TO AND FROM COORDINATE PROJECTION
-    # pa_plane = pyproj.Proj(init=inproj, preserve_units=True)
-    # wgs = pyproj.Proj(proj='longlat', datum='WGS84', ellps='WGS84')  # google maps, etc
+def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
+    """
+    convert dataframe with coords series to geojson format
+    :param df: target dataframe
+    :param filename: optional path of new file to contain geojson
+    :param geomtype: geometry type [linestring, point, polygon]
+    :param drop_na: whether to remove properties with None values
+    :return: geojson.FeatureCollection
+
+    >>> from swmmio.examples import philly
+    >>> geoj = write_geojson(philly.links.dataframe, drop_na=True)
+    >>> print(json.dumps(geoj['features'][0]['properties'], indent=2))
+    {
+      "InletNode": "J1-025",
+      "OutletNode": "J1-026",
+      "Length": 309.456216,
+      "Roughness": 0.014,
+      "InOffset": 0,
+      "OutOffset": 0.0,
+      "InitFlow": 0,
+      "MaxFlow": 0,
+      "Shape": "CIRCULAR",
+      "Geom1": 1.25,
+      "Geom2": 0,
+      "Geom3": 0,
+      "Geom4": 0,
+      "Barrels": 1,
+      "Name": "J1-025.1"
+    }
+    >>> print(json.dumps(geoj['features'][0]['geometry'], indent=2))
+    {
+      "type": "LineString",
+      "coordinates": [
+        [
+          2746229.223,
+          1118867.764
+        ],
+        [
+          2746461.473,
+          1118663.257
+        ]
+      ]
+    }
+    """
 
     # CONVERT THE DF INTO JSON
     df['Name'] = df.index  # add a name column (we wont have the index)
@@ -117,11 +152,9 @@ def write_geojson(df, filename=None, geomtype='linestring'):
 
         coordinates = rec['coords']
         del rec['coords']  # delete the coords so they aren't in the properties
-
-        # transform to the typical 'WGS84' coord system
-        # latlngs = [pyproj.transform(pa_plane, wgs, *xy) for xy in coordinates]
+        if drop_na:
+            rec = {k: v for k, v in rec.items() if v is not None}
         latlngs = coordinates
-        # print(latlngs)
 
         if geomtype == 'linestring':
             geometry = LineString(latlngs)
