@@ -1,3 +1,17 @@
+## Version 0.4.3 (2020/05/14)
+
+### Issues Closed
+
+#### Enhancements
+
+* [Issue 93](https://github.com/aerispaha/swmmio/issues/93) - dataframe_from_rpt fails if more than one element is provided in the section
+
+#### Bugs fixed
+
+* [Issue 94](https://github.com/aerispaha/swmmio/issues/94) - remove obsolete swmmio.graphics.animate module
+
+In this release 2 issues were closed.
+
 ## Version 0.4.2 (2020/05/06)
 
 ### Issues Closed
