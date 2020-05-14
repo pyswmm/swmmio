@@ -138,11 +138,15 @@ composite:
   nodes:
     inp_sections: [junctions, outfalls, storage]
     rpt_sections: [Node Depth Summary, Node Flooding Summary, Node Inflow Summary]
+    columns: [InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea,
+               OutfallType, StageOrTimeseries, TideGate, MaxD, StorageCurve,
+               Coefficient, Exponent, Constant, EvapFrac, SuctionHead,
+               Conductivity, InitialDeficit, coords]
   junctions:
     columns: Name, Elevation, MaxDepth, InitDepth, SurDepth, Aponded
     inp_sections: []
   orifices:
-    inp_sections: ['ORIFICES']
+    inp_sections: [ORIFICES]
     rpt_sections: [Link Flow Summary]
   outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
   links:

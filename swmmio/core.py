@@ -28,6 +28,70 @@ class Model(object):
         initialize a swmmio.Model object by pointing it to a directory containing
         a single INP (and optionally an RPT file with matching filename) or by
         pointing it directly to an .inp file.
+
+        Examples
+        ========
+        >>> # initialize a model object by passing the path to an INP file
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+        >>> m = Model(MODEL_FULL_FEATURES_XY)
+        >>> # access sections of inp via the Model.inp object
+        >>> m.inp.junctions
+              InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+        Name                                                             
+        J3         6.547        15          0               0           0
+        1         17.000         0          0               0           0
+        2         17.000         0          0               0           0
+        3         16.500         0          0               0           0
+        4         16.000         0          0               0           0
+        5         15.000         0          0               0           0
+        J2        13.000        15          0               0           0
+        >>> m.inp.coordinates
+                        X            Y
+        Name                          
+        J3    2748073.306  1117746.087
+        1     2746913.127  1118559.809
+        2     2747728.148  1118449.164
+        3     2747242.131  1118656.381
+        4     2747345.325  1118499.807
+        5     2747386.555  1118362.817
+        J2    2747514.212  1118016.207
+        J4    2748515.571  1117763.466
+        J1    2747402.678  1118092.704
+
+        Access composite sections of the model that merge together
+        sensible sections of the inp into one dataframe. The `Model.links.dataframe`
+        section, for example, returns a dataframe containing PUMPS, CONDUITS, WEIRS,
+        and ORIFICES joined with XSECTIONS, COORDINATES and the Link Flow Summary (if
+        there is an rpt file found).
+
+        Examples
+        ========
+        >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']]
+              InletNode OutletNode  Length  Roughness  Geom1
+        Name                                                
+        C1:C2        J1         J2  244.63       0.01    1.0
+        C2.1         J2         J3  666.00       0.01    1.0
+        1:4           1          4  400.00       0.01    1.0
+        4:5           4          5  400.00       0.01    1.0
+        5:J1          5         J1  400.00       0.01    1.0
+        3:4           3          4  400.00       0.01    1.0
+        2:5           2          5  400.00       0.01    1.0
+        C3           J3         J4     NaN        NaN    5.0
+        C2           J2         J3     NaN        NaN    NaN
+        >>> # return all conduits (drop coords for clarity)
+        >>> from swmmio.examples import jersey
+        >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']]
+              InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+        Name                                                             
+        J3         6.547      15.0        0.0             0.0         0.0
+        1         17.000       0.0        0.0             0.0         0.0
+        2         17.000       0.0        0.0             0.0         0.0
+        3         16.500       0.0        0.0             0.0         0.0
+        4         16.000       0.0        0.0             0.0         0.0
+        5         15.000       0.0        0.0             0.0         0.0
+        J2        13.000      15.0        0.0             0.0         0.0
+        J4         0.000       NaN        NaN             NaN         NaN
+        J1        13.392       NaN        0.0             NaN         0.0
         """
         self.crs = None
         inp_path = None
@@ -60,14 +124,6 @@ class Model(object):
                     self.rpt = rpt(rpt_path)
                 except Exception as e:
                     print('{}.rpt failed to initialize\n{}'.format(name, e))
-
-            # try to initialize a companion OUT file object
-            out_path = os.path.join(wd, name + '.out')
-            if os.path.exists(out_path):
-                try:
-                    self.out = out(out_path)
-                except Exception as e:
-                    print('{}.out failed to initialize\n{}'.format(name, e))
 
             self._nodes_df = None
             self._conduits_df = None
@@ -210,11 +266,13 @@ class Model(object):
         create a DataFrame containing all link objects in the model including
         conduits, pumps, weirs, and orifices.
         :return: dataframe containing all link objects in the model
+        >>> from swmmio.examples import philly
+        >>> philly.links.dataframe
+
         """
         if self._links_df is not None:
             return self._links_df
         df = Links(model=self, **COMPOSITE_OBJECTS['links'])
-        # df.dataframe['facilityid'] = df.dataframe.index
         self._links_df = df
         return df
 

@@ -114,7 +114,7 @@ def test_nodes_dataframe():
     assert (list(nodes.index) == node_ids_01)
     assert (nodes.loc['dummy_node1', 'InvertElev'] == -10.99)
     assert (nodes.loc['dummy_node2', 'MaxDepth'] == 20)
-    assert (nodes.loc['dummy_node3', 'X'] == -4205.457)
+    assert (nodes.loc['dummy_node3', 'coords'] == [(-4205.457, 9695.024)])
     assert (nodes.loc['dummy_node4', 'MaxDepth'] == 12.59314)
     assert (nodes.loc['dummy_node5', 'PondedArea'] == 73511)
 
