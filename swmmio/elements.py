@@ -168,6 +168,40 @@ class Nodes(ModelSection):
 
 class Links(ModelSection):
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
+        """
+        Generalized links object for working with link-like SWMM objects.
+
+        :param model: swmmio.Model object
+        :param inp_sections: list of link-related sections from the inp file to concatenate in the object
+        :param join_sections: list of link-related sections from the inp file to join to the object
+        :param rpt_sections: list of link-related sections from the rpt file to join to the object
+        :param columns: optional subset of columns used to exclude unwanted columns in the resulting object
+
+        Examples
+        ========
+        >>> from swmmio.examples import spruce
+        >>> conduits = Links(
+        ...     spruce,
+        ...     inp_sections=['conduits'],
+        ...     rpt_sections=['Link Flow Summary'],
+        ...     columns=['MaxQ', 'MaxQPerc', 'coords']
+        ... )
+        >>> conduits.dataframe
+               MaxQ  MaxQPerc                                             coords
+        Name                                                                    
+        C1:C2  2.45      1.32                    [(0.0, 0.0), (238.75, -53.332)]
+        C2.1   0.00      0.00  [(238.75, -53.332), (295.63599999999997, -159....
+        1      2.54      1.10  [(-77.021, -78.321), (-67.28399999999999, -37....
+        2      2.38      1.03  [(-67.28399999999999, -37.603), (-56.662, 15.5...
+        3      1.97      0.67                    [(-56.662, 15.507), (0.0, 0.0)]
+        4      0.16      0.10  [(-18.6, -71.23899999999999), (-23.91099999999...
+        5      0.00      0.00  [(-84.988, 43.833), (-85.87299999999999, 19.93...
+        >>> # access data as geojson
+        >>> conduits.geojson['features'][0]['geometry']
+        {"coordinates": [[0.0, 0.0], [238.75, -53.332]], "type": "LineString"}
+        >>> conduits.geojson['features'][0]['properties']
+        {'MaxQ': 2.45, 'MaxQPerc': 1.32, 'Name': 'C1:C2'}
+        """
         super().__init__(model, inp_sections, join_sections, rpt_sections, columns,
                          geomtype='linestring')
 

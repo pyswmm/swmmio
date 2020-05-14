@@ -65,7 +65,7 @@ def test_node_dataframe_from_rpt(test_model_02):
     flood_summ = swmmio.dataframe_from_rpt(m.rpt.path, "Node Flooding Summary")
     print(flood_summ)
 
-    assert (inflo_summ.loc['J3', 'TotalInflowV'] == 6.1)
+    assert (inflo_summ.loc['J3', 'TotalInflowV'] == 6.096)
     assert (inflo_summ.loc['J1', 'MaxTotalInflow'] == 3.52)
 
     assert (depth_summ.loc['J3', 'MaxNodeDepth'] == 1.64)
@@ -184,11 +184,22 @@ def test_links_dataframe_from_rpt(test_model_02):
     3      CONDUIT  1.97       0  09:59  2.92      0.67      1.00
     4      CONDUIT  0.16       0  10:05  0.44      0.10      0.63
     5      CONDUIT  0.00       0  00:00  0.00      0.00      0.50
-    C2        PUMP  4.33       0  10:00  0.22       NaN       NaN
+    C2        PUMP  4.33       0  09:59  0.22       NaN       NaN
     C3        WEIR  7.00       0  10:00  0.33       NaN       NaN
     '''
     lfs_df = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
     assert(lfs_df.equals(link_flow_summary))
+
+
+def test_subcatchments_dataframe_from_rpt(test_model_02):
+
+    sub_ro_summary = dataframe_from_rpt(test_model_02.rpt.path, 'Subcatchment Runoff Summary')
+    tot_ro = sub_ro_summary['TotalRunoffMG'].sum()
+    assert tot_ro == pytest.approx(0.28, 0.001)
+
+    # test retrieving timeseries results
+    s1_results = dataframe_from_rpt(test_model_02.rpt.path, 'Subcatchment Results', 'S1')
+    assert s1_results['RunoffCFS'].max() == pytest.approx(0.5526, 0.00001)
 
 
 def test_polygons(test_model_02):

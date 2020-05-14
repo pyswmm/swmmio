@@ -20,7 +20,7 @@ END_TIME             00:00:00
 SWEEP_START          01/01
 SWEEP_END            12/31
 DRY_DAYS             0
-REPORT_STEP          00:01:00
+REPORT_STEP          01:00:00
 WET_STEP             00:05:00
 DRY_STEP             00:05:00
 ROUTING_STEP         0:00:01 
@@ -31,12 +31,6 @@ FORCE_MAIN_EQUATION  H-W
 VARIABLE_STEP        0.75
 LENGTHENING_STEP     0
 MIN_SURFAREA         12.557
-MAX_TRIALS           8
-HEAD_TOLERANCE       0.005
-SYS_FLOW_TOL         5
-LAT_FLOW_TOL         5
-MINIMUM_STEP         0.5
-THREADS              1
 
 [EVAPORATION]
 ;;Data Source    Parameters
@@ -246,8 +240,8 @@ SCS_24h_Type_I_1in            24:00      0
 ;;Reporting Options
 INPUT      YES
 CONTROLS   YES
-SUBCATCHMENTS NONE
-NODES ALL
+SUBCATCHMENTS S1 S2
+NODES NONE
 LINKS NONE
 
 [TAGS]

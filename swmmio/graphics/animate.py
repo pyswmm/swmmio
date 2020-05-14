@@ -4,7 +4,7 @@ bring the Link / Node object usage up to speed
 """
 
 from swmmio.graphics import swmm_graphics as sg
-from swmmio.graphics import draw_utils as du
+from swmmio.graphics import utils as du
 from swmmio.utils import swmm_utils as su
 from swmmio.vendor.images2gif import writeGif
 from PIL import Image, ImageDraw, ImageFont

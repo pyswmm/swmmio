@@ -53,7 +53,7 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
     return df
 
 
-def dataframe_from_rpt(rpt_path, section):
+def dataframe_from_rpt(rpt_path, section, element_id=None):
     """
     create a dataframe from a section of an RPT file
     :param rpt_path:
@@ -68,10 +68,19 @@ def dataframe_from_rpt(rpt_path, section):
         warnings.warn(f'{section} section not found in {rpt_path}')
         return pd.DataFrame()
 
-    # and get the list of columns to use for parsing this section
-    end_strings = list(headers.keys())
-    end_strings.append('***********')
-    start_strings = [section, '-'*20, '-'*20]
+    # handle case for extracting timeseries results
+    if element_id is not None:
+        end_strings = ['<<< ']
+        start_strings = [
+            section,
+            f"<<< {section.replace(' Results', '')} {element_id} >>>",
+            '-' * 20, '-' * 20
+        ]
+    else:
+        # and get the list of columns to use for parsing this section
+        end_strings = list(headers.keys())
+        end_strings.append('***********')
+        start_strings = [section, '-'*20, '-'*20]
     cols = headers[section]['columns']
 
     # extract the string and read into a dataframe
