@@ -17,6 +17,10 @@ from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_O
 from swmmio.utils.functions import trim_section_to_nodes
 from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details
 
+pd.set_option('max_columns', 5)
+
+__all__ = ['Model', 'inp', 'rpt']
+
 
 class Model(object):
 
@@ -245,8 +249,12 @@ class Model(object):
     def pumps(self):
 
         """
-        collect all useful and available data related model pumps and
+        Collect all useful and available data related model pumps and
         organize in one dataframe.
+
+        :return: dataframe containing all pumps objects in the model
+        :rtype: pd.DataFrame
+
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -263,12 +271,16 @@ class Model(object):
     @property
     def links(self):
         """
-        create a DataFrame containing all link objects in the model including
+        Create a DataFrame containing all link objects in the model including
         conduits, pumps, weirs, and orifices.
+
         :return: dataframe containing all link objects in the model
+        :rtype: pd.DataFrame
+
+        Examples
+        ---------
         >>> from swmmio.examples import philly
         >>> philly.links.dataframe
-
         """
         if self._links_df is not None:
             return self._links_df
@@ -279,8 +291,25 @@ class Model(object):
     @property
     def nodes(self, bbox=None):
         """
-        collect all useful and available data related model nodes and organize
+        Collect all useful and available data related model nodes and organize
         in one dataframe.
+
+        :return: dataframe containing all node objects in the model
+        :rtype: pd.DataFrame
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.nodes.dataframe['InvertElev']
+        Name
+        J3     6.547
+        1     17.000
+        2     17.000
+        3     16.500
+        4     16.000
+        5     15.000
+        J2    13.000
+        J4     0.000
+        J1    13.392
+        Name: InvertElev, dtype: float64
         """
 
         # check if this has been done already and return that data accordingly
@@ -308,6 +337,7 @@ class Model(object):
     def network(self):
         """
         Networkx MultiDiGraph representation of the model
+
         :return: Networkx MultiDiGraph representation of model
         :rtype: networkx.MultiDiGraph
         """
@@ -321,9 +351,10 @@ class Model(object):
     def to_crs(self, *args, **kwargs):
         """
         Convert coordinate reference system of the model coordinates
-        :param target_crs:
+
+        :param target_crs: coordinate reference system to reproject
         :return: True
-        Example:
+
         >>> import swmmio
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="+init=EPSG:2272")
         >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
@@ -503,10 +534,16 @@ class inp(SWMMIOFile):
         ]
 
     def save(self, target_path=None):
-        '''
+        """
         Save the inp file to disk. File will be overwritten unless a target_path
         is provided
-        '''
+
+        :param target_path: optional path to new inp file
+        :return: None
+
+        >>> from swmmio.examples import philly
+        >>> philly.inp.save('copy-of-philly.inp')
+        """
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
         target_path = target_path if target_path is not None else self.path
@@ -559,7 +596,6 @@ class inp(SWMMIOFile):
         :return: options section of the INP file
         :rtype: pandas.DataFrame
 
-        Examples:
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -816,6 +852,7 @@ class inp(SWMMIOFile):
     def infiltration(self):
         """
         Get/set infiltration section of the INP file.
+
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)

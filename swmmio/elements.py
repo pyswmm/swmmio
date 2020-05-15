@@ -8,6 +8,8 @@ from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
 from swmmio.utils.spatial import coords_series_to_geometry, write_geojson
 from swmmio.utils.text import get_inp_sections_details
 
+__all__ = ['Links', 'Nodes', 'ModelSection']
+
 
 class ModelSection(object):
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None,

@@ -129,11 +129,26 @@ class INPSectionDiff(object):
     """
     This object represents the 'changes' of a given section of a INP file
     with respect to another INP. Three main dataframes are attributes:
-        added   --> includes elements that are new in model2 (compare to model1)
-        removed --> elements that do not exist in model2, that were found to model1
-        altered --> elements whose attributes have changes from model1 to model2
+    - **added**: includes elements that are new in model2 (compare to model1)
+    - **removed**: elements that do not exist in model2, that were found to model1
+    - **altered**: elements whose attributes have changes from model1 to model2
 
+    :param model1: base model for diff
+    :param model2: target model for diff
+    :param section: section of the inp used for comparison
+    :param build_instr_file: optionally instantiate an INPSectionDiff from an existing Build Instructions file
 
+    >>> from swmmio.examples import jersey, jerzey
+    >>> mydiff = INPSectionDiff(jersey, jerzey, section='JUNCTIONS')
+    >>> print(mydiff)
+    <BLANKLINE>
+          InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea  ;  Comment                     Origin
+    Name                                                                                                    
+    1           17.0         0          0               0           0  ;  Removed  model_full_features_b.inp
+    2           17.0         0          0               0           0  ;  Removed  model_full_features_b.inp
+    3           16.5         0          0               0           0  ;  Removed  model_full_features_b.inp
+    4           16.0         0          0               0           0  ;  Removed  model_full_features_b.inp
+    5           15.0         0          0               0           0  ;  Removed  model_full_features_b.inp
     """
 
     def __init__(self, model1=None, model2=None, section='JUNCTIONS', build_instr_file=None):
@@ -208,24 +223,25 @@ class INPSectionDiff(object):
 
 
 class INPDiff(object):
+    """
+    Diff of all INP sections between two models
+
+    :param model1: base model for diff
+    :param model2: target model for diff
+
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
+    >>> mydiff = INPDiff(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B)
+    >>> print(mydiff.diffs['XSECTIONS'])
+    <BLANKLINE>
+             Shape  Geom1  Geom2  Geom3  Geom4  Barrels  XX  ;  Comment                     Origin
+    Link                                                                                          
+    1:4   CIRCULAR      1      0      0      0      1.0 NaN  ;  Removed  model_full_features_b.inp
+    2:5   CIRCULAR      1      0      0      0      1.0 NaN  ;  Removed  model_full_features_b.inp
+    3:4   CIRCULAR      1      0      0      0      1.0 NaN  ;  Removed  model_full_features_b.inp
+    4:5   CIRCULAR      1      0      0      0      1.0 NaN  ;  Removed  model_full_features_b.inp
+    5:J1  CIRCULAR      1      0      0      0      1.0 NaN  ;  Removed  model_full_features_b.inp
+    """
     def __init__(self, model1=None, model2=None):
-        """
-        diff of all INP sections between two models
-        :param model1:
-        :param model2:
-        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B
-        >>> mydiff = INPDiff(MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES_XY_B)
-        >>> mydiff.diffs['[XSECTIONS]']
-                 Shape  Geom1  Geom2  Geom3  Geom4  Barrels  ;  Comment                     Origin
-        Link
-        1:4   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
-        2:5   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
-        3:4   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
-        4:5   CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
-        5:J1  CIRCULAR      1      0      0      0      1.0  ;  Removed  model_full_features_b.inp
-        <BLANKLINE>
-        >>> print(mydiff)
-        """
         m1 = model1
         m2 = model2
         if isinstance(m1, str):
