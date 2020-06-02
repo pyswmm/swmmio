@@ -1,11 +1,11 @@
 ..  -*- coding: utf-8 -*-
 
-.. currentmodule:: swmmio
+.. currentmodule:: swmmio.core
 
-swmmio Module
-=============
+`swmmio` Core Objects
+========================
 
 .. automodule:: swmmio
-    :members: Model, SWMMIOFile, rpt, inp
+    :members: Model, Links, Nodes
     :undoc-members:
     :show-inheritance:

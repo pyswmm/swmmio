@@ -17,82 +17,82 @@ from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_O
 from swmmio.utils.functions import trim_section_to_nodes
 from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details
 
+pd.set_option('max_columns', 5)
+
+__all__ = ['Model', 'inp', 'rpt']
+
 
 class Model(object):
+    """
+    Class representing a complete SWMM model incorporating its INP and RPT
+    files and data
 
-    def __init__(self, in_file_path, crs=None):
-        """
-        Class representing a complete SWMM model incorporating its INP and RPT
-        files and data
+    initialize a swmmio.Model object by pointing it to a directory containing
+    a single INP (and optionally an RPT file with matching filename) or by
+    pointing it directly to an .inp file.
 
-        initialize a swmmio.Model object by pointing it to a directory containing
-        a single INP (and optionally an RPT file with matching filename) or by
-        pointing it directly to an .inp file.
+    >>> # initialize a model object by passing the path to an INP file
+    >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
+    >>> m = Model(MODEL_FULL_FEATURES_XY)
+    >>> # access sections of inp via the Model.inp object
+    >>> m.inp.junctions
+          InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+    Name
+    J3         6.547        15          0               0           0
+    1         17.000         0          0               0           0
+    2         17.000         0          0               0           0
+    3         16.500         0          0               0           0
+    4         16.000         0          0               0           0
+    5         15.000         0          0               0           0
+    J2        13.000        15          0               0           0
+    >>> m.inp.coordinates
+                    X            Y
+    Name
+    J3    2748073.306  1117746.087
+    1     2746913.127  1118559.809
+    2     2747728.148  1118449.164
+    3     2747242.131  1118656.381
+    4     2747345.325  1118499.807
+    5     2747386.555  1118362.817
+    J2    2747514.212  1118016.207
+    J4    2748515.571  1117763.466
+    J1    2747402.678  1118092.704
 
-        Examples
-        ========
-        >>> # initialize a model object by passing the path to an INP file
-        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
-        >>> m = Model(MODEL_FULL_FEATURES_XY)
-        >>> # access sections of inp via the Model.inp object
-        >>> m.inp.junctions
-              InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
-        Name                                                             
-        J3         6.547        15          0               0           0
-        1         17.000         0          0               0           0
-        2         17.000         0          0               0           0
-        3         16.500         0          0               0           0
-        4         16.000         0          0               0           0
-        5         15.000         0          0               0           0
-        J2        13.000        15          0               0           0
-        >>> m.inp.coordinates
-                        X            Y
-        Name                          
-        J3    2748073.306  1117746.087
-        1     2746913.127  1118559.809
-        2     2747728.148  1118449.164
-        3     2747242.131  1118656.381
-        4     2747345.325  1118499.807
-        5     2747386.555  1118362.817
-        J2    2747514.212  1118016.207
-        J4    2748515.571  1117763.466
-        J1    2747402.678  1118092.704
+    Access composite sections of the model that merge together
+    sensible sections of the inp into one dataframe. The `Model.links.dataframe`
+    section, for example, returns a dataframe containing PUMPS, CONDUITS, WEIRS,
+    and ORIFICES joined with XSECTIONS, COORDINATES and the Link Flow Summary (if
+    there is an rpt file found).
 
-        Access composite sections of the model that merge together
-        sensible sections of the inp into one dataframe. The `Model.links.dataframe`
-        section, for example, returns a dataframe containing PUMPS, CONDUITS, WEIRS,
-        and ORIFICES joined with XSECTIONS, COORDINATES and the Link Flow Summary (if
-        there is an rpt file found).
+    >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']]
+          InletNode OutletNode  Length  Roughness  Geom1
+    Name
+    C1:C2        J1         J2  244.63       0.01    1.0
+    C2.1         J2         J3  666.00       0.01    1.0
+    1:4           1          4  400.00       0.01    1.0
+    4:5           4          5  400.00       0.01    1.0
+    5:J1          5         J1  400.00       0.01    1.0
+    3:4           3          4  400.00       0.01    1.0
+    2:5           2          5  400.00       0.01    1.0
+    C3           J3         J4     NaN        NaN    5.0
+    C2           J2         J3     NaN        NaN    NaN
+    >>> # return all conduits (drop coords for clarity)
+    >>> from swmmio.examples import jersey
+    >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']]
+          InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
+    Name
+    J3         6.547      15.0        0.0             0.0         0.0
+    1         17.000       0.0        0.0             0.0         0.0
+    2         17.000       0.0        0.0             0.0         0.0
+    3         16.500       0.0        0.0             0.0         0.0
+    4         16.000       0.0        0.0             0.0         0.0
+    5         15.000       0.0        0.0             0.0         0.0
+    J2        13.000      15.0        0.0             0.0         0.0
+    J4         0.000       NaN        NaN             NaN         NaN
+    J1        13.392       NaN        0.0             NaN         0.0
+    """
+    def __init__(self, in_file_path, crs=None, include_rpt=True):
 
-        Examples
-        ========
-        >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']]
-              InletNode OutletNode  Length  Roughness  Geom1
-        Name                                                
-        C1:C2        J1         J2  244.63       0.01    1.0
-        C2.1         J2         J3  666.00       0.01    1.0
-        1:4           1          4  400.00       0.01    1.0
-        4:5           4          5  400.00       0.01    1.0
-        5:J1          5         J1  400.00       0.01    1.0
-        3:4           3          4  400.00       0.01    1.0
-        2:5           2          5  400.00       0.01    1.0
-        C3           J3         J4     NaN        NaN    5.0
-        C2           J2         J3     NaN        NaN    NaN
-        >>> # return all conduits (drop coords for clarity)
-        >>> from swmmio.examples import jersey
-        >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']]
-              InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
-        Name                                                             
-        J3         6.547      15.0        0.0             0.0         0.0
-        1         17.000       0.0        0.0             0.0         0.0
-        2         17.000       0.0        0.0             0.0         0.0
-        3         16.500       0.0        0.0             0.0         0.0
-        4         16.000       0.0        0.0             0.0         0.0
-        5         15.000       0.0        0.0             0.0         0.0
-        J2        13.000      15.0        0.0             0.0         0.0
-        J4         0.000       NaN        NaN             NaN         NaN
-        J1        13.392       NaN        0.0             NaN         0.0
-        """
         self.crs = None
         inp_path = None
         if os.path.isdir(in_file_path):
@@ -112,14 +112,13 @@ class Model(object):
             self.name = name
             self.inp = inp(inp_path)  # inp object
             self.rpt = None  # until we can confirm it initializes properly
-            self.out = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
             self.scenario = ''  # self._get_scenario()
             self.crs = crs  # coordinate reference system
 
             # try to initialize a companion RPT object
             rpt_path = os.path.join(wd, name + '.rpt')
-            if os.path.exists(rpt_path):
+            if os.path.exists(rpt_path) and include_rpt:
                 try:
                     self.rpt = rpt(rpt_path)
                 except Exception as e:
@@ -245,8 +244,12 @@ class Model(object):
     def pumps(self):
 
         """
-        collect all useful and available data related model pumps and
+        Collect all useful and available data related model pumps and
         organize in one dataframe.
+
+        :return: dataframe containing all pumps objects in the model
+        :rtype: pd.DataFrame
+
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -263,12 +266,16 @@ class Model(object):
     @property
     def links(self):
         """
-        create a DataFrame containing all link objects in the model including
+        Create a DataFrame containing all link objects in the model including
         conduits, pumps, weirs, and orifices.
+
         :return: dataframe containing all link objects in the model
+        :rtype: pd.DataFrame
+
+        Examples
+        ---------
         >>> from swmmio.examples import philly
         >>> philly.links.dataframe
-
         """
         if self._links_df is not None:
             return self._links_df
@@ -279,8 +286,25 @@ class Model(object):
     @property
     def nodes(self, bbox=None):
         """
-        collect all useful and available data related model nodes and organize
+        Collect all useful and available data related model nodes and organize
         in one dataframe.
+
+        :return: dataframe containing all node objects in the model
+        :rtype: pd.DataFrame
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.nodes.dataframe['InvertElev']
+        Name
+        J3     6.547
+        1     17.000
+        2     17.000
+        3     16.500
+        4     16.000
+        5     15.000
+        J2    13.000
+        J4     0.000
+        J1    13.392
+        Name: InvertElev, dtype: float64
         """
 
         # check if this has been done already and return that data accordingly
@@ -308,6 +332,7 @@ class Model(object):
     def network(self):
         """
         Networkx MultiDiGraph representation of the model
+
         :return: Networkx MultiDiGraph representation of model
         :rtype: networkx.MultiDiGraph
         """
@@ -321,9 +346,10 @@ class Model(object):
     def to_crs(self, *args, **kwargs):
         """
         Convert coordinate reference system of the model coordinates
-        :param target_crs:
+
+        :param target_crs: coordinate reference system to reproject
         :return: True
-        Example:
+
         >>> import swmmio
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="+init=EPSG:2272")
         >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
@@ -408,9 +434,16 @@ class SWMMIOFile(object):
 
 
 class rpt(SWMMIOFile):
-    '''
+    """
     An accessible SWMM .rpt object
-    '''
+
+    >>> from swmmio.tests.data import RPT_FULL_FEATURES
+    >>> report = rpt(RPT_FULL_FEATURES)
+    >>> report.link_flow_summary
+    >>> from swmmio.examples import spruce
+    >>> spruce.rpt.link_results
+    """
+
 
     def __init__(self, filePath):
 
@@ -503,10 +536,16 @@ class inp(SWMMIOFile):
         ]
 
     def save(self, target_path=None):
-        '''
+        """
         Save the inp file to disk. File will be overwritten unless a target_path
         is provided
-        '''
+
+        :param target_path: optional path to new inp file
+        :return: None
+
+        >>> from swmmio.examples import philly
+        >>> philly.inp.save('copy-of-philly.inp')
+        """
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
         target_path = target_path if target_path is not None else self.path
@@ -559,7 +598,6 @@ class inp(SWMMIOFile):
         :return: options section of the INP file
         :rtype: pandas.DataFrame
 
-        Examples:
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
@@ -816,6 +854,7 @@ class inp(SWMMIOFile):
     def infiltration(self):
         """
         Get/set infiltration section of the INP file.
+
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)

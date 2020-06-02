@@ -1,4 +1,5 @@
-.. include:: ../README.rst
+.. mdinclude:: ../README.md
+
 
 .. swmmio documentation master file, created by
    sphinx-quickstart on Tue Nov 27 23:09:04 2018.
@@ -10,8 +11,8 @@
    :caption: Contents:
 
    swmmio
+   inp
    version_control
-
 
 Indices and tables
 ==================
