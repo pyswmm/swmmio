@@ -1,3 +1,13 @@
+## Version 0.4.4 (2020/06/02)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 100](https://github.com/aerispaha/swmmio/issues/100) - ModelSection fails when a section has all numeric element IDs
+
+In this release 1 issue was closed.
+
 ## Version 0.4.3 (2020/05/14)
 
 ### Issues Closed
