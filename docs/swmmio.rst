@@ -2,8 +2,8 @@
 
 .. currentmodule:: swmmio.core
 
-swmmio Core Objects
-=============
+`swmmio` Core Objects
+========================
 
 .. automodule:: swmmio
     :members: Model, Links, Nodes

@@ -1,3 +1,4 @@
+.. mdinclude:: ../README.md
 
 
 .. swmmio documentation master file, created by

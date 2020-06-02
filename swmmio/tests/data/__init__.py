@@ -26,6 +26,9 @@ MODEL_MOD_GREEN_AMPT = os.path.join(DATA_PATH, 'model_mod_green_ampt.inp')
 MODEL_CURVE_NUMBER = os.path.join(DATA_PATH, 'model_curve_num.inp')
 MODEL_MOD_HORTON = os.path.join(DATA_PATH, 'model_mod_horton.inp')
 
+# test rpt paths
+RPT_FULL_FEATURES = os.path.join(DATA_PATH, 'model_full_features_network.rpt')
+
 # version control test models
 MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')
 MODEL_XSECTION_ALT_01 = os.path.join(DATA_PATH, 'alt_test1.inp')
