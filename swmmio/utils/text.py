@@ -216,10 +216,11 @@ def get_inp_sections_details(inp_path, include_brackets=False):
 def update_report_header(swmm_version, rpt_headers):
     from swmmio.defs import SWMM5_VERSION
     
-    for patch in SWMM5_VERSION:
-        patch = int(patch)
-        if swmm_version['patch'] >= patch:
-            update_rpt = normalize_inp_config(SWMM5_VERSION[patch]['rpt_sections'])
+    for version in SWMM5_VERSION:
+        version_value = float(version)
+        rpt_version = float(f"{swmm_version['minor']}.{swmm_version['minor']}")
+        if swmm_version['patch'] >= version_value:
+            update_rpt = normalize_inp_config(SWMM5_VERSION[version]['rpt_sections'])
             rpt_headers.update(update_rpt)
 
                 

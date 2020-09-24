@@ -134,8 +134,7 @@ rpt_sections:
     - Outlet
 
 swmm5_version:
-  # patch
-  13:
+  1.13:
     rpt_sections:
       Subcatchment Runoff Summary:
         - Name
