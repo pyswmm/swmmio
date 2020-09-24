@@ -6,7 +6,7 @@ import pandas as pd
 import swmmio
 import swmmio.utils.functions
 import swmmio.utils.text
-from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH
+from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH, MODEL_EX_1, MODEL_EX_6
 from swmmio import Model, dataframe_from_inp
 
 from swmmio.utils.dataframes import get_link_coords
@@ -138,3 +138,8 @@ def test_remove_model_section():
 
         # confirm subcatchments returns an empty df
         assert m2.subcatchments.dataframe.empty
+
+def test_example_1():
+    model = swmmio.Model(MODEL_EX_1)
+    element_types = ['nodes', 'links', 'subcatchments']
+    elem_dict = {element: model.__getattribute__(element).geojson for element in element_types}
