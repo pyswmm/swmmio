@@ -6,6 +6,7 @@ from swmmio.defs import INFILTRATION_COLS, INP_SECTION_TAGS
 from collections import OrderedDict, deque
 from io import StringIO
 from swmmio.utils.functions import format_inp_section_header
+from swmmio.defs.sectionheaders import normalize_inp_config
 
 
 def inline_comments_in_inp(filepath, overwrite=False):
@@ -211,7 +212,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     return found_sects
 
 
-def get_rpt_sections_details(rpt_path):
+def get_rpt_sections_details(rpt_path, swmm_version=None):
     """
 
     :param rpt_path:
@@ -220,9 +221,16 @@ def get_rpt_sections_details(rpt_path):
     # >>> MODEL_FULL_FEATURES__NET_PATH
 
     """
-    from swmmio.defs import RPT_OBJECTS
+    from swmmio.defs import RPT_OBJECTS, SWMM5_VERSION
     found_sects = OrderedDict()
+    rpt_headers = RPT_OBJECTS.copy()
 
+    for patch in SWMM5_VERSION:
+        patch = int(patch)
+        if swmm_version['patch'] >= patch:
+            update_rpt = normalize_inp_config(SWMM5_VERSION[patch]['rpt_sections'])
+            rpt_headers.update(update_rpt)
+        
     with open(rpt_path) as f:
         buff3line = deque()
         for line in f:
@@ -239,8 +247,8 @@ def get_rpt_sections_details(rpt_path):
                     len(buff3line[1].strip()) > 0):
                 header = buff3line[1].strip()
 
-                if header in RPT_OBJECTS:
-                    found_sects[header] = RPT_OBJECTS[header]
+                if header in rpt_headers:
+                    found_sects[header] = rpt_headers[header]
                 else:
                     # unrecognized section
                     found_sects[header] = OrderedDict(columns=['blob'])

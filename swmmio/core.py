@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from time import ctime
+import re
 import os
 import pandas as pd
 import glob
@@ -189,7 +190,7 @@ class Model(object):
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
-            link_flow_df = dataframe_from_rpt(rpt.path, "Link Flow Summary")
+            link_flow_df = dataframe_from_rpt(rpt.path, "Link Flow Summary", swmm_version=rpt.swmm_version)
             conduits_df = conduits_df.join(link_flow_df)
 
         # add conduit coordinates
@@ -455,10 +456,20 @@ class rpt(SWMMIOFile):
                     simulationStart = line.split(".. ")[1].replace("\n", "")
                 if "Ending Date" in line:
                     simulationEnd = line.split(".. ")[1].replace("\n", "")
+                if "EPA STORM WATER MANAGEMENT MODEL - VERSION" in line:
+                    version = re.search(r"\d+.\d+.\d+", line)
+                    if version is not None:
+                        version = version.group(0).split('.')
+                        swmm_version = {
+                            'major': int(version[0]),
+                            'minor': int(version[1]),
+                            'patch': int(version[2])
+                            }
                 if "Report Time Step ........." in line:
                     timeStepMin = int(line.split(":")[1].replace("\n", ""))
                     break
-
+                
+        self.swmm_version = swmm_version
         self.simulationStart = simulationStart
         self.simulationEnd = simulationEnd
         self.timeStepMin = timeStepMin

@@ -53,7 +53,7 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
     return df
 
 
-def dataframe_from_rpt(rpt_path, section, element_id=None):
+def dataframe_from_rpt(rpt_path, section, element_id=None, swmm_version=None):
     """
     create a dataframe from a section of an RPT file
     :param rpt_path:
@@ -62,7 +62,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
     """
 
     # get list of all section headers in rpt to use as section ending flags
-    headers = get_rpt_sections_details(rpt_path)
+    headers = get_rpt_sections_details(rpt_path, swmm_version)
 
     if section not in headers:
         warnings.warn(f'{section} section not found in {rpt_path}')
