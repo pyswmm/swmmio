@@ -218,8 +218,8 @@ def update_report_header(swmm_version, rpt_headers):
     
     for version in SWMM5_VERSION:
         version_value = float(version)
-        rpt_version = float(f"{swmm_version['minor']}.{swmm_version['minor']}")
-        if swmm_version['patch'] >= version_value:
+        rpt_version = float(f"{swmm_version['minor']}.{swmm_version['patch']}")
+        if rpt_version >= version_value:
             update_rpt = normalize_inp_config(SWMM5_VERSION[version]['rpt_sections'])
             rpt_headers.update(update_rpt)
 
