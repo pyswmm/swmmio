@@ -212,6 +212,17 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     return found_sects
 
 
+
+def update_report_header(swmm_version, rpt_headers):
+    from swmmio.defs import SWMM5_VERSION
+    
+    for patch in SWMM5_VERSION:
+        patch = int(patch)
+        if swmm_version['patch'] >= patch:
+            update_rpt = normalize_inp_config(SWMM5_VERSION[patch]['rpt_sections'])
+            rpt_headers.update(update_rpt)
+
+                
 def get_rpt_sections_details(rpt_path, swmm_version=None):
     """
 
@@ -221,15 +232,12 @@ def get_rpt_sections_details(rpt_path, swmm_version=None):
     # >>> MODEL_FULL_FEATURES__NET_PATH
 
     """
-    from swmmio.defs import RPT_OBJECTS, SWMM5_VERSION
+    from swmmio.defs import RPT_OBJECTS
     found_sects = OrderedDict()
     rpt_headers = RPT_OBJECTS.copy()
 
-    for patch in SWMM5_VERSION:
-        patch = int(patch)
-        if swmm_version['patch'] >= patch:
-            update_rpt = normalize_inp_config(SWMM5_VERSION[patch]['rpt_sections'])
-            rpt_headers.update(update_rpt)
+    if swmm_version:
+        update_report_header(swmm_version, rpt_headers)
         
     with open(rpt_path) as f:
         buff3line = deque()
