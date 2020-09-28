@@ -1,3 +1,21 @@
+## Version 0.4.5 (2020/09/28)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 103](https://github.com/aerispaha/swmmio/issues/103) - coords column is not updated in subcatchment dataframe in ModelSection object when index is integer instead of string ([PR 105](https://github.com/aerispaha/swmmio/pull/105))
+* [Issue 102](https://github.com/aerispaha/swmmio/issues/102) - IndexError when parsing certain .rpt files ([PR 105](https://github.com/aerispaha/swmmio/pull/105))
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 105](https://github.com/aerispaha/swmmio/pull/105) - Address issue #103 and #102 ([103](https://github.com/aerispaha/swmmio/issues/103), [102](https://github.com/aerispaha/swmmio/issues/102))
+
+In this release 1 pull request was closed.
+
+
 ## Version 0.4.4 (2020/06/02)
 
 ### Issues Closed
