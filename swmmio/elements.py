@@ -117,14 +117,13 @@ class ModelSection(object):
             # add conduit coordinates
             xys = df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
             df = df.assign(coords=xys.map(lambda x: x[0]))
-
             # make inlet/outlet node IDs string type
             df.InletNode = df.InletNode.astype(str)
             df.OutletNode = df.OutletNode.astype(str)
 
         elif self.geomtype == 'polygon':
             p = self.inp.polygons
-
+            p.index = p.index.map(str)
             # take stacked coordinates and orient in list of tuples,
             xys = p.groupby(by=p.index).apply(lambda r: [(xy['X'], xy['Y']) for ix, xy in r.iterrows()])
             # copy the first point to the last position

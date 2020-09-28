@@ -1,7 +1,10 @@
 import os
 import tempfile
 from io import StringIO
+
 import pandas as pd
+import pytest
+
 from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH)
 import swmmio
 from swmmio.graphics import swmm_graphics as sg
@@ -46,8 +49,8 @@ def test_centroid_and_bbox_from_coords():
     m.to_crs("+init=EPSG:4326")
 
     c, bbox = centroid_and_bbox_from_coords(m.nodes.dataframe['coords'])
-    assert c == (-70.97068150884797, 43.74695249578866)
-    assert bbox == [-70.97068150884797, 43.74695249578866, -70.97068150884797, 43.74695249578866]
+    assert c == pytest.approx((-70.97068, 43.74695), rel=1e-3)
+    assert bbox == pytest.approx((-70.97068, 43.74695, -70.97068, 43.74695), rel=1e-3)
 
     c, bbox = centroid_and_bbox_from_coords([(0, 0), (0, 10), (10, 10), (10, 0)])
     assert c == (5, 5)
@@ -68,4 +71,5 @@ def test_change_crs():
     J2-095.1 -70.951378  43.767796
     """
     v2_test = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
-    assert v2.to_string() == v2_test.to_string()
+    assert v2['X'].values == pytest.approx(v2_test['X'].values, rel=1e-3)
+    assert v2['Y'].values == pytest.approx(v2_test['Y'].values, rel=1e-3)

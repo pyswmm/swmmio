@@ -2,10 +2,13 @@
 # STANDARD READING AND WRITING OF TEXT FILES (E.G. .INP AND .RPT)
 
 import os
-from swmmio.defs import INFILTRATION_COLS, INP_SECTION_TAGS
-from collections import OrderedDict, deque
+import re
 from io import StringIO
+from collections import OrderedDict, deque
+
+from swmmio.defs import INFILTRATION_COLS, INP_SECTION_TAGS, SWMM5_VERSION
 from swmmio.utils.functions import format_inp_section_header
+from swmmio.defs.sectionheaders import normalize_inp_config
 
 
 def inline_comments_in_inp(filepath, overwrite=False):
@@ -119,6 +122,50 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
     return out_string
 
 
+def get_rpt_metadata(file_path):
+    """
+    Scan rpt file and extract meta data
+
+    :param file_path: path to rpt file
+    :return: dict of metadata
+    """
+
+    with open(file_path) as f:
+        for line in f:
+            if "Starting Date" in line:
+                simulation_start = line.split(".. ")[1].replace("\n", "")
+            if "Ending Date" in line:
+                simulation_end = line.split(".. ")[1].replace("\n", "")
+            if "EPA STORM WATER MANAGEMENT MODEL - VERSION" in line:
+                version = re.search(r"\d+.\d+.\d+", line)
+                if version is not None:
+                    version = version.group(0).split('.')
+                    swmm_version = {
+                        'major': int(version[0]),
+                        'minor': int(version[1]),
+                        'patch': int(version[2])
+                    }
+            if "Report Time Step ........." in line:
+                time_step_min = int(line.split(":")[1].replace("\n", ""))
+                break
+
+    # grab the date of analysis from end of file
+    with open(file_path) as f:
+        f.seek(os.path.getsize(file_path) - 500)  # jump to 500 bytes before the end of file
+        for line in f:
+            if "Analysis begun on" in line:
+                analysis_date = line.split("Analysis begun on:  ")[1].replace("\n", "")
+
+    meta_data = dict(
+        swmm_version=swmm_version,
+        simulation_start=simulation_start,
+        simulation_end=simulation_end,
+        time_step_min=time_step_min,
+        analysis_date=analysis_date,
+    )
+    return meta_data
+
+
 def find_byte_range_of_section(path, start_string):
     '''
     returns the start and end "byte" location of substrings in a text file
@@ -222,6 +269,19 @@ def get_rpt_sections_details(rpt_path):
     """
     from swmmio.defs import RPT_OBJECTS
     found_sects = OrderedDict()
+    rpt_headers = RPT_OBJECTS.copy()
+
+    # get rpt file metadata
+    meta_data = get_rpt_metadata(rpt_path)
+    swmm_version = meta_data['swmm_version']
+
+    # make necessary adjustments to columns that change based on swmm version
+    for version in SWMM5_VERSION:
+        version_value = float(version)
+        rpt_version = float(f"{swmm_version['minor']}.{swmm_version['patch']}")
+        if rpt_version >= version_value:
+            update_rpt = normalize_inp_config(SWMM5_VERSION[version]['rpt_sections'])
+            rpt_headers.update(update_rpt)
 
     with open(rpt_path) as f:
         buff3line = deque()
@@ -239,8 +299,8 @@ def get_rpt_sections_details(rpt_path):
                     len(buff3line[1].strip()) > 0):
                 header = buff3line[1].strip()
 
-                if header in RPT_OBJECTS:
-                    found_sects[header] = RPT_OBJECTS[header]
+                if header in rpt_headers:
+                    found_sects[header] = rpt_headers[header]
                 else:
                     # unrecognized section
                     found_sects[header] = OrderedDict(columns=['blob'])

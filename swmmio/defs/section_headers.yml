@@ -12,7 +12,6 @@ conduits:
   inp_sections: ['[CONDUITS]', '[XSECTIONS]']
   rpt_sections: [Link Flow Summary]
 
-
 rpt_sections:
   Cross Section Summary:
     - Name
@@ -134,6 +133,22 @@ rpt_sections:
     - RainGage
     - Outlet
 
+swmm5_version:
+  1.13:
+    rpt_sections:
+      Subcatchment Runoff Summary:
+        - Name
+        - TotalPrecip
+        - TotalRunon
+        - TotalEvap
+        - TotalInfil
+        - ImpervRunoff
+        - PervRunoff
+        - TotalRunoffIn
+        - TotalRunoffMG
+        - PeakRunoff
+        - RunoffCoeff
+        
 composite:
   nodes:
     inp_sections: [junctions, outfalls, storage]
