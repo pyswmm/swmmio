@@ -16,7 +16,7 @@ from swmmio.elements import ModelSection, Links, Nodes
 from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_OBJECTS
 
 from swmmio.utils.functions import trim_section_to_nodes
-from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details
+from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details, get_rpt_metadata
 
 pd.set_option('max_columns', 5)
 
@@ -190,7 +190,7 @@ class Model(object):
 
         if rpt:
             # create a dictionary holding data from an rpt file, if provided
-            link_flow_df = dataframe_from_rpt(rpt.path, "Link Flow Summary", swmm_version=rpt.swmm_version)
+            link_flow_df = dataframe_from_rpt(rpt.path, "Link Flow Summary")
             conduits_df = conduits_df.join(link_flow_df)
 
         # add conduit coordinates
@@ -445,44 +445,19 @@ class rpt(SWMMIOFile):
     >>> spruce.rpt.link_results
     """
 
-
     def __init__(self, filePath):
 
         SWMMIOFile.__init__(self, filePath)
 
-        with open(filePath) as f:
-            for line in f:
-                if "Starting Date" in line:
-                    simulationStart = line.split(".. ")[1].replace("\n", "")
-                if "Ending Date" in line:
-                    simulationEnd = line.split(".. ")[1].replace("\n", "")
-                if "EPA STORM WATER MANAGEMENT MODEL - VERSION" in line:
-                    version = re.search(r"\d+.\d+.\d+", line)
-                    if version is not None:
-                        version = version.group(0).split('.')
-                        swmm_version = {
-                            'major': int(version[0]),
-                            'minor': int(version[1]),
-                            'patch': int(version[2])
-                            }
-                if "Report Time Step ........." in line:
-                    timeStepMin = int(line.split(":")[1].replace("\n", ""))
-                    break
+        meta_data = get_rpt_metadata(filePath)
                 
-        self.swmm_version = swmm_version
-        self.simulationStart = simulationStart
-        self.simulationEnd = simulationEnd
-        self.timeStepMin = timeStepMin
-        self._rpt_section_details = None
-        # grab the date of analysis
-        with open(filePath) as f:
-            f.seek(self.file_size - 500)  # jump to 500 bytes before the end of file
-            for line in f:
-                if "Analysis begun on" in line:
-                    date = line.split("Analysis begun on:  ")[1].replace("\n", "")
-
-        self.dateOfAnalysis = date
+        self.swmm_version = meta_data['swmm_version']
+        self.simulationStart = meta_data['simulation_start']
+        self.simulationEnd = meta_data['simulation_end']
+        self.timeStepMin = meta_data['time_step_min']
+        self.dateOfAnalysis = meta_data['analysis_date']
         self.elementByteLocations = {"Link Results": {}, "Node Results": {}}
+        self._rpt_section_details = None
 
     @property
     def headers(self):

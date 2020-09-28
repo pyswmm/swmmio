@@ -105,7 +105,7 @@ class ModelSection(object):
         # if there is an RPT available, grab relevant sections
         if self.rpt:
             for rpt_sect in self.rpt_sections:
-                df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect, swmm_version=self.rpt.swmm_version))
+                df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect))
 
         # add coordinates
         if self.geomtype == 'point':
