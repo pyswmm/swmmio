@@ -24,3 +24,6 @@ _build/
 *.chi
 *.~inp
 *.thm
+
+# env
+venv/

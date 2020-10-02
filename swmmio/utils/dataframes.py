@@ -90,6 +90,9 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
     df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
                      index_col=0, names=cols)
 
+    # confirm index name is string
+    df = df.rename(index=str)
+
     return df
 
 
@@ -139,6 +142,8 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
             print(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
             raise
 
+    # confirm index name is string
+    df = df.rename(index=str)
     return df
 
 

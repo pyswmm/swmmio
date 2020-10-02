@@ -153,3 +153,12 @@ def test_example_1():
     swmm_version = model_b.rpt.swmm_version 
     assert(swmm_version['patch'] == 13)
     elem_dict = {element: model_b.__getattribute__(element).geojson for element in element_types}
+
+    subs = model.subcatchments.dataframe
+    assert subs['TotalInfil'].sum() == pytest.approx(12.59, rel=0.001)
+    assert subs['TotalRunoffMG'].sum() == pytest.approx(2.05, rel=0.001)
+
+    # access lower level api
+    peak_runoff = model.rpt.subcatchment_runoff_summary['PeakRunoff']
+    assert peak_runoff.values == pytest.approx([4.66, 4.52, 2.45, 2.45, 6.56, 1.5, 0.79, 1.33], rel=0.001)
+    assert peak_runoff.values == pytest.approx(subs['PeakRunoff'].values, rel=0.001)
