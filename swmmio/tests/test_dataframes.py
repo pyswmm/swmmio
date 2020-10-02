@@ -72,7 +72,7 @@ def test_node_dataframe_from_rpt(test_model_02):
     assert (depth_summ.loc['4', 'MaxNodeDepth'] == 0.87)
 
     # need to ensure indices are strings always
-    assert (flood_summ.loc[5, 'TotalFloodVol'] == 0)
+    assert (flood_summ.loc['5', 'TotalFloodVol'] == 0)
 
 
 def test_conduits_dataframe(test_model_01):
