@@ -1,3 +1,14 @@
+## Version 0.4.6 (2020/10/05)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 106](https://github.com/aerispaha/swmmio/issues/106) - model.subcatchments fails to merge rpt data when subcatchments have numeric names
+
+In this release 1 issue was closed.
+
+
 ## Version 0.4.5 (2020/09/28)
 
 ### Issues Closed
