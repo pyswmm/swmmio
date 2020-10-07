@@ -5,11 +5,11 @@
 [![Build Status](https://travis-ci.com/aerispaha/swmmio.svg?branch=master)](https://travis-ci.com/aerispaha/swmmio)
 
 ![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
-SWMMIO is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
+`swmmio` is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.
 
 
 ### Prerequisites
-SWMMIO functions primarily by interfacing with .inp and .rpt (input and report) files produced by SWMM. Functions within the `run_models` module rely on a SWMM5 engine which can be downloaded [here](https://www.epa.gov/water-research/storm-water-management-model-swmm).
+`swmmio` functions primarily by interfacing with .inp and .rpt (input and report) files produced by SWMM. Functions within the `run_models` module rely on a SWMM5 engine which can be downloaded [here](https://www.epa.gov/water-research/storm-water-management-model-swmm).
 
 
 ### Dependencies
@@ -35,10 +35,10 @@ import swmmio
 #instantiate a swmmio model object
 mymodel = swmmio.Model('/path/to/directory with swmm files')
 
-#Pandas dataframe with most useful data related to model nodes, conduits, and subcatchments
-nodes = mymodel.nodes()
-conduits = mymodel.conduits()
-subs = mymodel.subcatchments()
+# Pandas dataframe with most useful data related to model nodes, conduits, and subcatchments
+nodes = mymodel.nodes.dataframe
+links = mymodel.links.dataframe
+subs = mymodel.subcatchments.dataframe
 
 #enjoy all the Pandas functions
 nodes.head()
@@ -52,6 +52,27 @@ nodes.to_csv('/path/mynodes.csv')
 #calculate average and weighted average impervious
 avg_imperviousness = subs.PercImperv.mean()
 weighted_avg_imp = (subs.Area * subs.PercImperv).sum() / len(subs)
+```
+
+### Nodes and Links Objects 
+Specific sections of data from the inp and rpt can be extracted with `Nodes` and `Links` objects. 
+Although these are the same object-type of the `swmmio.Model.nodes` and `swmmio.Model.links`, 
+accessing them directly allows for custom control over what sections of data are retrieved. 
+
+```python
+from swmmio import Model, Nodes
+m = Model("coolest-model.inp")
+
+# pass custom init arguments into the Nodes object instead of using default settings referenced by m.nodes() 
+nodes = Nodes(
+    model=m, 
+    inp_sections=['junctions', 'storages', 'outfalls'],
+    rpt_sections=['Node Depth Summary', 'Node Inflow Summary'],
+    columns=[ 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'MaxTotalInflow', 'coords']
+)
+
+# access data 
+nodes.dataframe 
 ```
 
 ### Generating Graphics
@@ -96,9 +117,8 @@ Starting with a base SWMM model, other models can be created by inserting altere
 For example, climate change impacts can be investigated by creating a set of models with varying outfall Fixed Stage elevations:
 
 ```python
-import os, shutil
+import os
 import swmmio
-from swmmio.utils.modify_model import replace_inp_section
 
 #initialize a baseline model object
 baseline = swmmio.Model(r'path\to\baseline.inp')

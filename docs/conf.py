@@ -21,13 +21,13 @@ sys.path.insert(0, os.path.abspath('../../swmmio/'))
 # -- Project information -----------------------------------------------------
 
 project = 'swmmio'
-copyright = '2018, Adam Erispaha'
+copyright = '2020, Adam Erispaha'
 author = 'Adam Erispaha'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.4.3'
+release = '0.4.6'
 
 
 # -- General configuration ---------------------------------------------------
