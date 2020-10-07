@@ -16,7 +16,7 @@ from recommonmark.transform import AutoStructify
 from m2r import MdInclude
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../swmmio/'))
+sys.path.insert(0, os.path.abspath('../../swmmio'))
 
 # -- Project information -----------------------------------------------------
 
