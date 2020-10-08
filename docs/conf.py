@@ -16,18 +16,18 @@ from recommonmark.transform import AutoStructify
 from m2r import MdInclude
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../swmmio/'))
+sys.path.insert(0, os.path.abspath('../../swmmio'))
 
 # -- Project information -----------------------------------------------------
 
 project = 'swmmio'
-copyright = '2018, Adam Erispaha'
+copyright = '2020, Adam Erispaha'
 author = 'Adam Erispaha'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.4.3'
+release = '0.4.6'
 
 
 # -- General configuration ---------------------------------------------------
@@ -72,7 +72,7 @@ language = None
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = None
+pygments_style = 'sphinx'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -196,3 +196,10 @@ def setup(app):
     app.add_config_value('m2r_anonymous_references', False, 'env')
     app.add_config_value('m2r_disable_inline_math', False, 'env')
     app.add_directive('mdinclude', MdInclude)
+
+
+# custom logic
+from shutil import copytree
+import os
+os.makedirs('_build/html/docs', exist_ok=True)
+copytree('img', '_build/html/docs/img')

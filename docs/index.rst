@@ -11,8 +11,10 @@
    :caption: Contents:
 
    swmmio
-   inp
+   elements
    version_control
+   utils
+   graphics
 
 Indices and tables
 ==================
