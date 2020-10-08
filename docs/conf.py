@@ -196,3 +196,10 @@ def setup(app):
     app.add_config_value('m2r_anonymous_references', False, 'env')
     app.add_config_value('m2r_disable_inline_math', False, 'env')
     app.add_directive('mdinclude', MdInclude)
+
+
+# custom logic
+from shutil import copytree
+import os
+os.makedirs('_build/html/docs', exist_ok=True)
+copytree('img', '_build/html/docs/img')
