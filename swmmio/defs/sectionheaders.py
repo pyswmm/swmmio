@@ -28,7 +28,7 @@ inp_header_dict = {
     '[TAGS]':'ElementType Name Tag',
     '[MAP]': 'x1 y1 x2 y2',
     '[CURVES]': 'Name Type X-Value Y-Value',
-    #'[TIMESERIES]':'Name Date Time Value'
+    '[TIMESERIES]': 'Name Date Time Value'
 }
 
 
