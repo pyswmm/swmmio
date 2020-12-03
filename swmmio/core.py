@@ -450,7 +450,7 @@ class rpt(SWMMIOFile):
         SWMMIOFile.__init__(self, filePath)
 
         meta_data = get_rpt_metadata(filePath)
-                
+
         self.swmm_version = meta_data['swmm_version']
         self.simulationStart = meta_data['simulation_start']
         self.simulationEnd = meta_data['simulation_end']
@@ -906,8 +906,8 @@ class inp(SWMMIOFile):
         return self._inflows_df
 
     @inflows.setter
-    def polygons(self, df):
-        """Set inp.polygons DataFrame."""
+    def inflows(self, df):
+        """Set inp.inflows DataFrame."""
         self._inflows_df = df
 
     @property
@@ -924,7 +924,7 @@ class inp(SWMMIOFile):
     @polygons.setter
     def polygons(self, df):
         """Set inp.polygons DataFrame."""
-        self._curves_df = df
+        self._polygons_df = df
 
     @property
     def curves(self):
@@ -939,7 +939,7 @@ class inp(SWMMIOFile):
 
     @curves.setter
     def curves(self, df):
-        """Set inp.polygons DataFrame."""
+        """Set inp.curves DataFrame."""
         self._curves_df = df
 
 
