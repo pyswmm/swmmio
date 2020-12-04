@@ -146,11 +146,11 @@ def test_example_1():
     elem_dict = {element: model.__getattribute__(element).geojson for element in element_types}
     swmm_version = model.rpt.swmm_version
     assert(swmm_version['major'] == 5)
-    assert(swmm_version['minor'] == 1)  
+    assert(swmm_version['minor'] == 1)
     assert(swmm_version['patch'] == 12)
 
     model_b = swmmio.Model(MODEL_EX_1B)
-    swmm_version = model_b.rpt.swmm_version 
+    swmm_version = model_b.rpt.swmm_version
     assert(swmm_version['patch'] == 13)
     elem_dict = {element: model_b.__getattribute__(element).geojson for element in element_types}
 
@@ -162,3 +162,12 @@ def test_example_1():
     peak_runoff = model.rpt.subcatchment_runoff_summary['PeakRunoff']
     assert peak_runoff.values == pytest.approx([4.66, 4.52, 2.45, 2.45, 6.56, 1.5, 0.79, 1.33], rel=0.001)
     assert peak_runoff.values == pytest.approx(subs['PeakRunoff'].values, rel=0.001)
+
+def test_get_set_timeseries(test_model_02):
+
+    ts = test_model_02.inp.timeseries
+    assert(all(ts.columns == ['Date', 'Time', 'Value']))
+    assert(ts.loc['TS2'].Date == 'FILE')
+    assert('"' in ts.loc['TS2'].Value)
+    assert(ts.Value.isnull().sum() == 0)
+    print (ts)

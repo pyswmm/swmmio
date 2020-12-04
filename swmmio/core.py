@@ -497,6 +497,7 @@ class inp(SWMMIOFile):
         self._inp_section_details = None
         self._inflows_df = None
         self._curves_df = None
+        self._timeseries_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -518,7 +519,8 @@ class inp(SWMMIOFile):
             '[CURVES]',
             '[COORDINATES]',
             '[INFLOWS]',
-            '[Polygons]'
+            '[Polygons]',
+            '[TIMESERIES]'
         ]
 
     def save(self, target_path=None):
@@ -942,6 +944,21 @@ class inp(SWMMIOFile):
         """Set inp.curves DataFrame."""
         self._curves_df = df
 
+    @property
+    def timeseries(self):
+        """
+        get/set timeseries section of model
+        :return: multi-index dataframe of model curves
+        """
+        if self._timeseries_df is not None:
+            return self._timeseries_df
+        self._timeseries_df = create_dataframe_multi_index(self.path, '[TIMESERIES]')
+        return self._timeseries_df
+
+    @timeseries.setter
+    def timeseries(self, df):
+        """Set inp.timeseries DataFrame."""
+        self._timeseries_df = df
 
 def drop_invalid_model_elements(inp):
     """

@@ -51,7 +51,7 @@ inp_file_objects:
   XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
 
-
+  TIMESERIES: [Name, Date, Time, Value]
   COORDINATES: [Name, X, Y]
   VERTICES: [Name, X, Y]
   Polygons: [Name, X, Y]
@@ -61,6 +61,7 @@ inp_file_objects:
   TAGS: [ElementType, Name, Tag]
   ADJUSTMENTS: [blob]
   CURVES: [Name, Type, X-Value, Y-Value]
+
 
 
 inp_section_tags:

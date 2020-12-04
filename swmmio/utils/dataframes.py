@@ -6,7 +6,7 @@ from swmmio.utils.text import (extract_section_of_file, get_inp_sections_details
 from io import StringIO
 import warnings
 import pandas as pd
-
+import re
 
 def dataframe_from_bi(bi_path, section='[CONDUITS]'):
     """
@@ -41,14 +41,23 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
     f = StringIO(s)
     data = []
     for line in f.readlines():
-        items = line.strip().split()
-        if len(items) == 3:
-            items = [items[0], None, items[1], items[2]]
+        if "FILE" in line:
+            filename = re.findall(r'"([^"]*)"', line)[0]
+            items = line.strip().split()[:2]
+            items = [items[0], items[1], None, '"{}"'.format(filename)]
+        else:
+            items = line.strip().split()
+            if len(items) == 3:
+                items = [items[0], None, items[1], items[2]]
         if len(items) == 4:
             data.append(items)
 
+
     df = pd.DataFrame(data=data, columns=cols)
-    df = df.set_index(['Name', 'Type'])
+    if sect == 'CURVES':
+        df = df.set_index(['Name', 'Type'])
+    elif sect == 'TIMESERIES':
+        df = df.set_index(['Name'])
 
     return df
 

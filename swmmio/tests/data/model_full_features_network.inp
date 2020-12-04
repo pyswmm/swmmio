@@ -235,6 +235,7 @@ SCS_24h_Type_I_1in            23:15      0.0185
 SCS_24h_Type_I_1in            23:30      0.0185    
 SCS_24h_Type_I_1in            23:45      0.0185    
 SCS_24h_Type_I_1in            24:00      0         
+TS2            FILE                "C:\Rotations\R3 - Vue\Quasi2D\2005_Pure2D\inflow_timeseries.txt"
 
 [REPORT]
 ;;Reporting Options
