@@ -163,8 +163,11 @@ def test_example_1():
     assert peak_runoff.values == pytest.approx([4.66, 4.52, 2.45, 2.45, 6.56, 1.5, 0.79, 1.33], rel=0.001)
     assert peak_runoff.values == pytest.approx(subs['PeakRunoff'].values, rel=0.001)
 
-def test_get_set_timeseries(test_model_01):
+def test_get_set_timeseries(test_model_02):
 
-    ts = test_model_01.inp.timeseries
-
+    ts = test_model_02.inp.timeseries
+    assert(all(ts.columns == ['Date', 'Time', 'Value']))
+    assert(ts.loc['TS2'].Date == 'FILE')
+    assert('"' in ts.loc['TS2'].Value)
+    assert(ts.Value.isnull().sum() == 0)
     print (ts)
