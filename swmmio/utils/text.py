@@ -216,22 +216,21 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     found_sects = OrderedDict()
 
     with open(inp_path) as f:
-        for line in f:
-            sect_not_found = True
-            for sect_id, data in INP_OBJECTS.items():
-                # find the start of an INP section
-                search_tag = format_inp_section_header(sect_id)
-                if search_tag.lower() in line.lower():
-                    if include_brackets:
-                        sect_id = '[{}]'.format(sect_id.upper())
-                    found_sects[sect_id.upper()] = data
-                    sect_not_found = False
-                    break
-            if sect_not_found:
-                if '[' and ']' in line:
-                    h = line.strip()
+        txt = f.read()
+        section_dict = {key:txt.find(key) for key in INP_OBJECTS.keys() if txt.find(key) >= 0}
+
+        bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]",txt)
+
+        for sect_id, data in INP_OBJECTS.items():
+            # find the start of an INP section
+            if sect_id in section_dict.keys():
+                if include_brackets:
+                    sect_id = '[{}]'.format(sect_id.upper())
+                found_sects[sect_id.upper()] = data
+            else:
+                if sect_id in bracketed_words:
                     if not include_brackets:
-                        h = h.replace('[', '').replace(']', '')
+                        h = sect_id.replace('[', '').replace(']', '')
                     found_sects[h] = OrderedDict(columns=['blob'])
 
     # make necessary adjustments to columns that change based on options
