@@ -35,7 +35,7 @@ def test_draw_red_and_grey_nodes():
 
 def test_web_map_01():
 
-    m = swmmio.Model(MODEL_A_PATH,  crs="+init=EPSG:2817")
+    m = swmmio.Model(MODEL_A_PATH,  crs="EPSG:2817")
     with tempfile.TemporaryDirectory() as tempdir:
         fname = os.path.join(tempdir, 'test-map.html')
         sg.create_map(m, filename=fname)
@@ -45,8 +45,8 @@ def test_web_map_01():
 
 def test_centroid_and_bbox_from_coords():
 
-    m = swmmio.Model(MODEL_A_PATH, crs="+init=EPSG:2817")
-    m.to_crs("+init=EPSG:4326")
+    m = swmmio.Model(MODEL_A_PATH, crs="EPSG:2817")
+    m.to_crs("EPSG:4326")
 
     c, bbox = centroid_and_bbox_from_coords(m.nodes.dataframe['coords'])
     assert c == pytest.approx((-70.97068, 43.74695), rel=1e-3)
@@ -59,9 +59,9 @@ def test_centroid_and_bbox_from_coords():
 
 def test_change_crs():
 
-    m = swmmio.Model(MODEL_A_PATH, crs="+init=EPSG:2817")
+    m = swmmio.Model(MODEL_A_PATH, crs="EPSG:2817")
     v1 = m.inp.vertices
-    v2 = change_crs(m.inp.vertices, m.crs, "+init=EPSG:4326")
+    v2 = change_crs(m.inp.vertices, m.crs, "WGS84")
     assert v1.shape == v2.shape
     s = """
     Name      X          Y              
