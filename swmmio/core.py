@@ -2,10 +2,12 @@
 # coding:utf-8
 
 from time import ctime
-import re
 import os
-import pandas as pd
 import glob
+
+import pandas as pd
+import numpy as np
+
 from swmmio.utils import spatial
 from swmmio.utils import functions
 from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, \
@@ -352,8 +354,8 @@ class Model(object):
         :return: True
 
         >>> import swmmio
-        >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="+init=EPSG:2272")
-        >>> m.to_crs("+init=EPSG:4326") # convert to WGS84 web mercator
+        >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
+        >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates
                       X          Y
         Name
@@ -904,7 +906,7 @@ class inp(SWMMIOFile):
         if self._inflows_df is not None:
             return self._inflows_df
         inf = dataframe_from_inp(self.path, 'INFLOWS', quote_replace='_!!!!_')
-        self._inflows_df = inf.replace('_!!!!_', pd.np.nan)
+        self._inflows_df = inf.replace('_!!!!_', np.nan)
         return self._inflows_df
 
     @inflows.setter

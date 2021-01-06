@@ -19,7 +19,7 @@ def change_crs(series, in_crs, to_crs):
     >>> proj4_str = '+proj=tmerc +lat_0=36.16666666666666 +lon_0=-94.5 +k=0.9999411764705882 +x_0=850000 +y_0=0 +datum=NAD83 +units=us-ft +no_defs' #"+init=EPSG:102698"
     >>> m.crs = proj4_str
     >>> nodes = m.nodes()
-    >>> change_crs(nodes['coords'], proj4_str, "+init=EPSG:4326")
+    >>> change_crs(nodes['coords'], proj4_str, "EPSG:4326")
     Name
     J3    [(39.236286854940964, -94.64346373821752)]
     1      [(39.23851590020802, -94.64756446847099)]
@@ -34,31 +34,45 @@ def change_crs(series, in_crs, to_crs):
     """
     try:
         import pyproj
+        from pyproj import Transformer
     except ImportError:
         raise ImportError('pyproj module needed. get this package here: ',
                           'https://pypi.python.org/pypi/pyproj')
 
     # SET UP THE TO AND FROM COORDINATE PROJECTION
-    in_proj = pyproj.Proj(in_crs, preserve_units=True)
-    to_proj = pyproj.Proj(to_crs)
+    transformer = Transformer.from_crs(in_crs, to_crs, always_xy=True)
 
     # convert coords in coordinates, vertices, and polygons inp sections
     # transform to the typical 'WGS84' coord system
     def get_xys(xy_row):
         # need to reverse to lat/long after conversion
-        return [pyproj.transform(in_proj, to_proj, x, y) for x, y in xy_row]
+        return [transformer.transform(x, y) for x, y in xy_row]
 
     if isinstance(series, pd.Series):
-        return series.apply(lambda row: get_xys(row))
+
+        # unpack the nested coords
+        xs = [xy[0][0] for xy in series.to_list()]
+        ys = [xy[0][1] for xy in series.to_list()]
+
+        # transform the whole series at once
+        xs_trans, ys_trans = transformer.transform(xs, ys)
+
+        # increase nest level and return pd.Series
+        return pd.Series(index=series.index, data=[[coords] for coords in zip(xs_trans, ys_trans)])
+
     if isinstance(series, pd.DataFrame):
-        zipped_coords = list(zip(series.X, series.Y))
-        df = pd.DataFrame(data=get_xys(zipped_coords), columns=["X", "Y"], index=series.index)
+        # zipped_coords = list(zip(series.X, series.Y))
+        xs_trans, ys_trans = transformer.transform(series.X, series.Y)
+        df = pd.DataFrame(data=zip(xs_trans, ys_trans), columns=["X", "Y"], index=series.index)
         return df
     elif isinstance(series, (list, tuple)):
         if isinstance(series[0], (list, tuple)):
-            return get_xys(series)
+            # unpack the nested coords
+            xs = [x for x, y in series]
+            ys = [y for x, y in series]
+            return list(zip(transformer.transform(xs, ys)))
         else:
-            return get_xys([series])
+            return transformer.transform(*series)
 
 
 def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):

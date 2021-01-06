@@ -1,19 +1,16 @@
 # graphical functions for SWMM files
-import pandas as pd
+import os
 
-from swmmio.defs.config import REPORT_DIR_NAME, BETTER_BASEMAP_PATH
+from PIL import Image, ImageDraw
+
+from swmmio.defs.config import BETTER_BASEMAP_PATH
 from swmmio.graphics import config
 from swmmio.defs.constants import white
 from swmmio.graphics.utils import px_to_irl_coords, save_image
+from swmmio.utils import spatial
+from swmmio.utils.spatial import centroid_and_bbox_from_coords
 from swmmio.graphics.drawing import (annotate_streets, annotate_title, annotate_details, annotate_timestamp,
                                      draw_conduit, draw_node)
-from swmmio.utils import spatial
-
-import os
-from PIL import Image, ImageDraw
-
-from swmmio.utils.spatial import centroid_and_bbox_from_coords
-from swmmio.version_control.inp import INPSectionDiff
 
 
 def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
@@ -126,7 +123,7 @@ def create_map(model=None, filename=None):
         filename = f'{model.name}.html'
 
     if model.crs:
-        model.to_crs("+init=EPSG:4326")
+        model.to_crs("EPSG:4326")
     else:
         raise ValueError('Model object must have a valid crs')
 
