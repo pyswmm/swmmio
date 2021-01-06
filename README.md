@@ -11,15 +11,6 @@
 ### Prerequisites
 `swmmio` functions primarily by interfacing with .inp and .rpt (input and report) files produced by SWMM. Functions within the `run_models` module rely on a SWMM5 engine which can be downloaded [here](https://www.epa.gov/water-research/storm-water-management-model-swmm).
 
-
-### Dependencies
-*  [pillow==6.0.0](https://python-pillow.org/)
-*  [numpy==1.16.4](https://numpy.org/)
-*  [pandas==0.24.2](https://github.com/pydata/pandas)
-*  [pyshp==2.1.0](https://github.com/GeospatialPython/pyshp)
-*  [geojson==2.4.1](https://pypi.org/project/geojson/)
-
-
 ### Installation:
 Before installation, it's recommended to first activate a [virtualenv](https://github.com/pypa/virtualenv) to not crowd your system's package library. If you don't use any of the dependencies listed above, this step is less important. SWMMIO can be installed via pip in your command line:
 
