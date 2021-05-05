@@ -116,22 +116,18 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     :param quote_replace:
     :return:
     """
-
+    from swmmio.defs import INP_OBJECTS
     # format the section header for look up in headers OrderedDict
     sect = remove_braces(section).upper()
 
-    # get list of all section headers in inp to use as section ending flags
-    headers = get_inp_sections_details(inp_path, include_brackets=False)
-
-    if sect not in headers:
-        warnings.warn(f'{sect} section not found in {inp_path}')
-        return pd.DataFrame()
-
     # extract the string and read into a dataframe
     start_string = format_inp_section_header(section)
-    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    end_strings = [format_inp_section_header(h) for h in INP_OBJECTS.keys()]
     s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
 
+    if len(s.replace(start_string, "").replace("\n","")) == 0:
+        warnings.warn(f'{sect} section not found in {inp_path}')
+        return pd.DataFrame()
     # replace occurrences of double quotes ""
     s = s.replace('""', quote_replace)
 
