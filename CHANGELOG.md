@@ -1,3 +1,22 @@
+## Version 0.4.7 (2021/01/06)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 118](https://github.com/aerispaha/swmmio/issues/118) - pyproj.transform is depreciated 
+* [Issue 111](https://github.com/aerispaha/swmmio/issues/111) - Setter property mismatch
+
+In this release 2 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 113](https://github.com/aerispaha/swmmio/pull/113) - Read/write timeseries section of inp, by [@jackieff](https://github.com/jackieff)
+* [PR 112](https://github.com/aerispaha/swmmio/pull/112) - Fixing setter references, by [@jackieff](https://github.com/jackieff)
+
+In this release 2 pull requests were closed.
+
+
 ## Version 0.4.6 (2020/10/05)
 
 ### Issues Closed
