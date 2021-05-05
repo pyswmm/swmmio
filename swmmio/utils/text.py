@@ -217,9 +217,12 @@ def get_inp_sections_details(inp_path, include_brackets=False):
 
     with open(inp_path) as f:
         txt = f.read()
-        section_dict = {key:txt.find("[{}]".format(key)) for key in INP_OBJECTS.keys() if txt.find("[{}]".format(key)) >= 0}
+        section_dict = {
+            key: txt.find("[{}]".format(key)) for key in INP_OBJECTS.keys() 
+            if txt.find("[{}]".format(key)) >= 0
+        }
         section_dict = sorted(section_dict, key=section_dict.get)
-        bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]",txt)
+        bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]", txt)
 
         for sect in bracketed_words:
             if sect not in section_dict:
