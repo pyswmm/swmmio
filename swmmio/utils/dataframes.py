@@ -116,27 +116,31 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     :param quote_replace:
     :return:
     """
-    from swmmio.defs import INP_OBJECTS
+
     # format the section header for look up in headers OrderedDict
     sect = remove_braces(section).upper()
 
-    # extract the string and read into a dataframe
-    start_string = format_inp_section_header(section)
-    end_strings = [format_inp_section_header(h) for h in INP_OBJECTS.keys()]
-    s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
+    # get list of all section headers in inp to use as section ending flags
+    headers = get_inp_sections_details(inp_path, include_brackets=False)
 
-    if len(s.replace(start_string, "").replace("\n","")) == 0:
+    if sect not in headers:
         warnings.warn(f'{sect} section not found in {inp_path}')
         return pd.DataFrame()
+
+    # extract the string and read into a dataframe
+    start_string = format_inp_section_header(section)
+    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
+
     # replace occurrences of double quotes ""
     s = s.replace('""', quote_replace)
 
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = INP_OBJECTS[sect]['columns'] + additional_cols
+    cols = headers[sect]['columns'] + additional_cols
 
-    if INP_OBJECTS[sect]['columns'][0] == 'blob':
+    if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
