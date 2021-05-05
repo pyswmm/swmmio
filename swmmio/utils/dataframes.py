@@ -134,9 +134,9 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = headers[sect]['columns'] + additional_cols
+    cols = INP_OBJECTS[sect]['columns'] + additional_cols
 
-    if headers[sect]['columns'][0] == 'blob':
+    if INP_OBJECTS[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
