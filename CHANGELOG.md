@@ -1,3 +1,13 @@
+## Version 0.4.8 (2021/05/05)
+
+### Issues Closed
+
+#### Bugs fixed
+
+* [Issue 121](https://github.com/aerispaha/swmmio/issues/121) - Errors when overwrite the [OPTIONS] Sections
+
+In this release 1 issue was closed.
+
 ## Version 0.4.7 (2021/01/06)
 
 ### Issues Closed
