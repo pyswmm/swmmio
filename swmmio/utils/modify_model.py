@@ -38,8 +38,7 @@ def replace_inp_section(inp_path, modified_section_header, new_data):
 
                         found_section = True
 
-                    if (found_section and any(es in line for es in sections.keys())
-                            and modified_section_header not in line):
+                    if (found_section and any((f"[{es}]") in line for es in sections.keys()) and modified_section_header not in line):
                         found_next_section = True
 
                     if found_next_section or not found_section:
