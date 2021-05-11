@@ -900,8 +900,18 @@ class inp(SWMMIOFile):
     @property
     def inflows(self):
         """
-        get/set inflows section of model
-        :return: dataframe of model coordinates
+        Get/set inflows section of model
+
+        :return: dataframe of nodes with inflows
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.inp.inflows[['Constituent', 'Mfactor', 'Baseline']]
+             Constituent  Mfactor  Baseline
+        Node
+        J3          Flow      1.0         1
+        J2          FLOW      1.0         1
+        J1          FLOW      1.0         1
+
         """
         if self._inflows_df is not None:
             return self._inflows_df
