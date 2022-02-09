@@ -10,5 +10,6 @@ networkx>=2.4
 pyyaml>=3.12
 recommonmark
 m2r
+mistune==0.8.4
 # Run dependencies
 pyproj>=3.0.0
