@@ -1,3 +1,13 @@
+## Version 0.4.9 (2022/02/22)
+
+### Issues Closed
+
+* [PR 128](https://github.com/aerispaha/swmmio/issues/128) - Docs build fails due to m2r dependency
+* [PR 127](https://github.com/aerispaha/swmmio/pull/127) - Define max_columns option as a display option
+* [PR 117](https://github.com/aerispaha/swmmio/pull/117) - Speeding up lookup of inp sections and bracketed words
+
+In this release 3 issues was closed.
+
 ## Version 0.4.8 (2021/05/05)
 
 ### Issues Closed
