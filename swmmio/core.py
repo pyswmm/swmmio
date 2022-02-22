@@ -20,7 +20,7 @@ from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_O
 from swmmio.utils.functions import trim_section_to_nodes
 from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details, get_rpt_metadata
 
-pd.set_option('max_columns', 5)
+pd.set_option('display.max_columns', 5)
 
 __all__ = ['Model', 'inp', 'rpt']
 
