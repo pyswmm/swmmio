@@ -1,10 +1,10 @@
 
 infiltration_cols:
-  CURVE_NUMBER: [CurveNum, Conductivity (depreciated), DryTime]
-  GREEN_AMPT: [Subcatchment, Suction, HydCon, IMDmax]
-  HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
-  MODIFIED_GREEN_AMPT: [Subcatchment, Suction, Ksat, IMD]
-  MODIFIED_HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
+  CURVE_NUMBER: [Param1,     Param2,     Param3,     Param4,     Param5]
+  GREEN_AMPT: [Param1,     Param2,     Param3,     Param4,     Param5]
+  HORTON: [Param1,     Param2,     Param3,     Param4,     Param5]
+  MODIFIED_GREEN_AMPT: [Param1,     Param2,     Param3,     Param4,     Param5]
+  MODIFIED_HORTON: [Param1,     Param2,     Param3,     Param4,     Param5]
 
 inp_file_objects:
   TITLE:
@@ -32,7 +32,7 @@ inp_file_objects:
       - Flap Gate
       - SeepageRate
   CONDUITS: [Name, InletNode, OutletNode, Length, Roughness, InOffset, OutOffset, InitFlow, MaxFlow]
-  INFILTRATION: [Subcatchment, Suction, HydCon, IMDmax]
+  INFILTRATION: [Subcatchment, Param1,     Param2,     Param3,     Param4,     Param5]
   JUNCTIONS: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
   DWF:
     columns: [Node, Parameter, AverageValue, TimePatterns]
@@ -48,7 +48,7 @@ inp_file_objects:
   SUBAREAS: [Name, N-Imperv, N-Perv, S-Imperv, S-Perv, PctZero, RouteTo, PctRouted]
   WEIRS: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate, EndCon, EndCoeff,
           Surcharge, RoadWidth, RoadSurf]
-  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
+  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, Culvert]
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
 
   TIMESERIES: [Name, Date, Time, Value]
