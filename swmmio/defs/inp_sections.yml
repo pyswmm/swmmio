@@ -50,6 +50,7 @@ inp_file_objects:
           Surcharge, RoadWidth, RoadSurf]
   XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, Culvert]
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
+  LID_USAGE: [Subcatchment,   'LID_Process',      Number,  Area,       Width,      InitSat,    FromImp,    ToPerv,     RptFile,                  DrainTo,          FromPerv,]
 
   TIMESERIES: [Name, Date, Time, Value]
   COORDINATES: [Name, X, Y]

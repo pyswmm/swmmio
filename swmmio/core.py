@@ -484,6 +484,7 @@ class inp(SWMMIOFile):
         self._files_df = None
         self._conduits_df = None
         self._xsections_df = None
+        self._lid_usage_df = None
         self._pumps_df = None
         self._orifices_df = None
         self._weirs_df = None
@@ -522,7 +523,8 @@ class inp(SWMMIOFile):
             '[COORDINATES]',
             '[INFLOWS]',
             '[Polygons]',
-            '[TIMESERIES]'
+            '[TIMESERIES]',
+            '[LID_USAGE]'
         ]
 
     def save(self, target_path=None):
@@ -685,6 +687,21 @@ class inp(SWMMIOFile):
     def xsections(self, df):
         """Set inp.xsections DataFrame."""
         self._xsections_df = df
+
+
+    @property
+    def lid_usage(self):
+        """
+        Get/set LID_USAGE section of the INP file.
+        """
+        if self._lid_usage_df is None:
+            self._lid_usage_df = dataframe_from_inp(self.path, "[LID_USAGE]")
+        return self._lid_usage_df
+
+    @lid_usage.setter
+    def lid_usage(self, df):
+        """Set inp.lid_usage DataFrame."""
+        self._lid_usage_df = df
 
     @property
     def pumps(self):
