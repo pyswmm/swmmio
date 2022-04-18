@@ -66,7 +66,7 @@ inp_file_objects:
 
 
 inp_section_tags:
-  ['[TITLE', '[OPTION', '[FILE', '[RAINGAGE', '[TEMPERATURE', '[EVAP',
+  ['[TITLE', '[OPTION', '[FILE', '[RAINGAGES', '[TEMPERATURE', '[EVAP',
   '[SUBCATCHMENT', '[SUBAREA', '[INFIL', '[AQUIFER', '[GROUNDWATER', '[SNOWPACK',
   '[JUNC', '[OUTFALL', '[STORAGE', '[DIVIDER', '[CONDUIT', '[PUMP', '[ORIFICE', '[WEIR',
   '[OUTLET', '[XSECT', '[TRANSECT', '[LOSS', '[CONTROL', '[POLLUT', '[LANDUSE', '[BUILDUP',

@@ -19,6 +19,7 @@ from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_O
 
 from swmmio.utils.functions import trim_section_to_nodes
 from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details, get_rpt_metadata
+import swmmio.utils.text
 
 pd.set_option('display.max_columns', 5)
 
@@ -471,6 +472,20 @@ class rpt(SWMMIOFile):
 
         return self._rpt_section_details
 
+    @property
+    def external_outflow_volume(self):
+        """
+        Return the external outflow from rpt file in mm or inches
+        """
+        return float(swmmio.utils.text.get_rpt_value(self.path, "External Outflow"))
+
+    @property
+    def flooding_loss_volume(self):
+        """
+        Return the flooding loss from rpt file in mm or inches
+        """
+        return float(swmmio.utils.text.get_rpt_value(self.path, "Flooding Loss"))
+
 
 # setattr(rpt, 'link_flow_summary', property(get_rpt_df('Link Flow Summary')))
 
@@ -501,6 +516,7 @@ class inp(SWMMIOFile):
         self._inflows_df = None
         self._curves_df = None
         self._timeseries_df = None
+        self._raingages_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -524,7 +540,8 @@ class inp(SWMMIOFile):
             '[INFLOWS]',
             '[Polygons]',
             '[TIMESERIES]',
-            '[LID_USAGE]'
+            '[LID_USAGE]',
+            '[RAINGAGES]'
         ]
 
     def save(self, target_path=None):
@@ -541,12 +558,13 @@ class inp(SWMMIOFile):
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
         target_path = target_path if target_path is not None else self.path
-
-        shutil.copyfile(self.path, target_path)
+        if not self.path==target_path:
+            shutil.copyfile(self.path, target_path)
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
             sect_id = section.translate({ord(i): None for i in '[]'}).lower()
             sect_id_private = '_{}_df'.format(sect_id)
+            #print(sect_id_private)
             data = getattr(self, sect_id_private)
             if data is not None:
                 replace_inp_section(target_path, section, data)
@@ -697,6 +715,16 @@ class inp(SWMMIOFile):
         if self._lid_usage_df is None:
             self._lid_usage_df = dataframe_from_inp(self.path, "[LID_USAGE]")
         return self._lid_usage_df
+
+    @property
+    def raingages(self):
+        """
+        Get/set RAINGAGES section of the INP file.
+        """
+        if self._raingages_df is None:
+            self._raingages_df = dataframe_from_inp(self.path, "[RAINGAGES]")
+        return self._raingages_df
+    
 
     @lid_usage.setter
     def lid_usage(self, df):
