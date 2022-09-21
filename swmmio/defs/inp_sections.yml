@@ -1,9 +1,9 @@
 
 infiltration_cols:
-  CURVE_NUMBER: [CurveNum, Conductivity (depreciated), DryTime]
-  GREEN_AMPT: [Subcatchment, Suction, HydCon, IMDmax]
+  CURVE_NUMBER: [Subcatchment, CurveNum, Conductivity (depreciated), DryTime, Param4, Param5]
+  GREEN_AMPT: [Subcatchment, Suction, HydCon, IMDmax, Param4, Param5]
   HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
-  MODIFIED_GREEN_AMPT: [Subcatchment, Suction, Ksat, IMD]
+  MODIFIED_GREEN_AMPT: [Subcatchment, Suction, Ksat, IMD, Param4, Param5]
   MODIFIED_HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
 
 inp_file_objects:
