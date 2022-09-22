@@ -1,9 +1,9 @@
 language: python
 python:
-  - "3.6"
-  - "3.7"
-  - "3.8"
   - "3.9"
+  - "3.8"
+  - "3.7"
+  - "3.6"
 
 # command to install dependencies
 install:
@@ -16,7 +16,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   # create test environment with geopandas installed
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION geopandas
+  - conda create -n test-env python=$TRAVIS_PYTHON_VERSION geopandas
   - conda activate test-env
   - python setup.py develop
   - pip install -r requirements.txt
