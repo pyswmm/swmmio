@@ -1,8 +1,18 @@
+## Version 0.4.10 (2022/09/22)
+
+### Issues Closed
+
+* [Issue 130](https://github.com/aerispaha/swmmio/issues/130) - model.inp.infiltration yielding IndexError: list index out of range
+* [Issue 131](https://github.com/aerispaha/swmmio/issues/131) - KeyError 'Horton' while extracting data
+* [Issue 132](https://github.com/aerispaha/swmmio/issue/132) - Weir Dataframe Problem
+
+In this release 3 issues were closed.
+
 ## Version 0.4.9 (2022/02/22)
 
 ### Issues Closed
 
-* [PR 128](https://github.com/aerispaha/swmmio/issues/128) - Docs build fails due to m2r dependency
+* [Issue 128](https://github.com/aerispaha/swmmio/issues/128) - Docs build fails due to m2r dependency
 * [PR 127](https://github.com/aerispaha/swmmio/pull/127) - Define max_columns option as a display option
 * [PR 117](https://github.com/aerispaha/swmmio/pull/117) - Speeding up lookup of inp sections and bracketed words
 
