@@ -3,6 +3,7 @@ python:
   - "3.6"
   - "3.7"
   - "3.8"
+  - "3.9"
 
 # command to install dependencies
 install:
@@ -14,8 +15,6 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
   # create test environment with geopandas installed
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION geopandas
   - conda activate test-env
