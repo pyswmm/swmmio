@@ -162,8 +162,6 @@ def format_inp_section_header(string):
     :return: string
     """
     s = string.strip().upper()
-    if s == 'POLYGONS':
-        s = s.capitalize()
     if s[0] != '[':
         s = f'[{s}'
     if s[-1] != ']':
