@@ -17,7 +17,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
   # create test environment with geopandas installed
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION geopandas==0.6.1
+  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION geopandas
   - conda activate test-env
   - pip install -r requirements.txt
 # command to run tests

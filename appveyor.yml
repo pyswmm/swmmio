@@ -14,11 +14,11 @@ install:
   # Useful for debugging any issues with conda
   - "conda info -a"
   # create test environment with geopandas installed
-  - "conda create -q -n test-env python=%PYTHON_VERSION% geopandas==0.6.1"
+  - "conda create -q -n test-env python=%PYTHON_VERSION% geopandas"
   - "activate test-env"
 
   - "python setup.py develop"
-  - "pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt -q"
+  - "pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt"
 
 build: off
 
