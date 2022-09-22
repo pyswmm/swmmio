@@ -4,7 +4,8 @@ from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
-                               MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT)
+                               MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
+                               MODEL_INFILTRAION_PARSE_FAILURE)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 import swmmio
 
@@ -148,6 +149,14 @@ def test_infiltration_section():
     inf = m.inp.infiltration
     assert m.inp.options.loc['INFILTRATION', 'Value'] == 'MODIFIED_GREEN_AMPT'
     assert (inf.columns.tolist() == ['Suction', 'Ksat', 'IMD'])
+
+
+def test_parse_infiltration_section_with_extra_params():
+    # mod green ampt
+    m = swmmio.Model(MODEL_INFILTRAION_PARSE_FAILURE)
+    inf = m.inp.infiltration
+    assert m.inp.options.loc['INFILTRATION', 'Value'] == 'GREEN_AMPT'
+    assert (inf.columns.tolist() == ['Suction', 'HydCon', 'IMDmax', 'Param4', 'Param5'])
 
 
 def test_inflow_dwf_dataframe():

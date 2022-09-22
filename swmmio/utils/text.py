@@ -97,7 +97,7 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
             if starts_ix < starts_len:
                 search_str = start_strings[starts_ix]
 
-            if start_found and any(es in line for es in end_strings):
+            if start_found and any(es.upper() in line.upper() for es in end_strings):
                 # if we found the start and the line contains any of
                 # the end strings, break out
                 break
@@ -249,7 +249,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
         infil_type = options['Value'].get('INFILTRATION', None)
         if pd.isna(infil_type):
             infil_type = 'HORTON'
-        infil_cols = INFILTRATION_COLS[infil_type]
+        infil_cols = INFILTRATION_COLS[infil_type.upper()]
 
         inf_id = 'INFILTRATION'
         if include_brackets:

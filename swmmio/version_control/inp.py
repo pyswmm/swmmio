@@ -346,7 +346,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                     and section in inp_diff.diffs):
 
                 # df of baseline model section
-                basedf = dataframe_from_inp(m3.inp.path, section, additional_cols=[';', 'Comment', 'Origin'])
+                basedf = dataframe_from_inp(m3.inp.path, section)
                 basedf[';'] = ';'
                 col_order = basedf.columns
                 # grab the changes to
@@ -361,7 +361,7 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
                 new_section = pd.concat([new_section, changes.altered, changes.added], axis=0, sort=False)
             else:
                 # section is not well understood or is problematic, just blindly copy
-                new_section = dataframe_from_inp(m3.inp.path, section, additional_cols=[';', 'Comment', 'Origin'])
+                new_section = dataframe_from_inp(m3.inp.path, section)
                 new_section[';'] = ';'
                 # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
