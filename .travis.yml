@@ -16,7 +16,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   # create test environment with geopandas installed
-  - conda create -n test-env python=$TRAVIS_PYTHON_VERSION geopandas=0.11.0 --channel conda-forge
+  - conda create -n test-env python=$TRAVIS_PYTHON_VERSION geopandas --channel conda-forge
   - conda activate test-env
   - python setup.py develop
   - pip install -r requirements.txt
