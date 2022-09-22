@@ -11,12 +11,9 @@ install:
   - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
   - "conda config --set always_yes yes --set changeps1 no"
   - "conda update -q conda"
-  # Useful for debugging any issues with conda
-  - "conda info -a"
   # create test environment with geopandas installed
   - "conda create -q -n test-env python=%PYTHON_VERSION% geopandas"
   - "activate test-env"
-
   - "python setup.py develop"
   - "pip install -r %APPVEYOR_BUILD_FOLDER%\\requirements.txt"
 
