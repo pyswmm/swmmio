@@ -200,15 +200,11 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
 
     # create a shp file writer object of geom type 'point'
     if geomtype == 'point':
-        w = shapefile.Writer(shapefile.POINT)
+        w = shapefile.Writer(filename, shapefile.POINT, autoBalance=True)
     elif geomtype == 'line':
-        w = shapefile.Writer(shapefile.POLYLINE)
+        w = shapefile.Writer(filename, shapefile.POLYLINE, autoBalance=True)
     elif geomtype == 'polygon':
-        w = shapefile.Writer(shapefile.POLYGON)
-
-    # use the helper mode to ensure the # of records equals the # of shapes
-    # (shapefile are made up of shapes and records, and need both to be valid)
-    w.autoBalance = 1
+        w = shapefile.Writer(filename, shapefile.POLYGON, autoBalance=True)
 
     # add the fields
     for fieldname in df.columns:
@@ -216,9 +212,12 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
 
     for k, row in df.iterrows():
         w.record(*row.tolist())
-        w.line(parts=[row.coords])
+        if geomtype == 'line':
+            w.line([row.coords])
+        if geomtype == 'point':
+            w.point(*row.coords[0])
 
-    w.save(filename)
+    w.close()
 
     # add projection data to the shapefile,
     if prj is None:
