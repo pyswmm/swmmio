@@ -1,3 +1,12 @@
+## Version 0.4.11 (2022/12/04)
+
+### Issues Closed
+
+* [Issue 134](https://github.com/aerispaha/swmmio/issues/134) - update export_to_shapefile to handle changes to pyshp API
+
+In this release 1 issues were closed.
+
+
 ## Version 0.4.10 (2022/09/22)
 
 ### Issues Closed
