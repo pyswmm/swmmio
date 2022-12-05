@@ -1,3 +1,11 @@
+## Version 0.4.12 (2022/12/05)
+
+### Issues Closed
+
+* [Issue 142](https://github.com/aerispaha/swmmio/issues/142) - fails to parse RPT when generated with Open Water Analytics SWMM
+
+In this release 1 issues were closed.
+
 ## Version 0.4.11 (2022/12/04)
 
 ### Issues Closed
