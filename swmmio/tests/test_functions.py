@@ -1,6 +1,7 @@
 import swmmio
-from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH, OWA_RPT_EXAMPLE, RPT_FULL_FEATURES
 from swmmio.utils.functions import format_inp_section_header
+from swmmio.utils.text import get_rpt_metadata
 
 
 def test_format_inp_section_header():
@@ -20,6 +21,16 @@ def test_format_inp_section_header():
     header_string = 'pumps'
     header_string = format_inp_section_header(header_string)
     assert (header_string == '[PUMPS]')
+
+
+def test_get_rpt_metadata_owa_swmm():
+    meta = get_rpt_metadata(OWA_RPT_EXAMPLE)
+    assert meta['swmm_version'] == {'major': 5, 'minor': 1, 'patch': 14}
+
+
+def test_get_rpt_metadata_epa_swmm():
+    meta = get_rpt_metadata(RPT_FULL_FEATURES)
+    assert meta['swmm_version'] == {'major': 5, 'minor': 0, 'patch': 22}
 
 
 def test_model_to_networkx():

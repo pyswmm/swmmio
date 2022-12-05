@@ -31,6 +31,7 @@ MODEL_INFILTRAION_PARSE_FAILURE = os.path.join(DATA_PATH, 'model-with-infiltrati
 
 # test rpt paths
 RPT_FULL_FEATURES = os.path.join(DATA_PATH, 'model_full_features_network.rpt')
+OWA_RPT_EXAMPLE = os.path.join(DATA_PATH, 'owa-rpt-example.rpt')
 
 # version control test models
 MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')

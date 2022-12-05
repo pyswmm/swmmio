@@ -136,7 +136,7 @@ def get_rpt_metadata(file_path):
                 simulation_start = line.split(".. ")[1].replace("\n", "")
             if "Ending Date" in line:
                 simulation_end = line.split(".. ")[1].replace("\n", "")
-            if "EPA STORM WATER MANAGEMENT MODEL - VERSION" in line:
+            if "STORM WATER MANAGEMENT MODEL - VERSION" in line:
                 version = re.search(r"\d+.\d+.\d+", line)
                 if version is not None:
                     version = version.group(0).split('.')
