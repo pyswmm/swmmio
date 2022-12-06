@@ -5,7 +5,7 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
-                               MODEL_INFILTRAION_PARSE_FAILURE)
+                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 import swmmio
 
@@ -209,6 +209,18 @@ def test_subcatchments_dataframe_from_rpt(test_model_02):
     # test retrieving timeseries results
     s1_results = dataframe_from_rpt(test_model_02.rpt.path, 'Subcatchment Results', 'S1')
     assert s1_results['RunoffCFS'].max() == pytest.approx(0.5526, 0.00001)
+
+
+def test_node_flooding_dataframe_from_rpt_1(test_model_02):
+
+    node_flooding = dataframe_from_rpt(test_model_02.rpt.path, 'Node Flooding Summary')
+    assert node_flooding['MaxQFlooding'].max() == pytest.approx(0.07, 0.0001)
+
+
+def test_node_flooding_dataframe_from_rpt_2():
+
+    node_flooding = dataframe_from_rpt(OWA_RPT_EXAMPLE, 'Node Flooding Summary')
+    assert node_flooding.empty
 
 
 def test_polygons(test_model_02):

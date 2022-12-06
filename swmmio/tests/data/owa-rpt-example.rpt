@@ -204,14 +204,7 @@
   Node Flooding Summary
   *********************
   
-  Flooding refers to all water that overflows a node, whether it ponds or not.
-  --------------------------------------------------------------------------
-                                                             Total   Maximum
-                                 Maximum   Time of Max       Flood    Ponded
-                        Hours       Rate    Occurrence      Volume    Volume
-  Node                 Flooded       CFS   days hr:min    10^6 gal  1000 ft3
-  --------------------------------------------------------------------------
-  10                      2.82      4.53      0  04:01       0.135     0.000
+  No nodes were flooded.
   
   
   ***********************
