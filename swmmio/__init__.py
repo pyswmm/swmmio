@@ -2,6 +2,8 @@ from swmmio.core import *
 from swmmio.elements import *
 from swmmio.version_control import *
 from swmmio.utils.dataframes import dataframe_from_bi, dataframe_from_rpt, dataframe_from_inp
+from swmmio.graphics.swmm_graphics import create_map
+
 # import swmmio.core as swmmio
 '''Python SWMM Input/Output Tools'''
 
