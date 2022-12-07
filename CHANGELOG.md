@@ -1,3 +1,12 @@
+## Version 0.4.13 (2022/12/07)
+
+### Issues Closed
+
+* [Issue 108](https://github.com/aerispaha/swmmio/issues/108) - rpt.node_flooding_summary fails when no nodes are flooded
+* [Issue 146](https://github.com/aerispaha/swmmio/issues/146) - add optional custom basemap to create_map function
+
+In this release 2 issues were closed.
+
 ## Version 0.4.12 (2022/12/05)
 
 ### Issues Closed

@@ -8,7 +8,7 @@ from swmmio.graphics.swmm_graphics import create_map
 '''Python SWMM Input/Output Tools'''
 
 
-VERSION_INFO = (0, 4, 13, 'dev0')
+VERSION_INFO = (0, 4, 13)
 __version__ = '.'.join(map(str, VERSION_INFO))
 __author__ = 'Adam Erispaha'
 __copyright__ = 'Copyright (c) 2016'
