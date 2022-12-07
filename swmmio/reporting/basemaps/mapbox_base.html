@@ -4,8 +4,8 @@
     <meta charset='utf-8' />
     <title>swmmio map</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
     <link href='https://www.mapbox.com/base/latest/base.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
@@ -19,9 +19,9 @@
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <script>
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWVyaXNwYWhhIiwiYSI6ImNpdWp3ZTUwbDAxMHoyeXNjdDlmcG0zbDcifQ.mjQG7vHfOacyFDzMgxawzw';
+mapboxgl.accessToken = 'pk.eyJ1IjoiZW1uZXQiLCJhIjoiY2pscGFpZjRlMjJmdDNsbjNycDN6a3J0OCJ9.wYmEb0AnxVVMKVhs2ns89A';
 var map = new mapboxgl.Map({
-    style:'mapbox://styles/mapbox/dark-v9',
+    style:'mapbox://styles/emnet/ckjt4ym0q00cz19ob1y62adi5',
     // center: [-75.148946, 39.921685],
     // INSERT MAP CENTER HERE
     zoom: 15,
@@ -55,9 +55,16 @@ map.on('load', function() {
       'type': 'line',
       "source": "sewer-data",
       'paint': {
-          'line-color': '#64bab4',
+          'line-color': [
+              "interpolate-hcl", [ "linear" ], ["number",  [ "get", "MaxQPerc" ], 0],
+              0, '#5cd66e' ,  1, '#dde639' ,  2, '#e64839',
+          ],
           'line-opacity': 0.85,
-  	      'line-width':3,
+  	      'line-width': [
+          'interpolate', [ "exponential", 10 ], [ 'zoom' ],
+          10, [ "ln", ["+", [ "get", "MaxQ" ], 1]],
+          15, [ "ln", ["+", [ "get", "MaxQ" ], 1]],
+      ],
       }
 	});
   map.addLayer({
@@ -108,6 +115,7 @@ map.on('load', function() {
         var html_message = [props.InletNode,
                             'Peak Flow: ' + props.MaxQ + 'cfs',
 							'Capacity: '+ Math.round(cap * 100) / 100 + 'cfs',
+                            'Utilization: '+ Math.round(props.MaxQPerc * 100) + '%',
                             'Geom1: ' + props.Geom1,
 							'Shape: '+ props.Shape,
 							];

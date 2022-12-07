@@ -113,12 +113,14 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     return img
 
 
-def create_map(model=None, filename=None):
+def create_map(model=None, filename=None, basemap=None):
     """
     export model as a geojson object
     """
 
     import geojson
+
+    basemap = BETTER_BASEMAP_PATH if basemap is None else basemap
     if filename is None:
         filename = f'{model.name}.html'
 
@@ -131,7 +133,7 @@ def create_map(model=None, filename=None):
     c, bbox = centroid_and_bbox_from_coords(model.inp.coordinates)
 
     # start writing that thing
-    with open(BETTER_BASEMAP_PATH, 'r') as bm:
+    with open(basemap, 'r') as bm:
         with open(filename, 'w') as newmap:
             for line in bm:
                 if 'INSERT GEOJSON HERE' in line:
