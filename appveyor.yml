@@ -11,7 +11,7 @@ environment:
 
 install:
   # install geopandas with conda into root python environment
-  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Library\\bin;%PATH%"
   - "conda config --set always_yes yes --set changeps1 no"
   - "conda update -q conda"
   # create test environment with geopandas installed
