@@ -2,9 +2,9 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
-    - PYTHON: "C:\\Python37"
-      MINICONDA: "C:\\Miniconda37"
-      PYTHON_VERSION: 3.7
+    - PYTHON: "C:\\Python38"
+      MINICONDA: "C:\\Miniconda38"
+      PYTHON_VERSION: 3.8
 
 install:
   # install geopandas with conda into root python environment
