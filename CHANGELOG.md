@@ -1,3 +1,11 @@
+## Version 0.5.1 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 151](https://github.com/aerispaha/swmmio/issues/151) - Model.nodes.geojson coordinates are improperly structured
+
+In this release 1 issues were closed.
+
 ## Version 0.5.0 (2022/12/08)
 
 ### Issues Closed
