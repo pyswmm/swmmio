@@ -3,7 +3,7 @@ environment:
     # For Python versions available on Appveyor, see 
     # http://www.appveyor.com/docs/installed-software#python
     - PYTHON: "C:\\Python38"
-      MINICONDA: "C:\\Miniconda38"
+      MINICONDA: "C:\Miniconda38-x64"
       PYTHON_VERSION: 3.8
 
 install:
