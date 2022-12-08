@@ -173,7 +173,7 @@ def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
         if geomtype == 'linestring':
             geometry = LineString(latlngs)
         elif geomtype == 'point':
-            geometry = Point(latlngs)
+            geometry = Point(latlngs[0])
         elif geomtype == 'polygon':
             geometry = Polygon([latlngs])
 
