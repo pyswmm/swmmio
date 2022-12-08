@@ -1,3 +1,13 @@
+## Version 0.5.0 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 150](https://github.com/aerispaha/swmmio/issues/150) - add DWF to inp module
+* [Issue 148](https://github.com/aerispaha/swmmio/issues/148) - pyproj>=3.0.0 needed in setup.py
+* Update test environment to Python 3.8
+
+In this release 2 issues were closed.
+
 ## Version 0.4.13 (2022/12/07)
 
 ### Issues Closed
