@@ -491,6 +491,7 @@ class inp(SWMMIOFile):
         self._outfalls_df = None
         self._storage_df = None
         self._coordinates_df = None
+        self._dwf_df = None
         self._vertices_df = None
         self._polygons_df = None
         self._subcatchments_df = None
@@ -520,6 +521,7 @@ class inp(SWMMIOFile):
             '[INFILTRATION]',
             '[CURVES]',
             '[COORDINATES]',
+            '[DWF]',
             '[INFLOWS]',
             '[Polygons]',
             '[TIMESERIES]'
@@ -880,6 +882,22 @@ class inp(SWMMIOFile):
     def coordinates(self, df):
         """Set inp.coordinates DataFrame."""
         self._coordinates_df = df
+
+    @property
+    def dwf(self):
+        """
+        Get/set DWF section of model
+        :return: dataframe of model DWF section
+        """
+        if self._dwf_df is not None:
+            return self._dwf_df
+        self._dwf_df = dataframe_from_inp(self.path, "DWF")
+        return self._dwf_df
+
+    @dwf.setter
+    def dwf(self, df):
+        """Set inp.dwf DataFrame."""
+        self._dwf_df = df
 
     @property
     def vertices(self):
