@@ -372,24 +372,24 @@ class Model(object):
         >>> import swmmio
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
-        >>> m.inp.coordinates  #doctest: +NORMALIZE_WHITESPACE
-                      X          Y
+        >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                     X         Y
         Name
-        J3   -74.866424  42.365956
-        1    -74.870614  42.368291
-        2    -74.867615  42.367914
-        3    -74.869386  42.368526
-        4    -74.869024  42.368088
-        5    -74.868888  42.367708
-        J2   -74.868458  42.366747
-        J4   -74.864787  42.365964
-        J1   -74.868861  42.366966
-        >>> m.inp.vertices  #doctest: +NORMALIZE_WHITESPACE
-                       X          Y
+        J3   -74.86642  42.36596
+        1    -74.87061  42.36829
+        2    -74.86762  42.36792
+        3    -74.86939  42.36853
+        4    -74.86902  42.36809
+        5    -74.86889  42.36771
+        J2   -74.86846  42.36675
+        J4   -74.86479  42.36597
+        J1   -74.86886  42.36697
+        >>> m.inp.vertices.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                      X         Y
         Name
-        C1:C2 -74.868703  42.366831
-        C2.1  -74.868034  42.366270
-        C2.1  -74.867305  42.365972
+        C1:C2 -74.86870  42.36683
+        C2.1  -74.86803  42.36627
+        C2.1  -74.86731  42.36597
         """
         try:
             import pyproj
