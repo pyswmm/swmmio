@@ -39,3 +39,4 @@ jobs:
     - name: Test with pytest
       run: |
         pytest -m "not uses_geopandas"
+        python -m doctest -v swmmio/core.py 
