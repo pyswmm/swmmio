@@ -545,9 +545,9 @@ class NeuQuant:
             bb = self.colormap[i,0];
             gg = self.colormap[i,1];
             rr = self.colormap[i,2];
-            out.write(rr if rgb else bb)
-            out.write(gg)
-            out.write(bb if rgb else rr)
+            outstream.write(rr if rgb else bb)
+            outstream.write(gg)
+            outstream.write(bb if rgb else rr)
         return self.NETSIZE
     
     def setUpArrays(self):
