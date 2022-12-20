@@ -2,7 +2,7 @@
 *v0.5.1 (2022/12/08)*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
-[![Build Status](https://travis-ci.com/aerispaha/swmmio.svg?branch=master)](https://travis-ci.com/aerispaha/swmmio)
+[![example workflow](https://github.com/aerispaha/swmmio/actions/workflows/python-app.yml/badge.svg)]
 [![Documentation Status](https://readthedocs.org/projects/swmmio/badge/?version=v0.4.10)](https://swmmio.readthedocs.io/en/v0.4.10/?badge=v0.4.10)
 
 ![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
