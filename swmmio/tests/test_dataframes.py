@@ -82,6 +82,7 @@ def test_conduits_dataframe(test_model_01):
     assert (list(conduits.index) == ['C1:C2'])
 
 
+@pytest.mark.uses_geopandas
 def test_pumps_composite(test_model_01):
 
     # load with Links composite object
