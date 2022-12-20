@@ -1,5 +1,5 @@
 # swmmio
-*v0.5.1 (2022/12/08)*
+*v0.5.2 (2022/12/20)*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
 ![example workflow](https://github.com/aerispaha/swmmio/actions/workflows/python-app.yml/badge.svg)

@@ -1,3 +1,14 @@
+## Version 0.5.2 (2022/12/20)
+
+### Issues Closed
+
+* [Issue 159](https://github.com/aerispaha/swmmio/issues/159) - Drop travis CI from the build pipeline
+* [Issue 157](https://github.com/aerispaha/swmmio/issues/157) - Configure GitHub Actions test matrix
+* [Issue 141](https://github.com/aerispaha/swmmio/issues/141) - model.inp.headers gives "UnboundLocalError: local variable 'h' referenced before assignment"
+* Include core.py doctests in GitHub Actions and Appveyor build tests
+
+In this release 3 issues were closed.
+
 ## Version 0.5.1 (2022/12/08)
 
 ### Issues Closed
