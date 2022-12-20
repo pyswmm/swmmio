@@ -213,4 +213,3 @@ class Links(ModelSection):
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
         super().__init__(model, inp_sections, join_sections, rpt_sections, columns,
                          geomtype='linestring')
-
