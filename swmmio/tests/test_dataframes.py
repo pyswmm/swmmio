@@ -152,6 +152,12 @@ def test_infiltration_section():
     assert (inf.columns.tolist() == ['Suction', 'Ksat', 'IMD'])
 
 
+def test_headers():
+    model = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    inf_headers = ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
+    assert model.inp.headers['[INFILTRATION]'] == inf_headers
+
+
 def test_parse_infiltration_section_with_extra_params():
     # mod green ampt
     m = swmmio.Model(MODEL_INFILTRAION_PARSE_FAILURE)

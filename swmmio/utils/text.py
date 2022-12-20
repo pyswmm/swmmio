@@ -225,15 +225,10 @@ def get_inp_sections_details(inp_path, include_brackets=False):
         bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]", txt)
 
         for sect in bracketed_words:
+            sect_id = f'[{sect.upper()}]' if include_brackets else sect.upper()
             if sect not in section_dict:
-                if not include_brackets:
-                    h = sect.replace('[', '').replace(']', '')
-                found_sects[h] = OrderedDict(columns=['blob'])
+                found_sects[sect_id] = OrderedDict(columns=['blob'])
             else:
-                if include_brackets:
-                    sect_id = '[{}]'.format(sect.upper())
-                else:
-                    sect_id = sect.upper()
                 found_sects[sect_id] = INP_OBJECTS[sect]
 
     # make necessary adjustments to columns that change based on options
