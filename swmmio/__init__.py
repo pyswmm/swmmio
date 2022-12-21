@@ -11,5 +11,5 @@ from swmmio.graphics.swmm_graphics import create_map
 VERSION_INFO = (0, 5, 3, 'dev0')
 __version__ = '.'.join(map(str, VERSION_INFO))
 __author__ = 'Adam Erispaha'
-__copyright__ = 'Copyright (c) 2016'
+__copyright__ = 'Copyright (c) 2022'
 __licence__ = ''
