@@ -1,3 +1,11 @@
+## Version 0.5.3 (2022/12/21)
+
+### Issues Closed
+
+* [Issue 162](https://github.com/aerispaha/swmmio/issues/162) - fix version number in readthedocs title
+
+In this release 1 issues was closed.
+
 ## Version 0.5.2 (2022/12/20)
 
 ### Issues Closed
