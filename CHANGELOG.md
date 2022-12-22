@@ -1,3 +1,66 @@
+## Version 0.5.3 (2022/12/21)
+
+### Issues Closed
+
+* [Issue 162](https://github.com/aerispaha/swmmio/issues/162) - fix version number in readthedocs title
+
+In this release 1 issues was closed.
+
+## Version 0.5.2 (2022/12/20)
+
+### Issues Closed
+
+* [Issue 159](https://github.com/aerispaha/swmmio/issues/159) - Drop travis CI from the build pipeline
+* [Issue 157](https://github.com/aerispaha/swmmio/issues/157) - Configure GitHub Actions test matrix
+* [Issue 141](https://github.com/aerispaha/swmmio/issues/141) - model.inp.headers gives "UnboundLocalError: local variable 'h' referenced before assignment"
+* Include core.py doctests in GitHub Actions and Appveyor build tests
+
+In this release 3 issues were closed.
+
+## Version 0.5.1 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 151](https://github.com/aerispaha/swmmio/issues/151) - Model.nodes.geojson coordinates are improperly structured
+
+In this release 1 issues were closed.
+
+## Version 0.5.0 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 150](https://github.com/aerispaha/swmmio/issues/150) - add DWF to inp module
+* [Issue 148](https://github.com/aerispaha/swmmio/issues/148) - pyproj>=3.0.0 needed in setup.py
+* Update test environment to Python 3.8
+
+In this release 2 issues were closed.
+
+## Version 0.4.13 (2022/12/07)
+
+### Issues Closed
+
+* [Issue 108](https://github.com/aerispaha/swmmio/issues/108) - rpt.node_flooding_summary fails when no nodes are flooded
+* [Issue 146](https://github.com/aerispaha/swmmio/issues/146) - add optional custom basemap to create_map function
+
+In this release 2 issues were closed.
+
+## Version 0.4.12 (2022/12/05)
+
+### Issues Closed
+
+* [Issue 142](https://github.com/aerispaha/swmmio/issues/142) - fails to parse RPT when generated with Open Water Analytics SWMM
+
+In this release 1 issues were closed.
+
+## Version 0.4.11 (2022/12/04)
+
+### Issues Closed
+
+* [Issue 134](https://github.com/aerispaha/swmmio/issues/134) - update export_to_shapefile to handle changes to pyshp API
+
+In this release 1 issues were closed.
+
+
 ## Version 0.4.10 (2022/09/22)
 
 ### Issues Closed

@@ -56,6 +56,7 @@ def test_get_set_curves(test_model_01):
     print (curves)
 
 
+@pytest.mark.uses_geopandas
 def test_dataframe_composite(test_model_02):
     m = test_model_02
     links = m.links

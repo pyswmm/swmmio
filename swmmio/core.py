@@ -38,7 +38,7 @@ class Model(object):
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> m = Model(MODEL_FULL_FEATURES_XY)
     >>> # access sections of inp via the Model.inp object
-    >>> m.inp.junctions
+    >>> m.inp.junctions #doctest: +NORMALIZE_WHITESPACE
           InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
     Name
     J3         6.547        15          0               0           0
@@ -48,7 +48,7 @@ class Model(object):
     4         16.000         0          0               0           0
     5         15.000         0          0               0           0
     J2        13.000        15          0               0           0
-    >>> m.inp.coordinates
+    >>> m.inp.coordinates #doctest: +NORMALIZE_WHITESPACE
                     X            Y
     Name
     J3    2748073.306  1117746.087
@@ -67,7 +67,7 @@ class Model(object):
     and ORIFICES joined with XSECTIONS, COORDINATES and the Link Flow Summary (if
     there is an rpt file found).
 
-    >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']]
+    >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']] #doctest: +NORMALIZE_WHITESPACE
           InletNode OutletNode  Length  Roughness  Geom1
     Name
     C1:C2        J1         J2  244.63       0.01    1.0
@@ -81,7 +81,7 @@ class Model(object):
     C2           J2         J3     NaN        NaN    NaN
     >>> # return all conduits (drop coords for clarity)
     >>> from swmmio.examples import jersey
-    >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']]
+    >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']] #doctest: +NORMALIZE_WHITESPACE
           InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
     Name
     J3         6.547      15.0        0.0             0.0         0.0
@@ -257,7 +257,7 @@ class Model(object):
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
         >>> pumps = model.pumps.dataframe
-        >>> pumps[['PumpCurve', 'InitStatus']]
+        >>> pumps[['PumpCurve', 'InitStatus']]  #doctest: +NORMALIZE_WHITESPACE
              PumpCurve InitStatus
         Name
         C2    P1_Curve         ON
@@ -278,7 +278,23 @@ class Model(object):
         Examples
         ---------
         >>> from swmmio.examples import philly
-        >>> philly.links.dataframe
+        >>> philly.links.dataframe.loc['J1-025.1']  #doctest: +NORMALIZE_WHITESPACE
+        InletNode                                                       J1-025
+        OutletNode                                                      J1-026
+        Length                                                      309.456216
+        Roughness                                                        0.014
+        InOffset                                                             0
+        OutOffset                                                          0.0
+        InitFlow                                                             0
+        MaxFlow                                                              0
+        Shape                                                         CIRCULAR
+        Geom1                                                             1.25
+        Geom2                                                                0
+        Geom3                                                                0
+        Geom4                                                                0
+        Barrels                                                              1
+        coords        [(2746229.223, 1118867.764), (2746461.473, 1118663.257)]
+        Name: J1-025.1, dtype: object
         """
         if self._links_df is not None:
             return self._links_df
@@ -356,24 +372,24 @@ class Model(object):
         >>> import swmmio
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
-        >>> m.inp.coordinates
-                      X          Y
+        >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                     X         Y
         Name
-        J3   -74.866424  42.365958
-        1    -74.870614  42.368292
-        2    -74.867615  42.367916
-        3    -74.869387  42.368527
-        4    -74.869024  42.368089
-        5    -74.868888  42.367709
-        J2   -74.868458  42.366748
-        J4   -74.864787  42.365966
-        J1   -74.868861  42.366968
-        >>> m.inp.vertices
-                       X          Y
+        J3   -74.86642  42.36596
+        1    -74.87061  42.36829
+        2    -74.86762  42.36792
+        3    -74.86939  42.36853
+        4    -74.86902  42.36809
+        5    -74.86889  42.36771
+        J2   -74.86846  42.36675
+        J4   -74.86479  42.36597
+        J1   -74.86886  42.36697
+        >>> m.inp.vertices.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                      X         Y
         Name
-        C1:C2 -74.868703  42.366833
-        C2.1  -74.868034  42.366271
-        C2.1  -74.867305  42.365974
+        C1:C2 -74.86870  42.36683
+        C2.1  -74.86803  42.36627
+        C2.1  -74.86731  42.36597
         """
         try:
             import pyproj
@@ -442,9 +458,15 @@ class rpt(SWMMIOFile):
 
     >>> from swmmio.tests.data import RPT_FULL_FEATURES
     >>> report = rpt(RPT_FULL_FEATURES)
-    >>> report.link_flow_summary
-    >>> from swmmio.examples import spruce
-    >>> spruce.rpt.link_results
+    >>> report.link_flow_summary.loc['C1:C2']
+    Type        CONDUIT
+    MaxQ           2.45
+    MaxDay            0
+    MaxHr         10:19
+    MaxV           6.23
+    MaxQPerc       1.32
+    MaxDPerc        0.5
+    Name: C1:C2, dtype: object
     """
 
     def __init__(self, filePath):
@@ -491,6 +513,7 @@ class inp(SWMMIOFile):
         self._outfalls_df = None
         self._storage_df = None
         self._coordinates_df = None
+        self._dwf_df = None
         self._vertices_df = None
         self._polygons_df = None
         self._subcatchments_df = None
@@ -520,6 +543,7 @@ class inp(SWMMIOFile):
             '[INFILTRATION]',
             '[CURVES]',
             '[COORDINATES]',
+            '[DWF]',
             '[INFLOWS]',
             '[Polygons]',
             '[TIMESERIES]'
@@ -552,6 +576,7 @@ class inp(SWMMIOFile):
     def validate(self):
         """
         Detect and remove invalid model elements
+
         :return: None
         """
         drop_invalid_model_elements(self)
@@ -598,7 +623,7 @@ class inp(SWMMIOFile):
         ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
         >>> model.inp.options.loc['INFILTRATION', 'Value'] = 'GREEN_AMPT'
         >>> model.inp.headers['[INFILTRATION]']
-        ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
+        ['Subcatchment', 'Suction', 'HydCon', 'IMDmax', 'Param4', 'Param5']
         """
         if self._options_df is None:
             self._options_df = get_inp_options_df(self.path)
@@ -652,8 +677,8 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.conduits[['InletNode', 'OutletNode', 'Length', 'ManningN']]
-              InletNode OutletNode  Length  ManningN
+        >>> model.inp.conduits[['InletNode', 'OutletNode', 'Length', 'Roughness']] #doctest: +NORMALIZE_WHITESPACE
+              InletNode OutletNode  Length  Roughness
         Name
         C1:C2        J1         J2  244.63      0.01
         C2.1         J2         J3  666.00      0.01
@@ -741,7 +766,7 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.junctions
+        >>> model.inp.junctions #doctest: +NORMALIZE_WHITESPACE
               InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
         Name
         J3         6.547        15          0               0           0
@@ -774,10 +799,10 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.outfalls
-              InvertElev OutfallType StageOrTimeseries  TideGate
+        >>> model.inp.outfalls  #doctest: +NORMALIZE_WHITESPACE
+              InvertElev OutfallType StageOrTimeseries
         Name
-        J4             0        FREE                NO       NaN
+        J4             0        FREE                NO
         """
         if self._outfalls_df is None:
             self._outfalls_df = dataframe_from_inp(self.path, "[OUTFALLS]")
@@ -848,7 +873,7 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> m.inp.infiltration
+        >>> m.inp.infiltration  #doctest: +NORMALIZE_WHITESPACE
                       MaxRate  MinRate  Decay  DryTime  MaxInfil
         Subcatchment
         S1                3.0      0.5      4        7         0
@@ -882,6 +907,22 @@ class inp(SWMMIOFile):
         self._coordinates_df = df
 
     @property
+    def dwf(self):
+        """
+        Get/set DWF section of model
+        :return: dataframe of model DWF section
+        """
+        if self._dwf_df is not None:
+            return self._dwf_df
+        self._dwf_df = dataframe_from_inp(self.path, "DWF")
+        return self._dwf_df
+
+    @dwf.setter
+    def dwf(self, df):
+        """Set inp.dwf DataFrame."""
+        self._dwf_df = df
+
+    @property
     def vertices(self):
         """
         get/set vertices section of model
@@ -905,7 +946,7 @@ class inp(SWMMIOFile):
         :return: dataframe of nodes with inflows
 
         >>> from swmmio.examples import jersey
-        >>> jersey.inp.inflows[['Constituent', 'Mfactor', 'Baseline']]
+        >>> jersey.inp.inflows[['Constituent', 'Mfactor', 'Baseline']]  #doctest: +NORMALIZE_WHITESPACE
              Constituent  Mfactor  Baseline
         Node
         J3          Flow      1.0         1
@@ -972,6 +1013,7 @@ class inp(SWMMIOFile):
         """Set inp.timeseries DataFrame."""
         self._timeseries_df = df
 
+
 def drop_invalid_model_elements(inp):
     """
     Identify references to elements in the model that are undefined and remove them from the
@@ -982,10 +1024,9 @@ def drop_invalid_model_elements(inp):
     >>> import swmmio
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
     >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
-    >>> drop_invalid_model_elements(m.inp)
-    ['InvalidLink2', 'InvalidLink1']
-    >>> m.inp
-    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+    >>> dropped_links, dropped_subcats = drop_invalid_model_elements(m.inp)
+    >>> dropped_links
+    ['InvalidLink2', 'InvalidLink1', 'OR1']
     """
 
     juncs = dataframe_from_inp(inp.path, "[JUNCTIONS]").index.tolist()
@@ -1010,7 +1051,7 @@ def drop_invalid_model_elements(inp):
     inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
     inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
 
-    return invalid_links + invalid_subcats
+    return invalid_links, invalid_subcats
 
 
 # dynamically add read properties to rpt object
