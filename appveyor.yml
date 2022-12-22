@@ -1,14 +1,17 @@
+image:
+  - Visual Studio 2019
+
 environment:
   matrix:
-    # For Python versions available on Appveyor, see 
+    # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
-    - PYTHON: "C:\\Python37"
-      MINICONDA: "C:\\Miniconda37"
-      PYTHON_VERSION: 3.7
+    - PYTHON: "C:\\Python38"
+      MINICONDA: "C:\\Miniconda38-x64"
+      PYTHON_VERSION: 3.8
 
 install:
   # install geopandas with conda into root python environment
-  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%PATH%"
+  - "set PATH=%MINICONDA%;%MINICONDA%\\Scripts;%MINICONDA%\\Library\\bin;%PATH%"
   - "conda config --set always_yes yes --set changeps1 no"
   - "conda update -q conda"
   # create test environment with geopandas installed
@@ -21,6 +24,7 @@ build: off
 
 test_script:
   - "pytest %APPVEYOR_BUILD_FOLDER%"
+  - python -m doctest swmmio/core.py
 
 
 on_success:

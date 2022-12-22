@@ -95,6 +95,12 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
         start_strings = [section, '-'*20, '-'*20]
     cols = headers[section]['columns']
 
+    # check for no Node Flooding Summary Edge case "No nodes were flooded."
+    if section == 'Node Flooding Summary':
+        s = extract_section_of_file(rpt_path, [section, 'No nodes were flooded.'], end_strings)
+        if 'No nodes were flooded' in s:
+            return pd.DataFrame(columns=cols)
+
     # extract the string and read into a dataframe
     s = extract_section_of_file(rpt_path, start_strings, end_strings)
     df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
