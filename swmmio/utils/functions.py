@@ -3,6 +3,7 @@ import networkx as nx
 import warnings
 # from swmmio import get_inp_options_df, INFILTRATION_COLS
 
+from swmmio.utils import error
 
 def random_alphanumeric(n=6):
     import random
@@ -217,3 +218,56 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
     return {'nodes': traced_nodes, 'conduits': traced_conduits}
 
 
+def find_network_trace(model, start_node, end_node,
+                       include_nodes=[], include_links=[]):
+    """
+    This function searches for a path between two nodes.  In addition, since
+    SWMM allows multiple links (edges) between nodes, the user can specify
+    a list of both nodes, and links to include in the path.  It will return a
+    single path selection.
+
+    :param model: swmmio.Model object
+    :param start_node: string of Node Name
+    :param end_node: string of Node Name
+    :param include_nodes: list of node name strings
+    :param include_links: list of link name strings
+    :return: Network Path Trace Tuple
+    """
+    nodes = model.nodes.dataframe
+    links = model.links.dataframe
+    model_digraph = model.network
+
+    if str(start_node) not in nodes.index:
+        raise(error.NodeNotInInputFile(start_node))
+    if str(end_node) not in nodes.index:
+        raise(error.NodeNotInInputFile(end_node))
+    for node_id in include_nodes:
+        if str(node_id) not in nodes.index:
+            raise(error.NodeNotInInputFile(node_id))
+    for link_id in include_links:
+        if str(link_id) not in links.index:
+            raise(error.LinkNotInInputFile(link_id))
+
+    simple_paths = nx.all_simple_edge_paths(model_digraph, start_node, end_node)
+    path_selection = None
+    for path_index, path_info in enumerate(simple_paths):
+        included_nodes = {name: False for name in include_nodes}
+        included_links = {name: False for name in include_links}
+        for selection in path_info:
+            us, ds, link = selection
+            if us in included_nodes.keys():
+                included_nodes[us] = True
+            if ds in included_nodes.keys():
+                included_nodes[ds] = True
+            if link in included_links.keys():
+                included_links[link] = True
+
+        if False not in [included_nodes[key] for key in included_nodes.keys()]:
+            if False not in [included_links[key] for key in included_links.keys()]:
+                path_selection = path_info
+                break
+
+    if path_selection == None:
+        raise(error.NoTraceFound)
+
+    return path_selection
