@@ -73,7 +73,6 @@ def test_network_trace_bad_link():
     with pytest.raises(error.LinkNotInInputFile) as execinfo:
         path_selection = find_network_trace(m, start_node, end_node,
                                             include_links=["LOOP"])
-        print(str(excinfo.value))
 
 
 def test_network_trace_bad_start_node():
