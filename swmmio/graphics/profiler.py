@@ -5,7 +5,14 @@ MH_WIDTH=10
 
 def build_profile_plot(ax, model, path_selection):
     """
-    This function should build the profile
+    This function builds the static network information for the profile. The
+    function accepts the swmmio model object and the network trace information
+    returned from calling `swmmio.find_network_trace()` function. The function
+    returns the relevant information adding data for HGL and labels.
+
+    :param model: swmmio.Model() object
+    :param path_selection: list of tuples [(<us_node>, <ds_node>, <link_name>),...]
+    :return: profile configuration information used for additional functions.
     """
     nodes = model.nodes.dataframe
     links = model.links.dataframe
@@ -26,7 +33,7 @@ def build_profile_plot(ax, model, path_selection):
             profile_config['nodes'].append({"id_name":us_node,\
                                             "rolling_x_pos":rolling_x_pos,\
                                             "invert_el":invert_el})
-            ret=add_manhole_plot(ax, rolling_x_pos, invert_el, max_depth)
+            ret=_add_manhole_plot(ax, rolling_x_pos, invert_el, max_depth)
             ground_levels['x'].extend(ret['x'])
             ground_levels['level'].extend(ret['level'])
         # Add next link length to offset
@@ -40,7 +47,7 @@ def build_profile_plot(ax, model, path_selection):
         profile_config['nodes'].append({"id_name":ds_node,\
                                         "rolling_x_pos":rolling_x_pos,\
                                         "invert_el":invert_el})
-        ret=add_manhole_plot(ax, rolling_x_pos, invert_el, max_depth)
+        ret=_add_manhole_plot(ax, rolling_x_pos, invert_el, max_depth)
         ground_levels['x'].extend(ret['x'])
         ground_levels['level'].extend(ret['level'])
 
@@ -50,22 +57,23 @@ def build_profile_plot(ax, model, path_selection):
         ds_link_offset = float(links.loc[[link_id]].OutOffset)
         depth = float(links.loc[[link_id]].Geom1)
 
-        ret=add_conduit_plot(ax, old_rolling_x_pos, rolling_x_pos,
-                             us_node_el, ds_node_el, depth,
-                             us_link_offset, ds_link_offset)
+        ret=_add_conduit_plot(ax, old_rolling_x_pos, rolling_x_pos,
+                              us_node_el, ds_node_el, depth,
+                              us_link_offset, ds_link_offset)
         link_mid_x, link_mid_y = sum(ret['x'])/2.0, sum(ret['bottom'])/2.0
         profile_config["links"].append({"id_name":link_id,
                                         "rolling_x_pos":link_mid_x,
                                         "midpoint_bottom": link_mid_y})
 
-    add_ground_plot(ax, ground_levels)
+    _add_ground_plot(ax, ground_levels)
 
     return profile_config
 
 
-def add_manhole_plot(ax, x, invert_el, depth, surcharge_depth=0, width=MH_WIDTH,
-                     gradient=True):
+def _add_manhole_plot(ax, x, invert_el, depth, surcharge_depth=0, width=MH_WIDTH,
+                      gradient=True):
     """
+    Adds a single manhole to the plot.  Called by `build_profile_plot()`.
     """
     ll_x, ll_y = x-width, invert_el
     lr_x, lr_y = x+width, invert_el
@@ -90,9 +98,11 @@ def add_manhole_plot(ax, x, invert_el, depth, surcharge_depth=0, width=MH_WIDTH,
                         zorder=0, color="whitesmoke")
     return {'x': [ul_x, ur_x], 'level': [ul_y, ur_y]}
 
-def add_conduit_plot(ax, us_x_position, ds_x_position, us_el, ds_el, depth,\
-                     us_offset=0, ds_offset=0, width=0, gradient=True):
+
+def _add_conduit_plot(ax, us_x_position, ds_x_position, us_el, ds_el, depth,\
+                      us_offset=0, ds_offset=0, width=0, gradient=True):
     """
+    Adds a single conduit to the plot.  Called by `build_profile_plot()`.
     """
     us_bot_x, us_bot_y = us_x_position+width, us_el + us_offset
     ds_bot_x, ds_bot_y = ds_x_position-width, ds_el + ds_offset
@@ -105,7 +115,10 @@ def add_conduit_plot(ax, us_x_position, ds_x_position, us_el, ds_el, depth,\
 
     return {'x':[us_bot_x, ds_bot_x], 'bottom':[us_bot_y, ds_bot_y]}
 
-def add_ground_plot(ax, ground_levels):
+def _add_ground_plot(ax, ground_levels):
+    """
+    Adds the grond level to the profile plot. Called by `build_profile_plot()`.
+    """
     ax.plot(ground_levels['x'], ground_levels['level'], '-', color='brown')
 
 def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="HGL"):
@@ -122,9 +135,21 @@ def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="H
 
     ax.plot(x, hgl_calc, '-', color=color, label=label)
 
+
 def add_node_labels_plot(ax, model, profile_config, font_size=8,
                          label_offset=5, stagger=True):
+    """
+    This function adds the node labels to the plot axis handle.
 
+    :param ax: matplotlib.plot.axis() Axis handle
+    :param model: swmmio.Model object
+    :param profile_config: dict dictionary returned from the `build_profile_plot()`.
+    :param font_size: font size
+    :param label_offset: int just provides some clean separation from the
+    assets and the labels
+    :param stagger: True/False staggers the labels to prevent them from stacking
+    onto one another.
+    """
     nodes = model.nodes.dataframe
 
     label_y_max = 0
@@ -164,9 +189,18 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
 
 def add_link_labels_plot(ax, model, profile_config, font_size=8,
                          label_offset=9, stagger=True):
+    """
+    This function adds the link labels to the plot axis handle.
 
-    #links = model.links.dataframe
-
+    :param ax: matplotlib.plot.axis() Axis handle
+    :param model: swmmio.Model object
+    :param profile_config: dict dictionary returned from the `build_profile_plot()`.
+    :param font_size: font size
+    :param label_offset: int just provides some clean separation from the
+    assets and the labels
+    :param stagger: True/False staggers the labels to prevent them from stacking
+    onto one another.
+    """
     label_y_min = 1e9
     for val in profile_config['links']:
         y_midpoint_bottom = val["midpoint_bottom"]
