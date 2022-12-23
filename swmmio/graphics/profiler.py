@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pyswmm
 from swmmio.utils import error
 
 MH_WIDTH=10
