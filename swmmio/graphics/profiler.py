@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from swmmio.utils import error
 
 MH_WIDTH=10
 
@@ -129,7 +130,7 @@ def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="H
       or isinstance(depth, dict) == True:
         hgl_calc = [val["invert_el"]+float(depth[val["id_name"]]) for val in profile_config['nodes']]
     else:
-        raise(InvalidDataTypes)
+        raise(error.InvalidDataTypes)
 
     x = [float(val["rolling_x_pos"]) for val in profile_config['nodes']]
 
