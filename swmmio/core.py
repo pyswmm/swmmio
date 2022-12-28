@@ -562,9 +562,12 @@ class inp(SWMMIOFile):
         """
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
-        target_path = target_path if target_path is not None else self.path
 
-        shutil.copyfile(self.path, target_path)
+        if target_path is not None:
+            shutil.copyfile(self.path, target_path)
+        else:
+            target_path = self.path
+
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
             sect_id = section.translate({ord(i): None for i in '[]'}).lower()
