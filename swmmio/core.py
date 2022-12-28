@@ -504,6 +504,7 @@ class inp(SWMMIOFile):
     def __init__(self, file_path):
         self._options_df = None
         self._files_df = None
+        self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
         self._pumps_df = None
@@ -529,6 +530,7 @@ class inp(SWMMIOFile):
         self._sections = [
             '[OPTIONS]',
             '[FILES]',
+            '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
             '[PUMPS]',
@@ -654,8 +656,6 @@ class inp(SWMMIOFile):
 
         :return: files section of the INP file
         :rtype: pandas.DataFrame
-
-        Examples:
         """
         if self._files_df is None:
             self._files_df = dataframe_from_inp(self.path, "[FILES]")
@@ -666,6 +666,33 @@ class inp(SWMMIOFile):
         """Set inp.files DataFrame."""
         first_col = df.columns[0]
         self._files_df = df.set_index(first_col)
+
+    @property
+    def report(self):
+        """
+        Get/set report section of the INP file.
+
+        :return: report section of the INP file
+        :rtype: pandas.DataFrame
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.inp.report  #doctest: +NORMALIZE_WHITESPACE
+                      Status
+        Param
+        INPUT            YES
+        CONTROLS         YES
+        SUBCATCHMENTS   NONE
+        NODES            ALL
+        LINKS           NONE
+        """
+        if self._report_df is None:
+            self._report_df = dataframe_from_inp(self.path, "report")
+        return self._report_df
+
+    @report.setter
+    def report(self, df):
+        """Set inp.report DataFrame."""
+        self._report_df = df
 
     @property
     def conduits(self):

@@ -34,7 +34,8 @@ def run_hot_start_sequence(inp_path, py_path=PYTHON_EXE_PATH, pyswmm_wrapper=PYS
     # create new model inp with params to save hotstart1
     print('create new model inp with params to save hotstart1')
 
-    model = replace_inp_section(model.inp.path, '[REPORT]', defs.REPORT_none)
+    model.inp.report.loc[:, 'Status'] = 'NONE'
+    model.inp.report.loc[['INPUT', 'CONTROLS'], 'Status'] = 'NO'
     model.inp.files = pd.DataFrame([f'SAVE HOTSTART "{hotstart1}"'], columns=['[FILES]'])
     model.inp.options.loc['IGNORE_RAINFALL', 'Value'] = 'YES'
     model.inp.save()
@@ -51,7 +52,6 @@ def run_hot_start_sequence(inp_path, py_path=PYTHON_EXE_PATH, pyswmm_wrapper=PYS
     # create new model inp with params to use hotstart2 and not save anything
     print('params to use hotstart2 and not save anything')
 
-    model = replace_inp_section(model.inp.path, '[REPORT]', defs.REPORT_none)  # defs.REPORT_nodes_links)
     model.inp.files = pd.DataFrame([f'USE HOTSTART "{hotstart2}"'], columns=['[FILES]'])
     model.inp.options.loc['IGNORE_RAINFALL', 'Value'] = 'NO'
     model.inp.save()
