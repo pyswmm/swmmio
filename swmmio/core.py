@@ -505,6 +505,7 @@ class inp(SWMMIOFile):
         self._options_df = None
         self._files_df = None
         self._raingages_df = None
+        self._evaporation_df = None
         self._conduits_df = None
         self._xsections_df = None
         self._pumps_df = None
@@ -531,6 +532,7 @@ class inp(SWMMIOFile):
             '[OPTIONS]',
             '[FILES]',
             '[RAINGAGES]',
+            '[EVAPORATION]',
             '[CONDUITS]',
             '[XSECTIONS]',
             '[PUMPS]',
@@ -688,8 +690,34 @@ class inp(SWMMIOFile):
 
     @raingages.setter
     def raingages(self, df):
-        """Set inp.polygons DataFrame."""
+        """Set inp.raingages DataFrame."""
         self._raingages_df = df
+
+    @property
+    def evaporation(self):
+        """
+        get/set evaporation section of model
+
+        :return: dataframe of evaporation section in inp file
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.evaporation #doctest: +NORMALIZE_WHITESPACE
+                 Value
+        Key
+        CONSTANT   0.0
+        DRY_ONLY    NO
+        """
+        if self._evaporation_df is not None:
+            return self._evaporation_df
+        self._evaporation_df = dataframe_from_inp(self.path, 'evaporation')
+        return self._evaporation_df
+
+    @evaporation.setter
+    def evaporation(self, df):
+        """Set inp.evaporation DataFrame."""
+        self._evaporation_df = df
 
     @property
     def conduits(self):

@@ -22,6 +22,8 @@ inp_file_objects:
     columns: [Action, FileType, FileName]
   RAINGAGES:
     columns: [Name, RainType, TimeIntrvl, SnowCatch, DataSource, DataSourceName]
+  EVAPORATION:
+    keys: [Type, Parameters]
   LOSSES:
     # SeepageRage is new?
     columns:
