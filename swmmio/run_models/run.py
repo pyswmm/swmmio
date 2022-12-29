@@ -1,8 +1,8 @@
 import subprocess
 import os
+
 import pandas as pd
-from swmmio.utils.modify_model import replace_inp_section
-from swmmio.run_models import defs
+
 from swmmio import Model
 from swmmio.defs.config import PYTHON_EXE_PATH, PYSWMM_WRAPPER_PATH
 
