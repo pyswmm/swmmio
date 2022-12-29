@@ -1,11 +1,9 @@
 import pytest
 import swmmio
 from swmmio.tests.data import (MODEL_FULL_FEATURES__NET_PATH,
-                              OWA_RPT_EXAMPLE, RPT_FULL_FEATURES,
-                              MODEL_EX_1_PARALLEL_LOOP,
-                              MODEL_EX_1)
-from swmmio.utils.functions import (format_inp_section_header,
-                                   find_network_trace)
+                               OWA_RPT_EXAMPLE, RPT_FULL_FEATURES,
+                               MODEL_EX_1_PARALLEL_LOOP, MODEL_EX_1)
+from swmmio.utils.functions import format_inp_section_header, find_network_trace
 from swmmio.utils import error
 from swmmio.utils.text import get_rpt_metadata
 
@@ -47,7 +45,7 @@ def test_model_to_networkx():
     assert (G['J1']['J2']['C1:C2']['Length'] == 244.63)
     assert (round(G.nodes['J2']['InvertElev'], 3) == 13.0)
 
-    links = m.links()
+    links = m.links.dataframe
     assert(len(links) == len(G.edges()))
 
 
@@ -55,13 +53,13 @@ def test_network_trace_loop():
     m = swmmio.Model(MODEL_EX_1_PARALLEL_LOOP)
     start_node = "9"
     end_node = "18"
-    path_selection = find_network_trace(m, start_node, end_node, \
-                                        include_nodes=[], \
+    path_selection = find_network_trace(m, start_node, end_node,
+                                        include_nodes=[],
                                         include_links=["LOOP"])
-    correct_path = [('9', '10', '1'),\
-                    ('10', '21', '6'),\
-                    ('21', '24', 'LOOP'),\
-                    ('24', '17', '16'),\
+    correct_path = [('9', '10', '1'),
+                    ('10', '21', '6'),
+                    ('21', '24', 'LOOP'),
+                    ('24', '17', '16'),
                     ('17', '18', '10')]
     assert (path_selection == correct_path)
 
@@ -96,6 +94,6 @@ def test_network_trace_bad_include_node():
     start_node = "9"
     end_node = "18"
     with pytest.raises(error.NodeNotInInputFile):
-        path_selection = find_network_trace(m, start_node, \
-                                            end_node, \
+        path_selection = find_network_trace(m, start_node,
+                                            end_node,
                                             include_nodes=["1000"])
