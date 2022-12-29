@@ -8,7 +8,7 @@ import pytest
 
 from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY,
                                MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH,
-                               MODEL_EX_1_PARALLEL_LOOP, MODEL_EXAMPLE6)
+                               MODEL_EX_1_PARALLEL_LOOP)
 import swmmio
 from swmmio.graphics import swmm_graphics as sg
 from swmmio.utils.spatial import centroid_and_bbox_from_coords, change_crs
@@ -103,42 +103,6 @@ profile_selection_assert = \
 
 
 def test_profile():
-    mdl = MODEL_EX_1_PARALLEL_LOOP
-    with pyswmm.Simulation(mdl) as sim:
-        for step in sim:
-            pass
-    #instantiate a swmmio model object
-    mymodel = swmmio.Model(mdl)
-
-    depths = mymodel.rpt.node_depth_summary.MaxNodeDepthReported
-
-    fig = plt.figure(figsize=(11,8))
-    fig.suptitle("TEST")
-    ax = fig.add_subplot(2,1,1)
-    path_selection = find_network_trace(mymodel, '9', '18', include_links=["LOOP"])
-    profile_config = build_profile_plot(ax, mymodel, path_selection)
-    assert(profile_config == profile_selection_assert)
-    add_hgl_plot(ax, profile_config, depth=depths, label="Max HGL")
-    add_node_labels_plot(ax, mymodel, profile_config)
-    add_link_labels_plot(ax, mymodel, profile_config)
-    leg = ax.legend()
-    ax.grid('xy')
-
-    ax2 = fig.add_subplot(2,1,2)
-    path_selection = find_network_trace(mymodel, '19', '18', include_nodes=['22'])
-    profile_config = build_profile_plot(ax2, mymodel, path_selection)
-    add_hgl_plot(ax2, profile_config, depth=depths, label="Max HGL")
-    add_node_labels_plot(ax2, mymodel, profile_config)
-    add_link_labels_plot(ax2, mymodel, profile_config)
-    leg = ax2.legend()
-    ax2.grid('xy')
-
-    fig.tight_layout()
-    plt.savefig("test.pdf")
-    plt.close()
-
-
-def test_profile_2():
     with tempfile.TemporaryDirectory() as tempdir:
         # instantiate a swmmio model object, save copy in temp dir
         temp_model_path = os.path.join(tempdir, 'model.inp')
