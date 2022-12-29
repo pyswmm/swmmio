@@ -5,7 +5,7 @@ import unittest
 from unittest import mock
 
 import swmmio
-from swmmio.examples import philly
+from swmmio.examples import philly, jerzey
 from swmmio.run_models.run import run_simple, run_hot_start_sequence
 
 
@@ -43,7 +43,7 @@ class TestRunModels(unittest.TestCase):
 
     @mock.patch('argparse.ArgumentParser.parse_args',
                 return_value=argparse.Namespace(
-                    model_to_run=[philly.inp.path]
+                    model_to_run=[jerzey.inp.path]
                 ))
     def test_swmmio_run(self, mock_args):
         from swmmio import __main__
