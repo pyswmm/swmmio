@@ -504,9 +504,17 @@ class inp(SWMMIOFile):
     def __init__(self, file_path):
         self._options_df = None
         self._files_df = None
+        self._raingages_df = None
+        self._evaporation_df = None
         self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
+        self._pollutants_df = None
+        self._landuses_df = None
+        self._buildup_df = None
+        self._washoff_df = None
+        self._coverages_df = None
+        self._loadings_df = None
         self._pumps_df = None
         self._orifices_df = None
         self._weirs_df = None
@@ -515,6 +523,8 @@ class inp(SWMMIOFile):
         self._storage_df = None
         self._coordinates_df = None
         self._dwf_df = None
+        self._rdii_df = None
+        self._hydrographs_df = None
         self._vertices_df = None
         self._polygons_df = None
         self._subcatchments_df = None
@@ -530,9 +540,17 @@ class inp(SWMMIOFile):
         self._sections = [
             '[OPTIONS]',
             '[FILES]',
+            '[RAINGAGES]',
+            '[EVAPORATION]',
             '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
+            '[POLLUTANTS]',
+            '[LANDUSES]',
+            '[BUILDUP]',
+            '[WASHOFF]',
+            '[COVERAGES]',
+            '[LOADINGS]',
             '[PUMPS]',
             '[ORIFICES]',
             '[WEIRS]',
@@ -546,6 +564,8 @@ class inp(SWMMIOFile):
             '[CURVES]',
             '[COORDINATES]',
             '[DWF]',
+            '[RDII]',
+            '[HYDROGRAPHS]',
             '[INFLOWS]',
             '[Polygons]',
             '[TIMESERIES]'
@@ -668,6 +688,57 @@ class inp(SWMMIOFile):
         self._files_df = df.set_index(first_col)
 
     @property
+    def raingages(self):
+        """
+        get/set raingages section of model
+
+        :return: dataframe of raingages in the model
+
+        Examples:
+
+        >>> from swmmio.examples import philly
+        >>> philly.inp.raingages #doctest: +NORMALIZE_WHITESPACE
+               RainType TimeIntrvl  SnowCatch  DataSource DataSourceName
+        Name
+        RG1   INTENSITY       1:00        1.0  TIMESERIES   design-storm
+        """
+        if self._raingages_df is not None:
+            return self._raingages_df
+        self._raingages_df = dataframe_from_inp(self.path, 'raingages')
+        return self._raingages_df
+
+    @raingages.setter
+    def raingages(self, df):
+        """Set inp.raingages DataFrame."""
+        self._raingages_df = df
+
+    @property
+    def evaporation(self):
+        """
+        get/set evaporation section of model
+
+        :return: dataframe of evaporation section in inp file
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.evaporation #doctest: +NORMALIZE_WHITESPACE
+                 Value
+        Key
+        CONSTANT   0.0
+        DRY_ONLY    NO
+        """
+        if self._evaporation_df is not None:
+            return self._evaporation_df
+        self._evaporation_df = dataframe_from_inp(self.path, 'evaporation')
+        return self._evaporation_df
+
+    @evaporation.setter
+    def evaporation(self, df):
+        """Set inp.evaporation DataFrame."""
+        self._evaporation_df = df
+
+    @property
     def report(self):
         """
         Get/set report section of the INP file.
@@ -740,6 +811,159 @@ class inp(SWMMIOFile):
     def xsections(self, df):
         """Set inp.xsections DataFrame."""
         self._xsections_df = df
+
+    @property
+    def pollutants(self):
+        """
+        get/set pollutants section of model
+
+        :return: dataframe of pollutants section in inp file
+
+        Examples:
+        The `walnut` example model contains two entries in the POLLUTANTS section, one
+        of which is TSS. Below we show how to retrieve this information, by accessing the
+        `TSS` index of the pollutants dataframe:
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.pollutants.loc['TSS'] #doctest: +NORMALIZE_WHITESPACE
+        MassUnits           MG/L
+        RainConcen           0.0
+        GWConcen             0.0
+        I&IConcen              0
+        DecayCoeff           0.0
+        SnowOnly              NO
+        CoPollutName           *
+        CoPollutFraction     0.0
+        DWFConcen              0
+        InitConcen             0
+        Name: TSS, dtype: object
+        """
+        if self._pollutants_df is not None:
+            return self._pollutants_df
+        self._pollutants_df = dataframe_from_inp(self.path, 'pollutants')
+        return self._pollutants_df
+
+    @pollutants.setter
+    def pollutants(self, df):
+        """Set inp.pollutants DataFrame."""
+        self._pollutants_df = df
+
+    @property
+    def landuses(self):
+        """
+        Get/set landuses section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.landuses #doctest: +NORMALIZE_WHITESPACE
+                     CleaningInterval  FractionAvailable  LastCleaned
+        Name
+        Residential                 0                  0            0
+        Undeveloped                 0                  0            0
+        """
+        if self._landuses_df is None:
+            self._landuses_df = dataframe_from_inp(self.path, "LANDUSES")
+        return self._landuses_df
+
+    @landuses.setter
+    def landuses(self, df):
+        """Set inp.landuses DataFrame."""
+        self._landuses_df = df
+
+    @property
+    def buildup(self):
+        """
+        Get/set buildup section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.buildup[['Pollutant', 'Function', 'Normalizer']] #doctest: +NORMALIZE_WHITESPACE
+                    Pollutant Function Normalizer
+        LandUse
+        Residential      Lead     NONE       AREA
+        Residential       TSS      SAT       AREA
+        Undeveloped      Lead     NONE       AREA
+        Undeveloped       TSS      SAT       AREA
+        """
+        if self._buildup_df is None:
+            self._buildup_df = dataframe_from_inp(self.path, "BUILDUP")
+        return self._buildup_df
+
+    @buildup.setter
+    def buildup(self, df):
+        """Set inp.buildup DataFrame."""
+        self._buildup_df = df
+
+    @property
+    def washoff(self):
+        """
+        Get/set washoff section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.washoff[['Pollutant', 'Function']] #doctest: +NORMALIZE_WHITESPACE
+                    Pollutant Function
+        LandUse
+        Residential      Lead      EMC
+        Residential       TSS      EXP
+        Undeveloped      Lead      EMC
+        Undeveloped       TSS      EXP
+        """
+        if self._washoff_df is None:
+            self._washoff_df = dataframe_from_inp(self.path, "WASHOFF")
+        return self._washoff_df
+
+    @washoff.setter
+    def washoff(self, df):
+        """Set inp.washoff DataFrame."""
+        self._washoff_df = df
+
+    @property
+    def coverages(self):
+        """
+        Get/set coverages section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.coverages #doctest: +NORMALIZE_WHITESPACE
+                          LandUse  Percent
+        Subcatchment
+        1             Residential    100.0
+        2             Residential     50.0
+        2             Undeveloped     50.0
+        3             Residential    100.0
+        4             Residential     50.0
+        4             Undeveloped     50.0
+        5             Residential    100.0
+        6             Undeveloped    100.0
+        7             Undeveloped    100.0
+        8             Undeveloped    100.0
+        """
+        if self._coverages_df is None:
+            self._coverages_df = dataframe_from_inp(self.path, "coverages")
+        return self._coverages_df
+
+    @coverages.setter
+    def coverages(self, df):
+        """Set inp.coverages DataFrame."""
+        self._coverages_df = df
+
+    @property
+    def loadings(self):
+        """
+        Get/set loadings section of the INP file.
+        """
+        if self._loadings_df is None:
+            self._loadings_df = dataframe_from_inp(self.path, "loadings")
+        return self._loadings_df
+
+    @loadings.setter
+    def loadings(self, df):
+        """Set inp.loadings DataFrame."""
+        self._loadings_df = df
 
     @property
     def pumps(self):
@@ -951,6 +1175,52 @@ class inp(SWMMIOFile):
     def dwf(self, df):
         """Set inp.dwf DataFrame."""
         self._dwf_df = df
+
+    @property
+    def rdii(self):
+        """
+        Get/set RDII section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.rdii #doctest: +NORMALIZE_WHITESPACE
+             UnitHydrograph  SewerArea
+        Node
+        13      Hydrograph1  58.944186
+        14      Hydrograph1  58.944186
+        """
+        if self._rdii_df is None:
+            self._rdii_df = dataframe_from_inp(self.path, "[RDII]")
+        return self._rdii_df
+
+    @rdii.setter
+    def rdii(self, df):
+        """Set inp.rdii DataFrame."""
+        self._rdii_df = df
+
+    @property
+    def hydrographs(self):
+        """
+        Get/set hydrographs section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.hydrographs #doctest: +NORMALIZE_WHITESPACE
+                    RainGage/Month
+        Hydrograph
+        Hydrograph1            TS1
+        """
+        if self._hydrographs_df is None:
+            self._hydrographs_df = dataframe_from_inp(self.path, "hydrographs")
+        return self._hydrographs_df
+
+    @hydrographs.setter
+    def hydrographs(self, df):
+        """Set inp.hydrographs DataFrame."""
+        self._hydrographs_df = df
+
 
     @property
     def vertices(self):
