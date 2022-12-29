@@ -1,6 +1,8 @@
-import unittest
-import tempfile
+import argparse
 import os
+import tempfile
+import unittest
+from unittest import mock
 
 import swmmio
 from swmmio.examples import philly
@@ -38,5 +40,13 @@ class TestRunModels(unittest.TestCase):
 
             m = swmmio.Model(inp_path)
             self.assertTrue(m.rpt_is_valid())
+
+    @mock.patch('argparse.ArgumentParser.parse_args',
+                return_value=argparse.Namespace(
+                    model_to_run=[philly.inp.path]
+                ))
+    def test_swmmio_run(self, mock_args):
+        from swmmio import __main__
+        self.assertEqual(__main__.main(), 0)
 
 
