@@ -1,9 +1,9 @@
+import warnings
 import pandas as pd
 import networkx as nx
-import warnings
-# from swmmio import get_inp_options_df, INFILTRATION_COLS
 
 from swmmio.utils import error
+
 
 def random_alphanumeric(n=6):
     import random
@@ -12,7 +12,6 @@ def random_alphanumeric(n=6):
 
 
 def model_to_networkx(model, drop_cycles=True):
-    from swmmio.utils.dataframes import dataframe_from_rpt
     '''
     Networkx MultiDiGraph representation of the model
     '''
@@ -219,7 +218,7 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
 
 def find_network_trace(model, start_node, end_node,
-                       include_nodes=[], include_links=[]):
+                       include_nodes=None, include_links=None):
     """
     This function searches for a path between two nodes.  In addition, since
     SWMM allows multiple links (edges) between nodes, the user can specify
@@ -236,6 +235,9 @@ def find_network_trace(model, start_node, end_node,
     nodes = model.nodes.dataframe
     links = model.links.dataframe
     model_digraph = model.network
+
+    include_nodes = [] if include_nodes is None else include_nodes
+    include_links = [] if include_links is None else include_links
 
     if str(start_node) not in nodes.index:
         raise(error.NodeNotInInputFile(start_node))
@@ -267,7 +269,7 @@ def find_network_trace(model, start_node, end_node,
                 path_selection = path_info
                 break
 
-    if path_selection == None:
-        raise(error.NoTraceFound)
+    if path_selection is None:
+        raise error.NoTraceFound
 
     return path_selection
