@@ -199,6 +199,18 @@ Residential      TSS              EXP        0.1        1          0          0
 Undeveloped      Lead             EMC        0          0          0          0         
 Undeveloped      TSS              EXP        0.1        0.7        0          0         
 
+[HYDROGRAPHS]
+;;Hydrograph     Rain Gage/Month  Response R        T        K        Dmax     Drecov   Dinit
+;;-------------- ---------------- -------- -------- -------- -------- -------- -------- --------
+Hydrograph1      TS1
+
+
+[RDII]
+;;Node           Unit Hydrograph  Sewer Area
+;;-------------- ---------------- ----------
+13          Hydrograph1           58.944186
+14          Hydrograph1           58.944186
+
 [TIMESERIES]
 ;;Name           Date       Time       Value     
 ;;-------------- ---------- ---------- ----------

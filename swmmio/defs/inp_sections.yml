@@ -38,6 +38,13 @@ inp_file_objects:
   JUNCTIONS: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
   DWF:
     columns: [Node, Parameter, AverageValue, TimePatterns]
+  RDII: [Node, UnitHydrograph, SewerArea]
+  HYDROGRAPHS: [Hydrograph, RainGage/Month, Response, R, T, K, Dmax, Drecov, Dinit]
+  LANDUSES: [Name, CleaningInterval, FractionAvailable, LastCleaned]
+  BUILDUP: [LandUse, Pollutant, Function, Coeff1, Coeff2, Coeff3, Normalizer]
+  WASHOFF: [LandUse, Pollutant, Function, Coeff1, Coeff2, CleaningEffic, BMPEffic]
+  COVERAGES: [Subcatchment, LandUse, Percent]
+  LOADINGS: [Subcatchment, Pollutant, Loading]
   ORIFICES:
     columns: [Name, InletNode, OutletNode, OrificeType, CrestHeight, DischCoeff, FlapGate, OpenCloseTime]
   OUTFALLS: [Name, InvertElev, OutfallType, StageOrTimeseries, TideGate, RouteTo]
