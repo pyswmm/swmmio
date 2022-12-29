@@ -823,6 +823,7 @@ class inp(SWMMIOFile):
         The `walnut` example model contains two entries in the POLLUTANTS section, one
         of which is TSS. Below we show how to retrieve this information, by accessing the
         `TSS` index of the pollutants dataframe:
+
         >>> from swmmio.examples import walnut
         >>> walnut.inp.pollutants.loc['TSS'] #doctest: +NORMALIZE_WHITESPACE
         MassUnits           MG/L
