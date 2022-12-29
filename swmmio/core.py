@@ -504,6 +504,7 @@ class inp(SWMMIOFile):
     def __init__(self, file_path):
         self._options_df = None
         self._files_df = None
+        self._raingages_df = None
         self._conduits_df = None
         self._xsections_df = None
         self._pumps_df = None
@@ -529,6 +530,7 @@ class inp(SWMMIOFile):
         self._sections = [
             '[OPTIONS]',
             '[FILES]',
+            '[RAINGAGES]',
             '[CONDUITS]',
             '[XSECTIONS]',
             '[PUMPS]',
@@ -663,6 +665,31 @@ class inp(SWMMIOFile):
         """Set inp.files DataFrame."""
         first_col = df.columns[0]
         self._files_df = df.set_index(first_col)
+
+    @property
+    def raingages(self):
+        """
+        get/set raingages section of model
+
+        :return: dataframe of raingages in the model
+
+        Examples:
+
+        >>> from swmmio.examples import philly
+        >>> philly.inp.raingages #doctest: +NORMALIZE_WHITESPACE
+               RainType TimeIntrvl  SnowCatch  DataSource DataSourceName
+        Name
+        RG1   INTENSITY       1:00        1.0  TIMESERIES   design-storm
+        """
+        if self._raingages_df is not None:
+            return self._raingages_df
+        self._raingages_df = dataframe_from_inp(self.path, 'raingages')
+        return self._raingages_df
+
+    @raingages.setter
+    def raingages(self, df):
+        """Set inp.polygons DataFrame."""
+        self._raingages_df = df
 
     @property
     def conduits(self):
