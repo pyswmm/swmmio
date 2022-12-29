@@ -13,3 +13,6 @@ m2r
 mistune==0.8.4
 # Run dependencies
 pyproj>=3.0.0
+geopandas
+matplotlib
+pyswmm>=1.2

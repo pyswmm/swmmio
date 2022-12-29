@@ -506,6 +506,7 @@ class inp(SWMMIOFile):
         self._files_df = None
         self._raingages_df = None
         self._evaporation_df = None
+        self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
         self._pollutants_df = None
@@ -534,6 +535,7 @@ class inp(SWMMIOFile):
             '[FILES]',
             '[RAINGAGES]',
             '[EVAPORATION]',
+            '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
             '[POLLUTANTS]',
@@ -568,9 +570,12 @@ class inp(SWMMIOFile):
         """
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
-        target_path = target_path if target_path is not None else self.path
 
-        shutil.copyfile(self.path, target_path)
+        if target_path is not None:
+            shutil.copyfile(self.path, target_path)
+        else:
+            target_path = self.path
+
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
             sect_id = section.translate({ord(i): None for i in '[]'}).lower()
@@ -657,8 +662,6 @@ class inp(SWMMIOFile):
 
         :return: files section of the INP file
         :rtype: pandas.DataFrame
-
-        Examples:
         """
         if self._files_df is None:
             self._files_df = dataframe_from_inp(self.path, "[FILES]")
@@ -720,6 +723,33 @@ class inp(SWMMIOFile):
     def evaporation(self, df):
         """Set inp.evaporation DataFrame."""
         self._evaporation_df = df
+
+    @property
+    def report(self):
+        """
+        Get/set report section of the INP file.
+
+        :return: report section of the INP file
+        :rtype: pandas.DataFrame
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.inp.report  #doctest: +NORMALIZE_WHITESPACE
+                      Status
+        Param
+        INPUT            YES
+        CONTROLS         YES
+        SUBCATCHMENTS   NONE
+        NODES            ALL
+        LINKS           NONE
+        """
+        if self._report_df is None:
+            self._report_df = dataframe_from_inp(self.path, "report")
+        return self._report_df
+
+    @report.setter
+    def report(self, df):
+        """Set inp.report DataFrame."""
+        self._report_df = df
 
     @property
     def conduits(self):
