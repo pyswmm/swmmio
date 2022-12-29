@@ -50,7 +50,7 @@ def build_profile_plot(ax, model, path_selection):
             rolling_x_pos += DEFAULT_ORIFICE_LENGTH
         elif links.loc[[link_id]].Type[0] == "PUMP":
             rolling_x_pos += DEFAULT_PUMP_LENGTH
-        elif link.loc[[link_id]].Type[0] == "OUTLET":
+        elif links.loc[[link_id]].Type[0] == "OUTLET":
             rolling_x_pos += DEFAULT_OUTLET_LENGTH
         # Plot DS node
         invert_el = float(nodes.loc[[ds_node]].InvertElev)
