@@ -51,6 +51,8 @@ inp_file_objects:
   WEIRS: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate, EndCon, EndCoeff,
           Surcharge, RoadWidth, RoadSurf]
   XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
+  POLLUTANTS: [Name, MassUnits, RainConcen, GWConcen, I&IConcen, DecayCoeff, SnowOnly,
+               CoPollutName, CoPollutFraction, DWFConcen, InitConcen]
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
 
   TIMESERIES: [Name, Date, Time, Value]

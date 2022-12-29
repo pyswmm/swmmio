@@ -508,6 +508,7 @@ class inp(SWMMIOFile):
         self._evaporation_df = None
         self._conduits_df = None
         self._xsections_df = None
+        self._pollutants_df = None
         self._pumps_df = None
         self._orifices_df = None
         self._weirs_df = None
@@ -535,6 +536,7 @@ class inp(SWMMIOFile):
             '[EVAPORATION]',
             '[CONDUITS]',
             '[XSECTIONS]',
+            '[POLLUTANTS]',
             '[PUMPS]',
             '[ORIFICES]',
             '[WEIRS]',
@@ -765,6 +767,41 @@ class inp(SWMMIOFile):
     def xsections(self, df):
         """Set inp.xsections DataFrame."""
         self._xsections_df = df
+
+    @property
+    def pollutants(self):
+        """
+        get/set pollutants section of model
+
+        :return: dataframe of pollutants section in inp file
+
+        Examples:
+        The `walnut` example model contains two entries in the POLLUTANTS section, one
+        of which is TSS. Below we show how to retrieve this information, by accessing the
+        `TSS` index of the pollutants dataframe:
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.pollutants.loc['TSS'] #doctest: +NORMALIZE_WHITESPACE
+        MassUnits           MG/L
+        RainConcen           0.0
+        GWConcen             0.0
+        I&IConcen              0
+        DecayCoeff           0.0
+        SnowOnly              NO
+        CoPollutName           *
+        CoPollutFraction     0.0
+        DWFConcen              0
+        InitConcen             0
+        Name: TSS, dtype: object
+        """
+        if self._pollutants_df is not None:
+            return self._pollutants_df
+        self._pollutants_df = dataframe_from_inp(self.path, 'pollutants')
+        return self._pollutants_df
+
+    @pollutants.setter
+    def pollutants(self, df):
+        """Set inp.pollutants DataFrame."""
+        self._pollutants_df = df
 
     @property
     def pumps(self):
