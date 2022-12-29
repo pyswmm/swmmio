@@ -1,3 +1,26 @@
+## Version 0.6.0 (2022/12/29)
+
+### Issues Closed
+
+* [Issue 75](https://github.com/aerispaha/swmmio/issues/75) - Update and unit test the run_models module
+* [Issue 153](https://github.com/aerispaha/swmmio/issues/153) - Add Profile Plotter
+* [PR 165](https://github.com/aerispaha/swmmio/pull/165) - Add profile plotter and pyswmm integration
+* [PR 170](https://github.com/aerispaha/swmmio/pull/170) - Add INP sections to model.inp properties
+  * raingages 
+  * evaporation 
+  * pollutants 
+  * rdii 
+  * hydrographs 
+  * buildup 
+  * washoff 
+  * coverages 
+  * loadings 
+  * landuses
+
+In this release 2 issues were closed, 2 PRs were merged, and a lot of progress was 
+made on [Issue 57](https://github.com/aerispaha/swmmio/issues/57). 
+
+
 ## Version 0.5.3 (2022/12/21)
 
 ### Issues Closed
