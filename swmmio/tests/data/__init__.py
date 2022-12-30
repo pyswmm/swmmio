@@ -30,6 +30,7 @@ MODEL_EX_1B = os.path.join(DATA_PATH, 'Example1b.inp')
 MODEL_EXAMPLE6 = os.path.join(DATA_PATH, 'Example6.inp')
 MODEL_EX_1_PARALLEL_LOOP = os.path.join(DATA_PATH, 'Example1_parallel_loop.inp')
 MODEL_INFILTRAION_PARSE_FAILURE = os.path.join(DATA_PATH, 'model-with-infiltration-parse-failure.inp')
+MODEL_EXTCNTRLMODEL = os.path.join(DATA_PATH, 'SWMMExtCntrlModel.inp')
 
 # test rpt paths
 RPT_FULL_FEATURES = os.path.join(DATA_PATH, 'model_full_features_network.rpt')

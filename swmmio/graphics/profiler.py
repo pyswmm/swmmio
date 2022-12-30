@@ -66,7 +66,10 @@ def build_profile_plot(ax, model, path_selection):
         link_mid_x, link_mid_y = sum(ret['x'])/2.0, sum(ret['bottom'])/2.0
         profile_config["links"].append({"id_name":link_id,
                                         "rolling_x_pos":link_mid_x,
-                                        "midpoint_bottom": link_mid_y})
+                                        "midpoint_bottom": link_mid_y,
+                                        "link_type": ret['link_type'],
+                                        "mid_x": ret['mid_x'],
+                                        "mid_y": ret['mid_y']})
 
     _add_ground_plot(ax, ground_levels)
 
@@ -122,7 +125,7 @@ def _add_node_plot(ax, x, model, node_name, link_set, surcharge_depth=0, width=M
 
 def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, gradient=True):
     """
-    Adds a single conduit to the plot.  Called by `build_profile_plot()`.
+    Adds a single link to the plot.  Called by `build_profile_plot()`.
     """
     us_node, ds_node, link_id = link_set
 
@@ -220,7 +223,34 @@ def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="H
 
     x = [float(val["rolling_x_pos"]) for val in profile_config['nodes']]
 
-    ax.plot(x, hgl_calc, '-', color=color, label=label)
+    # Making Sure to deal with Weir Links (Add mid-points to links if needed)
+    x_final = []
+    hgl_final = []
+    for node_ind, node_info in enumerate(profile_config["nodes"][:-1]):
+        link_info = profile_config["links"][node_ind]
+        us_node_x = x[node_ind]
+        ds_node_x = x[node_ind+1]
+        us_node_head = hgl_calc[node_ind]
+        ds_node_head = hgl_calc[node_ind+1]
+
+        # Add initial value
+        if node_ind == 0:
+            x_final.append(us_node_x)
+            hgl_final.append(us_node_head)
+
+        # Add Weir HGL
+        if link_info["link_type"] == "WEIR":
+            elbow = DEFAULT_WEIR_LENGTH * 0.05
+            mid_x = link_info["mid_x"]
+            x_final.extend([mid_x[0]+elbow, mid_x[1]+2*elbow])
+            hgl_final.append(us_node_head)
+            hgl_final.append(ds_node_head)
+
+        # Add Final points
+        x_final.append(ds_node_x)
+        hgl_final.append(ds_node_head)
+
+    ax.plot(x_final, hgl_final, '-', color=color, label=label)
 
 
 def add_node_labels_plot(ax, model, profile_config, font_size=8,
