@@ -1,12 +1,12 @@
-import numpy as np
 import pandas as pd
 from swmmio.utils import error
 
-MH_WIDTH=10
+MH_WIDTH = 10
 DEFAULT_ORIFICE_LENGTH = 50
 DEFAULT_PUMP_LENGTH = 50
 DEFAULT_WEIR_LENGTH = 50
 DEFAULT_OUTLET_LENGTH = 50
+
 
 def build_profile_plot(ax, model, path_selection):
     """
@@ -15,6 +15,7 @@ def build_profile_plot(ax, model, path_selection):
     returned from calling `swmmio.find_network_trace()` function. The function
     returns the relevant information adding data for HGL and labels.
 
+    :param ax: matplotlib.plot.axis() Axis handle
     :param model: swmmio.Model() object
     :param path_selection: list of tuples [(<us_node>, <ds_node>, <link_name>),...]
     :return: profile configuration information used for additional functions.
@@ -22,9 +23,9 @@ def build_profile_plot(ax, model, path_selection):
     nodes = model.nodes.dataframe
     links = model.links.dataframe
 
-    profile_config = {"nodes":[],"links":[],
-                      "path_selection":path_selection}
-    ground_levels = {'x':[],'level':[]}
+    profile_config = {"nodes": [], "links": [],
+                      "path_selection": path_selection}
+    ground_levels = {'x': [], 'level': []}
     rolling_x_pos = 0.0
 
     for ind, link_set in enumerate(path_selection):
@@ -32,10 +33,10 @@ def build_profile_plot(ax, model, path_selection):
         # Plot first Node
         if ind == 0:
             invert_el = float(nodes.loc[[us_node]].InvertElev)
-            profile_config['nodes'].append({"id_name":us_node,\
-                                            "rolling_x_pos":rolling_x_pos,\
-                                            "invert_el":invert_el})
-            ret=_add_node_plot(ax, rolling_x_pos, model, us_node, link_set)
+            profile_config['nodes'].append({"id_name": us_node,
+                                            "rolling_x_pos": rolling_x_pos,
+                                            "invert_el": invert_el})
+            ret = _add_node_plot(ax, rolling_x_pos, model, us_node, link_set)
             ground_levels['x'].extend(ret['x'])
             ground_levels['level'].extend(ret['level'])
 
@@ -54,18 +55,18 @@ def build_profile_plot(ax, model, path_selection):
             rolling_x_pos += DEFAULT_OUTLET_LENGTH
         # Plot DS node
         invert_el = float(nodes.loc[[ds_node]].InvertElev)
-        profile_config['nodes'].append({"id_name":ds_node,\
-                                        "rolling_x_pos":rolling_x_pos,\
-                                        "invert_el":invert_el})
+        profile_config['nodes'].append({"id_name": ds_node,
+                                        "rolling_x_pos": rolling_x_pos,
+                                        "invert_el": invert_el})
         # Check which plot to build
-        ret=_add_node_plot(ax, rolling_x_pos, model, ds_node, link_set)
+        ret = _add_node_plot(ax, rolling_x_pos, model, ds_node, link_set)
         ground_levels['x'].extend(ret['x'])
         ground_levels['level'].extend(ret['level'])
 
-        ret=_add_link_plot(ax, old_rolling_x_pos, rolling_x_pos, model, link_set)
-        link_mid_x, link_mid_y = sum(ret['x'])/2.0, sum(ret['bottom'])/2.0
-        profile_config["links"].append({"id_name":link_id,
-                                        "rolling_x_pos":link_mid_x,
+        ret = _add_link_plot(ax, old_rolling_x_pos, rolling_x_pos, model, link_set)
+        link_mid_x, link_mid_y = sum(ret['x']) / 2.0, sum(ret['bottom']) / 2.0
+        profile_config["links"].append({"id_name": link_id,
+                                        "rolling_x_pos": link_mid_x,
                                         "midpoint_bottom": link_mid_y,
                                         "link_type": ret['link_type'],
                                         "mid_x": ret['mid_x'],
@@ -77,7 +78,7 @@ def build_profile_plot(ax, model, path_selection):
 
 
 def _add_node_plot(ax, x, model, node_name, link_set, surcharge_depth=0, width=MH_WIDTH,
-                      gradient=True):
+                   gradient=True):
     """
     Adds a single manhole to the plot.  Called by `build_profile_plot()`.
     """
@@ -99,26 +100,26 @@ def _add_node_plot(ax, x, model, node_name, link_set, surcharge_depth=0, width=M
             depth = float(nodes.loc[[node_name]].MaxD)
 
     # Plotting Configuration
-    ll_x, ll_y = x-width, invert_el
-    lr_x, lr_y = x+width, invert_el
-    ur_x, ur_y = x+width, invert_el + depth
-    ul_x, ul_y = x-width, invert_el + depth
+    ll_x, ll_y = x - width, invert_el
+    lr_x, lr_y = x + width, invert_el
+    ur_x, ur_y = x + width, invert_el + depth
+    ul_x, ul_y = x - width, invert_el + depth
 
     ax.plot([ll_x, lr_x, ur_x, ul_x, ll_x],
-            [ll_y, lr_y, ur_y, ul_y, ll_y], "-", color='black',lw=0.75)
+            [ll_y, lr_y, ur_y, ul_y, ll_y], "-", color='black', lw=0.75)
 
     if gradient:
-        ax.fill_between([ul_x, ul_x+0.1], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ul_x, ul_x + 0.1], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=1, color="gray")
-        ax.fill_between([ul_x+0.1, ul_x+0.2], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ul_x + 0.1, ul_x + 0.2], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=0, color="silver")
-        ax.fill_between([ul_x+0.2, ul_x+0.3], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ul_x + 0.2, ul_x + 0.3], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=0, color="whitesmoke")
-        ax.fill_between([ur_x-0.1, ur_x], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ur_x - 0.1, ur_x], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=1, color="gray")
-        ax.fill_between([ur_x-0.2, ur_x-0.1], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ur_x - 0.2, ur_x - 0.1], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=0, color="silver")
-        ax.fill_between([ur_x-0.3, ur_x-0.2], [lr_y, lr_y], [ur_y, ur_y],
+        ax.fill_between([ur_x - 0.3, ur_x - 0.2], [lr_y, lr_y], [ur_y, ur_y],
                         zorder=0, color="whitesmoke")
     return {'x': [ul_x, ur_x], 'level': [ul_y, ur_y]}
 
@@ -144,10 +145,10 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
         us_link_offset = float(links.loc[[link_id]].InOffset)
         ds_link_offset = float(links.loc[[link_id]].OutOffset)
         #
-        us_bot_x, us_bot_y = us_x_position+width, us_node_el + us_link_offset
-        ds_bot_x, ds_bot_y = ds_x_position-width, ds_node_el + ds_link_offset
-        ds_top_x, ds_top_y = ds_x_position-width, ds_node_el + ds_link_offset + depth
-        us_top_x, us_top_y = us_x_position+width, us_node_el + us_link_offset + depth
+        us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
+        ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
+        ds_top_x, ds_top_y = ds_x_position - width, ds_node_el + ds_link_offset + depth
+        us_top_x, us_top_y = us_x_position + width, us_node_el + us_link_offset + depth
 
         ax.plot([us_bot_x, ds_bot_x, ds_top_x, us_top_x, us_bot_x],
                 [us_bot_y, ds_bot_y, ds_top_y, us_top_y, us_bot_y], "-k",
@@ -156,13 +157,13 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
     elif link_type == "ORIFICE":
         depth = float(links.loc[[link_id]].Geom1)
         us_link_offset = float(links.loc[[link_id]].CrestHeight)
-        ds_node_el = float(nodes.loc[[us_node]].InvertElev) # Plot it flat
+        ds_node_el = float(nodes.loc[[us_node]].InvertElev)  # Plot it flat
         ds_link_offset = float(links.loc[[link_id]].CrestHeight)
 
-        us_bot_x, us_bot_y = us_x_position+width, us_node_el + us_link_offset
-        ds_bot_x, ds_bot_y = ds_x_position-width, ds_node_el + ds_link_offset
-        ds_top_x, ds_top_y = ds_x_position-width, ds_node_el + ds_link_offset + depth
-        us_top_x, us_top_y = us_x_position+width, us_node_el + us_link_offset + depth
+        us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
+        ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
+        ds_top_x, ds_top_y = ds_x_position - width, ds_node_el + ds_link_offset + depth
+        us_top_x, us_top_y = us_x_position + width, us_node_el + us_link_offset + depth
 
         ax.plot([us_bot_x, ds_bot_x, ds_top_x, us_top_x, us_bot_x],
                 [us_bot_y, ds_bot_y, ds_top_y, us_top_y, us_bot_y], "-k",
@@ -172,10 +173,10 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
         us_link_offset = 0.0
         ds_link_offset = 0.0
 
-        us_bot_x, us_bot_y = us_x_position+width, us_node_el + us_link_offset
-        ds_bot_x, ds_bot_y = ds_x_position-width, ds_node_el + ds_link_offset
-        ds_top_x, ds_top_y = ds_x_position-width, ds_node_el + ds_link_offset + depth
-        us_top_x, us_top_y = us_x_position+width, us_node_el + us_link_offset + depth
+        us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
+        ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
+        ds_top_x, ds_top_y = ds_x_position - width, ds_node_el + ds_link_offset + depth
+        us_top_x, us_top_y = us_x_position + width, us_node_el + us_link_offset + depth
 
         ax.plot([us_bot_x, ds_bot_x, ds_top_x, us_top_x, us_bot_x],
                 [us_bot_y, ds_bot_y, ds_top_y, us_top_y, us_bot_y], "-k",
@@ -186,11 +187,11 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
         us_link_offset = float(links.loc[[link_id]].CrestHeight)
         ds_link_offset = 0.0
 
-        us_bot_x, us_bot_y = us_x_position+width, us_node_el + us_link_offset
-        ds_bot_x, ds_bot_y = ds_x_position-width, ds_node_el + ds_link_offset
-        ds_top_x, ds_top_y = ds_x_position-width, ds_node_el + ds_link_offset + depth
-        us_top_x, us_top_y = us_x_position+width, us_node_el + us_link_offset + depth
-        md_bot_x1, md_bot_y1 = (us_bot_x + ds_bot_x)/2.0, us_bot_y
+        us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
+        ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
+        ds_top_x, ds_top_y = ds_x_position - width, ds_node_el + ds_link_offset + depth
+        us_top_x, us_top_y = us_x_position + width, us_node_el + us_link_offset + depth
+        md_bot_x1, md_bot_y1 = (us_bot_x + ds_bot_x) / 2.0, us_bot_y
         md_bot_x2, md_bot_y2 = md_bot_x1, ds_bot_y
 
         ax.plot([us_bot_x, md_bot_x1, md_bot_x2, ds_bot_x],
@@ -200,10 +201,9 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
         mid_x = [md_bot_x1, md_bot_x2]
         mid_y = [md_bot_y1, md_bot_y2]
 
+    return {'x': [us_bot_x, ds_bot_x], 'bottom': [us_bot_y, ds_bot_y],
+            "link_type": link_type, 'mid_x': mid_x, 'mid_y': mid_y}
 
-
-    return {'x':[us_bot_x, ds_bot_x], 'bottom':[us_bot_y, ds_bot_y],
-            "link_type":link_type, 'mid_x':mid_x, 'mid_y':mid_y}
 
 def _add_ground_plot(ax, ground_levels):
     """
@@ -211,15 +211,14 @@ def _add_ground_plot(ax, ground_levels):
     """
     ax.plot(ground_levels['x'], ground_levels['level'], '--', color='brown', lw=.5)
 
-def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="HGL"):
-    if isinstance(hgl, pd.core.series.Series) == True \
-      or isinstance(hgl, dict) == True:
+
+def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color='b', label="HGL"):
+    if isinstance(hgl, pd.Series) or isinstance(hgl, dict):
         hgl_calc = [hgl[val["id_name"]] for val in profile_config['nodes']]
-    elif isinstance(depth, pd.core.series.Series) == True \
-      or isinstance(depth, dict) == True:
-        hgl_calc = [val["invert_el"]+float(depth[val["id_name"]]) for val in profile_config['nodes']]
+    elif isinstance(depth, pd.Series) or isinstance(depth, dict):
+        hgl_calc = [val["invert_el"] + float(depth[val["id_name"]]) for val in profile_config['nodes']]
     else:
-        raise(error.InvalidDataTypes)
+        raise error.InvalidDataTypes
 
     x = [float(val["rolling_x_pos"]) for val in profile_config['nodes']]
 
@@ -229,9 +228,9 @@ def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="H
     for node_ind, node_info in enumerate(profile_config["nodes"][:-1]):
         link_info = profile_config["links"][node_ind]
         us_node_x = x[node_ind]
-        ds_node_x = x[node_ind+1]
+        ds_node_x = x[node_ind + 1]
         us_node_head = hgl_calc[node_ind]
-        ds_node_head = hgl_calc[node_ind+1]
+        ds_node_head = hgl_calc[node_ind + 1]
 
         # Add initial value
         if node_ind == 0:
@@ -242,7 +241,7 @@ def add_hgl_plot(ax, profile_config, hgl=None, depth=None, color = 'b', label="H
         if link_info["link_type"] == "WEIR":
             elbow = DEFAULT_WEIR_LENGTH * 0.05
             mid_x = link_info["mid_x"]
-            x_final.extend([mid_x[0]+elbow, mid_x[1]+2*elbow])
+            x_final.extend([mid_x[0] + elbow, mid_x[1] + 2 * elbow])
             hgl_final.append(us_node_head)
             hgl_final.append(ds_node_head)
 
@@ -284,7 +283,7 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
             if name in model.inp.storage.index:
                 depth = float(nodes.loc[[name]].MaxD)
 
-        calc = invert_el+depth
+        calc = invert_el + depth
         if calc > label_y_max:
             label_y_max = calc
 
@@ -292,7 +291,7 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
     for ind, val in enumerate(profile_config['nodes']):
         stagger_value = 0
         if stagger:
-            if ind % 2 ==0:
+            if ind % 2 == 0:
                 stagger_value = 4
         name = val['id_name']
         x_offset = val['rolling_x_pos']
@@ -307,10 +306,10 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
         if hasattr(model.inp, "storage"):
             if name in model.inp.storage.index:
                 depth = float(nodes.loc[[name]].MaxD)
-        pos_y = invert_el+depth
-        label=ax.annotate(name, xy=(x_offset, pos_y),
-            xytext=(x_offset, label_y_max+label_offset+stagger_value),
-            arrowprops=dict(arrowstyle="->", alpha=0.5), va='top', ha='center',
+        pos_y = invert_el + depth
+        label = ax.annotate(name, xy=(x_offset, pos_y),
+                            xytext=(x_offset, label_y_max + label_offset + stagger_value),
+                            arrowprops=dict(arrowstyle="->", alpha=0.5), va='top', ha='center',
                             alpha=0.75, fontsize=font_size)
         mx_y = label.xyann[1]
         if mx_y > mx_y_annotation:
@@ -349,9 +348,9 @@ def add_link_labels_plot(ax, model, profile_config, font_size=8,
         x_offset = val['rolling_x_pos']
         y_midpoint_bottom = val["midpoint_bottom"]
 
-        label=ax.annotate(name, xy=(x_offset, y_midpoint_bottom),
-            xytext=(x_offset, label_y_min-label_offset+stagger_value),
-            arrowprops=dict(arrowstyle="->", alpha=0.5), va='bottom',
+        label = ax.annotate(name, xy=(x_offset, y_midpoint_bottom),
+                            xytext=(x_offset, label_y_min - label_offset + stagger_value),
+                            arrowprops=dict(arrowstyle="->", alpha=0.5), va='bottom',
                             ha='center', alpha=0.75, fontsize=font_size)
         mx_y = label.xyann[1]
         if mx_y < min_y_annotation:
