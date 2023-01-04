@@ -1,0 +1,347 @@
+[TITLE]
+
+
+[OPTIONS]
+;;Options            Value
+;;------------------ ------------
+FLOW_UNITS           MGD
+INFILTRATION         HORTON
+FLOW_ROUTING         DYNWAVE
+START_DATE           10/01/2016
+START_TIME           00:00:00
+REPORT_START_DATE    10/01/2016
+REPORT_START_TIME    00:00:00
+END_DATE             10/02/2016
+END_TIME             00:00:00
+SWEEP_START          01/01
+SWEEP_END            12/31
+DRY_DAYS             0
+REPORT_STEP          00:05:00
+WET_STEP             00:05:00
+DRY_STEP             00:05:00
+ROUTING_STEP         30
+ALLOW_PONDING        NO
+INERTIAL_DAMPING     NONE
+VARIABLE_STEP        0.75
+LENGTHENING_STEP     0
+MIN_SURFAREA         0
+NORMAL_FLOW_LIMITED  BOTH
+SKIP_STEADY_STATE    NO
+FORCE_MAIN_EQUATION  H-W
+LINK_OFFSETS         DEPTH
+MIN_SLOPE            0
+MAX_TRIALS           8
+HEAD_TOLERANCE       0.005
+SYS_FLOW_TOL         5
+LAT_FLOW_TOL         5
+MINIMUM_STEP         0.5
+THREADS              8
+
+[EVAPORATION]
+;;Type          Parameters
+;;------------- ----------
+CONSTANT     0.0
+DRY_ONLY     NO
+
+[JUNCTIONS]
+;;               Invert     Max.       Init.      Surcharge  Ponded
+;;Name           Elev.      Depth      Depth      Depth      Area
+;;-------------- ---------- ---------- ---------- ---------- ----------
+J1               2.816      15         0          0          0
+J10              30.579     15         0          0          0
+J11              31.592     15         0          0          0
+J12              32.606     15         0          0          0
+J13              33.702     15         0          0          0
+J14              30         15.2       0          0          0
+J15              30.661     15         0          0          0
+J16              31.74      15         0          0          0
+J17              32.816     15         0          0          0
+J18              34         15         0          0          0
+J19              30         15.2       0          0          0
+J2               2.424      15         0          0          0
+J20              30.436     15         0          0          0
+J21              31.464     15         0          0          0
+J22              32.392     15         0          0          0
+J23              33.499     15         0          0          0
+J24              34.57      15         0          0          0
+J25              35.588     15         0          0          0
+J26              36.783     15         0          0          0
+J27              38.143     15         0          0          0
+J28              39         15         0          0          0
+J3               2.005      15         0          0          0
+J4               1.622      15         0          50         0
+J5               1.295      15         0          50         0
+J6               0.852      15         0          50         0
+J7               0.439      15         0          50         0
+J9               30         15.2       0          0          0
+
+[OUTFALLS]
+;;               Invert     Outfall      Stage/Table      Tide
+;;Name           Elev.      Type         Time Series      Gate Route To
+;;-------------- ---------- ------------ ---------------- ---- ----------------
+J8               0          NORMAL                        NO
+OF1              20         FREE                          NO
+OF2              20         FREE                          NO
+OF3              20         FREE                          NO
+
+[STORAGE]
+;;               Invert   Max.     Init.    Storage    Curve                      Ponded   Evap.
+;;Name           Elev.    Depth    Depth    Curve      Params                     Area     Frac.    Infiltration parameters
+;;-------------- -------- -------- -------- ---------- -------- -------- -------- -------- -------- -----------------------
+SU1              10       15       0        FUNCTIONAL 10000    0        0        0        0
+SU2              10       15       0        FUNCTIONAL 10000    0        0        0        0
+SU3              10       15       0        FUNCTIONAL 10000    0        0        0        0
+
+[CONDUITS]
+;;               Inlet            Outlet                      Manning    Inlet      Outlet     Init.      Max.
+;;Name           Node             Node             Length     N          Offset     Offset     Flow       Flow
+;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------
+C1               J1               J2               195.94     0.01       0          0          0          0
+C10              SU3              OF3              140.84     0.01       12         0          0          0
+C11              J28              J27              285.79     0.01       0          0          0          0
+C12              J27              J26              453.5      0.01       0          0          0          0
+C13              J26              J25              397.88     0.01       0          0          0          0
+C14              J25              J24              339.45     0.01       0          0          0          0
+C15              J24              J23              356.88     0.01       0          0          0          0
+C16              J23              J22              368.81     0.01       0          0          0          0
+C17              J22              J21              309.58     0.01       0          0          0          0
+C18              J21              J20              342.21     0.01       0          0          0          0
+C19              J20              J19              145.38     0.01       0          0          0          0
+C2               J2               J3               209.38     0.01       0          0          0          0
+C20              J19              SU2              170.17     0.01       0          12         0          0
+C21              J13              J12              365.17     0.01       0          0          0          0
+C22              J12              J11              337.9      0.01       0          0          0          0
+C23              J11              J10              337.28     0.01       0          0          0          0
+C24              J10              J9               192.9      0.01       0          0          0          0
+C25              J9               SU1              251.93     0.01       0          12         0          0
+C26              J18              J17              394.35     0.01       0          0          0          0
+C27              J17              J16              358.54     0.01       0          0          0          0
+C28              J16              J15              359.51     0.01       0          0          0          0
+C29              J15              J14              219.98     0.01       0          0          0          0
+C3               J3               J4               191.42     0.01       0          0          0          0
+C30              J14              SU3              194.57     0.01       0          12         0          0
+C4               J4               J5               163.64     0.01       0          0          0          0
+C5               J5               J6               221.42     0.01       0          0          0          0
+C6               J6               J7               206.68     0.01       0          0          0          0
+C7               J7               J8               219.37     0.01       0          0          0          0
+C8               SU2              OF1              124.05     0.01       12         0          0          0
+C9               SU1              OF2              136.56     0.01       12         0          0          0
+
+[ORIFICES]
+;;               Inlet            Outlet           Orifice      Crest      Disch.     Flap Open/Close
+;;Name           Node             Node             Type         Height     Coeff.     Gate Time
+;;-------------- ---------------- ---------------- ------------ ---------- ---------- ---- ----------
+OR1              SU1              J3               SIDE         0          0.65       NO   0
+OR2              SU3              J6               SIDE         0          0.65       NO   0
+OR3              SU2              J1               SIDE         0          0.65       NO   0
+
+[XSECTIONS]
+;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels
+;;-------------- ------------ ---------------- ---------- ---------- ---------- ----------
+C1               CIRCULAR     1                0          0          0          1
+C10              CIRCULAR     3                0          0          0          1
+C11              CIRCULAR     1.5              0          0          0          1
+C12              CIRCULAR     1.5              0          0          0          1
+C13              CIRCULAR     1.5              0          0          0          1
+C14              CIRCULAR     1.5              0          0          0          1
+C15              CIRCULAR     1.5              0          0          0          1
+C16              CIRCULAR     1.5              0          0          0          1
+C17              CIRCULAR     1.5              0          0          0          1
+C18              CIRCULAR     1.5              0          0          0          1
+C19              CIRCULAR     1.5              0          0          0          1
+C2               CIRCULAR     1                0          0          0          1
+C20              CIRCULAR     1.5              0          0          0          1
+C21              CIRCULAR     1.5              0          0          0          1
+C22              CIRCULAR     1.5              0          0          0          1
+C23              CIRCULAR     1.5              0          0          0          1
+C24              CIRCULAR     1.5              0          0          0          1
+C25              CIRCULAR     1.5              0          0          0          1
+C26              CIRCULAR     1.5              0          0          0          1
+C27              CIRCULAR     1.5              0          0          0          1
+C28              CIRCULAR     1.5              0          0          0          1
+C29              CIRCULAR     1.5              0          0          0          1
+C3               CIRCULAR     1.5              0          0          0          1
+C30              CIRCULAR     1.5              0          0          0          1
+C4               CIRCULAR     1.5              0          0          0          1
+C5               CIRCULAR     1.5              0          0          0          1
+C6               CIRCULAR     2                0          0          0          1
+C7               CIRCULAR     2                0          0          0          1
+C8               CIRCULAR     3                0          0          0          1
+C9               CIRCULAR     3                0          0          0          1
+OR1              CIRCULAR     1.5              0          0          0
+OR2              CIRCULAR     1.5              0          0          0
+OR3              CIRCULAR     1.5              0          0          0
+
+[LOSSES]
+;;Link           Inlet      Outlet     Average    Flap Gate  SeepageRate
+;;-------------- ---------- ---------- ---------- ---------- ----------
+
+[INFLOWS]
+;;                                                 Param    Units    Scale    Baseline Baseline
+;;Node           Parameter        Time Series      Type     Factor   Factor   Value    Pattern
+;;-------------- ---------------- ---------------- -------- -------- -------- -------- --------
+J13              FLOW             10002_TimeSeries FLOW     1.0      1        0
+J18              FLOW             10002_TimeSeries FLOW     1.0      1        0
+J28              FLOW             10002_TimeSeries FLOW     1.0      1        0
+
+[TIMESERIES]
+;;Name           Date       Time       Value
+;;-------------- ---------- ---------- ----------
+10002_TimeSeries 10/01/2016 00:00      0.000356481487475
+10002_TimeSeries 10/01/2016 00:15      0.000344525053825
+10002_TimeSeries 10/01/2016 00:30      0.000314522488135
+10002_TimeSeries 10/01/2016 00:45      0.000300225607363
+10002_TimeSeries 10/01/2016 01:00      0.000287528092904
+10002_TimeSeries 10/01/2016 01:15      0.000272249148411
+10002_TimeSeries 10/01/2016 01:30      0.000260323757525
+10002_TimeSeries 10/01/2016 01:45      0.000249894115905
+10002_TimeSeries 10/01/2016 02:00      0.000241095060535
+10002_TimeSeries 10/01/2016 02:15      0.00023442204614
+10002_TimeSeries 10/01/2016 02:30      0.000228427444892
+10002_TimeSeries 10/01/2016 02:45      0.000221514472113
+10002_TimeSeries 10/01/2016 03:00      0.000215518306267
+10002_TimeSeries 10/01/2016 03:15      0.000210905538129
+10002_TimeSeries 10/01/2016 03:30      0.000205705566556
+10002_TimeSeries 10/01/2016 03:45      0.000205371984013
+10002_TimeSeries 10/01/2016 04:00      0.000205376959069
+10002_TimeSeries 10/01/2016 04:15      0.000205129774092
+10002_TimeSeries 10/01/2016 04:30      0.00020550858059
+10002_TimeSeries 10/01/2016 04:45      0.000207646245713
+10002_TimeSeries 10/01/2016 05:00      0.000208064480132
+10002_TimeSeries 10/01/2016 05:15      0.000210629774389
+10002_TimeSeries 10/01/2016 05:30      0.000213280182165
+10002_TimeSeries 10/01/2016 05:45      0.000217131529016
+10002_TimeSeries 10/01/2016 06:00      0.000224394915611
+10002_TimeSeries 10/01/2016 06:15      0.000238807335242
+10002_TimeSeries 10/01/2016 06:30      0.00568602425648
+10002_TimeSeries 10/01/2016 06:45      0.0308509845457
+10002_TimeSeries 10/01/2016 07:00      0.0801956052743
+10002_TimeSeries 10/01/2016 07:15      0.159587719565
+10002_TimeSeries 10/01/2016 07:30      0.262675106163
+10002_TimeSeries 10/01/2016 07:45      0.376055407174
+10002_TimeSeries 10/01/2016 08:00      0.49912968752
+10002_TimeSeries 10/01/2016 08:15      0.634878378018
+10002_TimeSeries 10/01/2016 08:30      0.786839756284
+10002_TimeSeries 10/01/2016 08:45      0.962173434425
+10002_TimeSeries 10/01/2016 09:00      1.17240858745
+10002_TimeSeries 10/01/2016 09:15      1.56535496376
+10002_TimeSeries 10/01/2016 09:30      2.59164707154
+10002_TimeSeries 10/01/2016 09:45      3.92592336468
+10002_TimeSeries 10/01/2016 10:00      5.28285456872
+10002_TimeSeries 10/01/2016 10:15      6.4689353617
+10002_TimeSeries 10/01/2016 10:30      6.9592203615
+10002_TimeSeries 10/01/2016 10:45      7.08903162035
+10002_TimeSeries 10/01/2016 11:00      7.1424995425
+10002_TimeSeries 10/01/2016 11:15      7.14146520808
+10002_TimeSeries 10/01/2016 11:30      7.10674006437
+10002_TimeSeries 10/01/2016 11:45      7.04281655994
+10002_TimeSeries 10/01/2016 12:00      6.95680716025
+10002_TimeSeries 10/01/2016 12:15      6.84812605718
+10002_TimeSeries 10/01/2016 12:30      6.70393790896
+10002_TimeSeries 10/01/2016 12:45      6.52862500481
+10002_TimeSeries 10/01/2016 13:00      6.32172814188
+10002_TimeSeries 10/01/2016 13:15      6.06635368109
+10002_TimeSeries 10/01/2016 13:30      5.73834304937
+10002_TimeSeries 10/01/2016 13:45      5.37390013669
+10002_TimeSeries 10/01/2016 14:00      5.0042330968
+10002_TimeSeries 10/01/2016 14:15      4.6334368297
+10002_TimeSeries 10/01/2016 14:30      4.26534914996
+10002_TimeSeries 10/01/2016 14:45      3.90247981943
+10002_TimeSeries 10/01/2016 15:00      3.54862306665
+10002_TimeSeries 10/01/2016 15:15      3.23257078462
+10002_TimeSeries 10/01/2016 15:30      3.03812264656
+10002_TimeSeries 10/01/2016 15:45      2.90829080893
+10002_TimeSeries 10/01/2016 16:00      2.79446079122
+10002_TimeSeries 10/01/2016 16:15      2.69280291001
+10002_TimeSeries 10/01/2016 16:30      2.60093447207
+10002_TimeSeries 10/01/2016 16:45      2.51761863933
+10002_TimeSeries 10/01/2016 17:00      2.44150614081
+10002_TimeSeries 10/01/2016 17:15      2.37251252102
+10002_TimeSeries 10/01/2016 17:30      2.30868243946
+10002_TimeSeries 10/01/2016 17:45      2.24954554418
+10002_TimeSeries 10/01/2016 18:00      2.19499438026
+10002_TimeSeries 10/01/2016 18:15      2.1450278472
+10002_TimeSeries 10/01/2016 18:30      2.09507048225
+10002_TimeSeries 10/01/2016 18:45      2.04511090813
+10002_TimeSeries 10/01/2016 19:00      1.99515035477
+10002_TimeSeries 10/01/2016 19:15      1.94518651127
+10002_TimeSeries 10/01/2016 19:30      1.89522161746
+10002_TimeSeries 10/01/2016 19:45      1.84526118508
+10002_TimeSeries 10/01/2016 20:00      1.79530194055
+10002_TimeSeries 10/01/2016 20:15      1.74533825957
+10002_TimeSeries 10/01/2016 20:30      1.69537128466
+10002_TimeSeries 10/01/2016 20:45      1.64540756605
+10002_TimeSeries 10/01/2016 21:00      1.59543836655
+10002_TimeSeries 10/01/2016 21:15      1.5454759069
+10002_TimeSeries 10/01/2016 21:30      1.49550451425
+10002_TimeSeries 10/01/2016 21:45      1.4455420322
+10002_TimeSeries 10/01/2016 22:00      1.39557032083
+10002_TimeSeries 10/01/2016 22:15      1.34560315667
+10002_TimeSeries 10/01/2016 22:30      1.29574650154
+10002_TimeSeries 10/01/2016 22:45      1.24629845844
+10002_TimeSeries 10/01/2016 23:00      1.19737444468
+10002_TimeSeries 10/01/2016 23:15      1.14908500401
+10002_TimeSeries 10/01/2016 23:30      1.10142829945
+10002_TimeSeries 10/01/2016 23:45      1.05445801081
+
+[REPORT]
+INPUT      YES
+CONTROLS   NO
+SUBCATCHMENTS ALL
+NODES ALL
+LINKS ALL
+
+[TAGS]
+Node       J1               INTERCEPTOR
+Node       J2               INTERCEPTOR
+Node       J3               INTERCEPTOR
+Node       J4               INTERCEPTOR
+Node       J5               INTERCEPTOR
+Node       J6               INTERCEPTOR
+Node       J7               INTERCEPTOR
+
+[MAP]
+DIMENSIONS       -714.39525       -845.9123        1508.44625       1835.3443
+UNITS            Feet
+
+[COORDINATES]
+;;Node           X-Coord          Y-Coord
+;;-------------- ---------------- ----------------
+J1               0                0
+J10              337.777          624.909
+J11              312.461          961.241
+J12              279.913          1297.574
+J13              229.282          1659.221
+J14              941.728          397.071
+J15              905.564          614.059
+J16              873.015          972.091
+J17              818.768          1326.506
+J18              742.822          1713.469
+J19              -2.172           -380.472
+J2               195.885          4.486
+J20              -16.638          -525.131
+J21              -295.107         -724.037
+J22              -541.027         -535.98
+J23              -613.357         -174.333
+J24              -494.013         162
+J25              -410.834         491.099
+J26              -403.601         888.912
+J27              -439.766         1340.971
+J28              -446.999         1626.673
+J3               405.227          8.473
+J4               596.626          11.464
+J5               760.222          15.443
+J6               981.628          17.572
+J7               1188.131         26.088
+J9               359.476          433.236
+J8               1407.408         32.474
+OF1              84.564           -118.884
+OF2              490.996          89.413
+OF3              1072.701         114.815
+SU1              391.928          183.4
+SU2              0.738            -210.331
+SU3              963.472          203.721
+
+[VERTICES]
+;;Link           X-Coord          Y-Coord
+;;-------------- ---------------- ----------------
