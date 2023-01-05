@@ -1,3 +1,12 @@
+## Version 0.6.1 (2023/01/05)
+
+### Issues Closed
+
+* [Issue 175](https://github.com/aerispaha/swmmio/issues/175) - Drop Appveyor, leverage GitHub Actions for deploy logic
+* [Issue 172](https://github.com/aerispaha/swmmio/issues/172) - Improvements to Profile Plotter feature
+
+In this release 2 issues were closed, 2 PRs were merged.
+
 ## Version 0.6.0 (2022/12/29)
 
 ### Issues Closed
