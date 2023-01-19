@@ -161,6 +161,8 @@ def format_inp_section_header(string):
     :param string:
     :return: string
     """
+    if string == '[Polygons]':
+        return string
     s = string.strip().upper()
     if s[0] != '[':
         s = f'[{s}'

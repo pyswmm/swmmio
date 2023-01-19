@@ -1,7 +1,8 @@
 import swmmio.utils.functions
 import swmmio.utils.text
 from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
-                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK, MODEL_A_PATH)
+                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK,
+                               MODEL_A_PATH, MODEL_POLYGONS)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.version_control.inp import INPSectionDiff, merge_models, INPDiff
@@ -220,3 +221,16 @@ def test_modify_inp_sections():
         sects1 = get_inp_sections_details(m1.inp.path)
         sects2 = get_inp_sections_details(m2.inp.path)
         assert all([x in sects1 for x in sects2])
+
+
+def test_replace_inp_section_overwrite_polygons_header():
+    from swmmio.utils.modify_model import replace_inp_section
+    from swmmio import Model
+
+    baseline_model_1 = Model(MODEL_POLYGONS)
+    polygons = dataframe_from_inp(baseline_model_1.inp.path, '[Polygons]')
+    replace_inp_section(baseline_model_1.inp.path, '[Polygons]', polygons)
+
+    baseline_model_2 = Model(MODEL_FULL_FEATURES_XY)
+    polygons = dataframe_from_inp(baseline_model_2.inp.path, '[Polygons]')
+    replace_inp_section(baseline_model_2.inp.path, '[Polygons]', polygons)
