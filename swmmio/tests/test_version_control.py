@@ -227,10 +227,23 @@ def test_replace_inp_section_overwrite_polygons_header():
     from swmmio.utils.modify_model import replace_inp_section
     from swmmio import Model
 
-    baseline_model_1 = Model(MODEL_POLYGONS)
-    polygons = dataframe_from_inp(baseline_model_1.inp.path, '[Polygons]')
-    replace_inp_section(baseline_model_1.inp.path, '[Polygons]', polygons)
+    def copy_file(file_path, suffix="copy"):
+        baseline = swmmio.Model(file_path)
+        new_path = os.path.join(baseline.inp.name + "_" + suffix + ".inp")
+        baseline.inp.save(new_path)
+        return new_path
 
-    baseline_model_2 = Model(MODEL_FULL_FEATURES_XY)
-    polygons = dataframe_from_inp(baseline_model_2.inp.path, '[Polygons]')
-    replace_inp_section(baseline_model_2.inp.path, '[Polygons]', polygons)
+    test_model_polygons = copy_file(MODEL_POLYGONS)
+    test_model_full_features_xy = copy_file(MODEL_FULL_FEATURES_XY)
+
+    for test_model in [test_model_polygons, test_model_full_features_xy]:
+        model = Model(test_model)
+        polygons = dataframe_from_inp(model.inp.path, '[Polygons]')
+        replace_inp_section(model.inp.path, '[Polygons]', polygons)
+        with open(test_model, 'r') as file:
+            data = file.read()
+            assert data.count("[Polygons]") == 1
+            assert data.count("[POLYGONS]") == 0
+
+    os.remove(test_model_polygons)
+    os.remove(test_model_full_features_xy)
