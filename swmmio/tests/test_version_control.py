@@ -1,8 +1,7 @@
 import swmmio.utils.functions
 import swmmio.utils.text
 from swmmio.tests.data import (MODEL_XSECTION_BASELINE, MODEL_FULL_FEATURES_XY, MODEL_XSECTION_ALT_03,
-                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK,
-                               MODEL_A_PATH, MODEL_POLYGONS)
+                               OUTFALLS_MODIFIED, BUILD_INSTR_01, MODEL_FULL_FEATURES_XY_B, MODEL_BLANK, MODEL_A_PATH)
 from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
 from swmmio.version_control.inp import INPSectionDiff, merge_models, INPDiff
@@ -224,26 +223,31 @@ def test_modify_inp_sections():
 
 
 def test_replace_inp_section_overwrite_polygons_header():
-    from swmmio.utils.modify_model import replace_inp_section
-    from swmmio import Model
+    model = swmmio.Model(MODEL_A_PATH)
 
-    def copy_file(file_path, suffix="copy"):
-        baseline = swmmio.Model(file_path)
-        new_path = os.path.join(baseline.inp.name + "_" + suffix + ".inp")
-        baseline.inp.save(new_path)
-        return new_path
+    with tempfile.TemporaryDirectory() as tempdir:
 
-    test_model_polygons = copy_file(MODEL_POLYGONS)
-    test_model_full_features_xy = copy_file(MODEL_FULL_FEATURES_XY)
+        # create a temporary inp file path
+        inp_path = os.path.join(tempdir, f'{model.inp.name}.inp')
 
-    for test_model in [test_model_polygons, test_model_full_features_xy]:
-        model = Model(test_model)
-        polygons = dataframe_from_inp(model.inp.path, '[Polygons]')
-        replace_inp_section(model.inp.path, '[Polygons]', polygons)
-        with open(test_model, 'r') as file:
+        # get a polygons dataframe and change it slightly
+        polygons = model.inp.polygons
+        model.inp.polygons = polygons.round(1)
+
+        # save the updated model to disk
+        model.inp.save(inp_path)
+
+        # with this updated model, instantiate a new model object
+        # and make changes to the Polygons once again
+        model2 = swmmio.Model(inp_path)
+        model2.inp.polygons = polygons.round(0)
+
+        # save the model once more
+        model2.inp.save()
+
+        # confirm that there is only one instance of
+        # the [Polygons] section in the inp file
+        with open(inp_path, 'r') as file:
             data = file.read()
-            assert data.count("[Polygons]") == 1
             assert data.count("[POLYGONS]") == 0
-
-    os.remove(test_model_polygons)
-    os.remove(test_model_full_features_xy)
+            assert data.count("[Polygons]") == 1
