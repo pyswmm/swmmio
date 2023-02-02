@@ -220,3 +220,34 @@ def test_modify_inp_sections():
         sects1 = get_inp_sections_details(m1.inp.path)
         sects2 = get_inp_sections_details(m2.inp.path)
         assert all([x in sects1 for x in sects2])
+
+
+def test_replace_inp_section_overwrite_polygons_header():
+    model = swmmio.Model(MODEL_A_PATH)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        # create a temporary inp file path
+        inp_path = os.path.join(tempdir, f'{model.inp.name}.inp')
+
+        # get a polygons dataframe and change it slightly
+        polygons = model.inp.polygons
+        model.inp.polygons = polygons.round(1)
+
+        # save the updated model to disk
+        model.inp.save(inp_path)
+
+        # with this updated model, instantiate a new model object
+        # and make changes to the Polygons once again
+        model2 = swmmio.Model(inp_path)
+        model2.inp.polygons = polygons.round(0)
+
+        # save the model once more
+        model2.inp.save()
+
+        # confirm that there is only one instance of
+        # the [Polygons] section in the inp file
+        with open(inp_path, 'r') as file:
+            data = file.read()
+            assert data.count("[POLYGONS]") == 0
+            assert data.count("[Polygons]") == 1
