@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   ci_matrix:
+    name: Unit Tests
     strategy:
       matrix:
         python_version: [3.7, 3.8, 3.9, "3.10"]
@@ -60,6 +61,7 @@ jobs:
           pip install wheel
           python setup.py bdist_wheel
       - name: Publish distribution 📦 to Test PyPI
+        if: ${{ github.ref_type == 'tag'}}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
