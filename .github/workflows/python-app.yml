@@ -42,3 +42,30 @@ jobs:
       run: |
         pytest -m "not uses_geopandas"
         python -m doctest swmmio/core.py 
+
+  release:
+    name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    runs-on: ubuntu-latest
+    needs: [ci_matrix]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Build package
+        run: | 
+          echo ${{ github.ref }}
+          echo ${{ github.ref_type }}
+          pip install wheel
+          python setup.py bdist_wheel
+      - name: Publish distribution 📦 to Test PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+      - name: Publish distribution 📦 to PyPI
+        if: ${{ github.ref_type == 'tag'}}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
