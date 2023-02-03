@@ -1,3 +1,16 @@
+## Version 0.6.2 (2023/02/02)
+
+### What's Changed
+* Profile wrapup by @bemcdonnell in https://github.com/aerispaha/swmmio/pull/173
+* minor tweaks for pep8 code style enforcement by @aerispaha in https://github.com/aerispaha/swmmio/pull/178
+* drop appveyor and release with GitHub Actions by @aerispaha in https://github.com/aerispaha/swmmio/pull/179
+* write_inp_section changes - don't change the Polygons header by @BuczynskiRafal in https://github.com/aerispaha/swmmio/pull/182
+
+## New Contributors
+* @BuczynskiRafal made their first contribution in https://github.com/aerispaha/swmmio/pull/182
+
+**Full Changelog**: https://github.com/aerispaha/swmmio/compare/v0.6.0...v0.6.2
+
 ## Version 0.6.1 (2023/01/05)
 
 ### Issues Closed
