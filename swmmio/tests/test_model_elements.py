@@ -6,7 +6,7 @@ import pandas as pd
 import swmmio
 import swmmio.utils.functions
 import swmmio.utils.text
-from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH, MODEL_EX_1, MODEL_EX_1B
+from swmmio.tests.data import MODEL_FULL_FEATURES_XY, MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH, MODEL_EX_1, MODEL_EX_1B, MODEL_GREEN_AMPT
 from swmmio import Model, dataframe_from_inp
 
 from swmmio.utils.dataframes import get_link_coords
@@ -172,3 +172,44 @@ def test_get_set_timeseries(test_model_02):
     assert('"' in ts.loc['TS2'].Value)
     assert(ts.Value.isnull().sum() == 0)
     print (ts)
+
+
+def test_inp_tags_df():
+    expected_output = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
+                                    'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
+                                    'Tag': ['CA'] * 4})
+    expected_output.set_index(['ElementType'], inplace=True)
+
+    model = Model(MODEL_GREEN_AMPT)
+    actual_output = model.inp.tags
+
+    assert expected_output.equals(actual_output.sort_index())
+
+
+def test_inp_tags_getter_and_setter():
+    tags_to_set = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
+                                'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
+                                'Tag': ['CA'] * 4})
+    tags_to_set.set_index(['ElementType'], inplace=True)
+
+    model = Model(MODEL_GREEN_AMPT)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        temp_inp_path = os.path.join(tempdir, f'{model.inp.name}.inp')
+        model.inp.save(temp_inp_path)
+        temp_model = Model(temp_inp_path)
+        temp_model.inp.tags = tags_to_set
+        retrieved_tags = temp_model.inp.tags
+
+    assert tags_to_set.equals(retrieved_tags.sort_index())
+
+
+def test_model_tags():
+    expected_output = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
+                                    'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
+                                    'Tag': ['CA'] * 4})
+    expected_output.set_index(['ElementType'], inplace=True)
+
+    model = Model(MODEL_GREEN_AMPT)
+    actual_output = model.tags
+    print(actual_output)

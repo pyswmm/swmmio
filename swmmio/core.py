@@ -135,6 +135,7 @@ class Model(object):
             self._links_df = None
             self._subcatchments_df = None
             self._network = None
+            self._tags = None
 
     def rpt_is_valid(self, verbose=False):
         """
@@ -362,6 +363,30 @@ class Model(object):
 
         return self._network
 
+    @property
+    def tags(self):
+        """
+        Collect all useful and available data related model tags and organize
+        in one dataframe.
+
+        :return: dataframe containing all tags in the model
+        :rtype: pd.DataFrame
+
+        >>> from swmmio.examples import green
+        >>> green.tags.dataframe
+
+        Subcatch  CA-1             CA
+        Subcatch  CA-7             CA
+        Subcatch  CA-8             CA
+        Subcatch  CA-11            CA
+        """
+        if self._tags is not None:
+            return self._tags
+
+        df = ModelSection(model=self, **COMPOSITE_OBJECTS['tags'])
+        self._tags = df
+        return df
+
     def to_crs(self, *args, **kwargs):
         """
         Convert coordinate reference system of the model coordinates
@@ -534,6 +559,7 @@ class inp(SWMMIOFile):
         self._inflows_df = None
         self._curves_df = None
         self._timeseries_df = None
+        self._tags_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -568,7 +594,8 @@ class inp(SWMMIOFile):
             '[HYDROGRAPHS]',
             '[INFLOWS]',
             '[Polygons]',
-            '[TIMESERIES]'
+            '[TIMESERIES]',
+            '[TAGS]'
         ]
 
     def save(self, target_path=None):
@@ -1313,6 +1340,20 @@ class inp(SWMMIOFile):
     def timeseries(self, df):
         """Set inp.timeseries DataFrame."""
         self._timeseries_df = df
+
+    @property
+    def tags(self):
+        """
+        Get/set tags section of the INP file.
+        """
+        if self._tags_df is None:
+            self._tags_df = dataframe_from_inp(self.path, "[TAGS]")
+        return self._tags_df
+
+    @tags.setter
+    def tags(self, df):
+        """Set inp.tags DataFrame."""
+        self._tags_df = df
 
 
 def drop_invalid_model_elements(inp):
