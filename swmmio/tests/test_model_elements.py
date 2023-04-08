@@ -174,22 +174,17 @@ def test_get_set_timeseries(test_model_02):
     print (ts)
 
 
-def test_inp_tags_df():
-    expected_output = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
-                                    'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
-                                    'Tag': ['CA'] * 4})
+def test_inp_tags_getter_and_setter():
+    common_data = {'ElementType': ['Subcatch'] * 4,
+                   'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
+                   'Tag': ['CA'] * 4,
+                   }
+
+    expected_output = pd.DataFrame(common_data)
     expected_output.set_index(['ElementType'], inplace=True)
 
-    model = Model(MODEL_GREEN_AMPT)
-    actual_output = model.inp.tags
-
-    assert expected_output.equals(actual_output.sort_index())
-
-
-def test_inp_tags_getter_and_setter():
-    tags_to_set = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
-                                'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
-                                'Tag': ['CA'] * 4})
+    common_data['Tag'] = ['Modified'] * 4
+    tags_to_set = pd.DataFrame(common_data)
     tags_to_set.set_index(['ElementType'], inplace=True)
 
     model = Model(MODEL_GREEN_AMPT)
@@ -198,18 +193,9 @@ def test_inp_tags_getter_and_setter():
         temp_inp_path = os.path.join(tempdir, f'{model.inp.name}.inp')
         model.inp.save(temp_inp_path)
         temp_model = Model(temp_inp_path)
-        temp_model.inp.tags = tags_to_set
-        retrieved_tags = temp_model.inp.tags
 
-    assert tags_to_set.equals(retrieved_tags.sort_index())
+        assert expected_output.equals(temp_model.inp.tags.sort_index())
 
+        temp_model.inp.tags["Tag"] = ["Modified"] * 4
 
-def test_model_tags():
-    expected_output = pd.DataFrame({'ElementType': ['Subcatch'] * 4,
-                                    'Name': ['CA-1', 'CA-7', 'CA-8', 'CA-11'],
-                                    'Tag': ['CA'] * 4})
-    expected_output.set_index(['ElementType'], inplace=True)
-
-    model = Model(MODEL_GREEN_AMPT)
-    actual_output = model.tags
-    print(actual_output)
+        assert tags_to_set.equals(temp_model.inp.tags.sort_index())
