@@ -188,6 +188,7 @@ class Model(object):
         # create dataframes of relevant sections from the INP
         conduits_df = dataframe_from_inp(inp.path, "CONDUITS")
         xsections_df = dataframe_from_inp(inp.path, "XSECTIONS")
+        tags = dataframe_from_inp(inp.path, "TAGS")
         conduits_df = conduits_df.join(xsections_df)
 
         if rpt:
@@ -211,6 +212,10 @@ class Model(object):
 
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
+
+        tags = dataframe_from_inp(inp.path, "TAGS")
+        if "Link" in set(tags.index):
+            df = df.merge(dataframe_from_inp(inp.path, "Tags"), left_on="Name", right_on="Name", how="left")
 
         self._conduits_df = df
 
@@ -344,6 +349,7 @@ class Model(object):
             return self._subcatchments_df
 
         df = ModelSection(model=self, **COMPOSITE_OBJECTS['subcatchments'])
+
         self._subcatchments_df = df
         return df
 
