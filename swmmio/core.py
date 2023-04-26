@@ -188,6 +188,7 @@ class Model(object):
         # create dataframes of relevant sections from the INP
         conduits_df = dataframe_from_inp(inp.path, "CONDUITS")
         xsections_df = dataframe_from_inp(inp.path, "XSECTIONS")
+        tags = dataframe_from_inp(inp.path, "TAGS")
         conduits_df = conduits_df.join(xsections_df)
 
         if rpt:
@@ -211,6 +212,10 @@ class Model(object):
 
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
+
+        tags = dataframe_from_inp(inp.path, "TAGS")
+        if "Link" in set(tags.index):
+            df = df.merge(dataframe_from_inp(inp.path, "Tags"), left_on="Name", right_on="Name", how="left")
 
         self._conduits_df = df
 
@@ -344,6 +349,7 @@ class Model(object):
             return self._subcatchments_df
 
         df = ModelSection(model=self, **COMPOSITE_OBJECTS['subcatchments'])
+
         self._subcatchments_df = df
         return df
 
@@ -534,6 +540,7 @@ class inp(SWMMIOFile):
         self._inflows_df = None
         self._curves_df = None
         self._timeseries_df = None
+        self._tags_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -568,7 +575,8 @@ class inp(SWMMIOFile):
             '[HYDROGRAPHS]',
             '[INFLOWS]',
             '[Polygons]',
-            '[TIMESERIES]'
+            '[TIMESERIES]',
+            '[TAGS]',
         ]
 
     def save(self, target_path=None):
@@ -1313,6 +1321,20 @@ class inp(SWMMIOFile):
     def timeseries(self, df):
         """Set inp.timeseries DataFrame."""
         self._timeseries_df = df
+
+    @property
+    def tags(self):
+        """
+        Get/set tags section of the INP file.
+        """
+        if self._tags_df is None:
+            self._tags_df = dataframe_from_inp(self.path, "[TAGS]")
+        return self._tags_df
+
+    @tags.setter
+    def tags(self, df):
+        """Set inp.tags DataFrame."""
+        self._tags_df = df
 
 
 def drop_invalid_model_elements(inp):

@@ -176,5 +176,7 @@ composite:
     join_sections: [subareas]
     rpt_sections: [Subcatchment Runoff Summary]
     geomtype: polygon
-
+  tags:
+    inp_sections: [tags]
+    columns: Name, Tag
 
