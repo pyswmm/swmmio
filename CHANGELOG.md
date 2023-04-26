@@ -1,3 +1,9 @@
+## Version 0.6.3 (2023/04/26)
+
+### What's Changed
+* Added coverage for TAGS, provided by @BuczynskiRafal in [PR186](https://github.com/aerispaha/swmmio/pull/186)
+* Code simplification in Model.conduits [PR189](https://github.com/aerispaha/swmmio/pull/189)
+
 ## Version 0.6.2 (2023/02/02)
 
 ### What's Changed
