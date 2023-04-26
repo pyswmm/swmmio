@@ -213,9 +213,8 @@ class Model(object):
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
 
-        tags = dataframe_from_inp(inp.path, "TAGS")
-        if "Link" in set(tags.index):
-            df = df.merge(dataframe_from_inp(inp.path, "Tags"), left_on="Name", right_on="Name", how="left")
+        if "Link" in set(inp.tags.index):
+            df = df.merge(inp.tags, left_on="Name", right_on="Name", how="left")
 
         self._conduits_df = df
 
