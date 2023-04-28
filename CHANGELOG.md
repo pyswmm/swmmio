@@ -1,3 +1,10 @@
+## Version 0.6.4 (2023/04/28)
+
+### What's Changed
+* Added coverage for STREETS, INLETS, and INLET_USAGE in [PR186](https://github.com/aerispaha/swmmio/pull/186)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections 
+* added AUTHORS, provided by @bemmcdonnel and @aerispaha in [PR183](https://github.com/aerispaha/swmmio/pull/183)
+
 ## Version 0.6.3 (2023/04/26)
 
 ### What's Changed
