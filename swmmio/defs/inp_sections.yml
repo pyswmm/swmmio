@@ -72,6 +72,9 @@ inp_file_objects:
   TAGS: [ElementType, Name, Tag]
   ADJUSTMENTS: [blob]
   CURVES: [Name, Type, X-Value, Y-Value]
+  STREETS: [Name, Tcrown, Hcurb, Sx, nRoad, a, W, Sides, Tback, Sback, nBack]
+  INLETS: [Name, Type, Param1, Param2, Param3, Param4, Param5]
+  INLET_USAGE: [Link, Inlet, Node, Number, "%Clogged", Qmax, aLocal, wLocal, Placement]
 
 
 
@@ -83,5 +86,5 @@ inp_section_tags:
   '[WASHOFF', '[COVERAGE', '[INFLOW', '[DWF', '[PATTERN', '[RDII', '[HYDROGRAPH',
   '[LOADING', '[TREATMENT', '[CURVE', '[TIMESERIES', '[REPORT', '[MAP', '[COORDINATE',
   '[VERTICES', '[POLYGON', '[Polygons', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
-  '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
+  '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT', '[STREETS', '[INLETS', '[INLET_USAGE',]
 
