@@ -540,6 +540,9 @@ class inp(SWMMIOFile):
         self._curves_df = None
         self._timeseries_df = None
         self._tags_df = None
+        self._streets_df = None
+        self._inlets_df = None
+        self._inlet_usage_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -576,6 +579,9 @@ class inp(SWMMIOFile):
             '[Polygons]',
             '[TIMESERIES]',
             '[TAGS]',
+            '[STREETS]',
+            '[INLETS]',
+            '[INLET_USAGE]',
         ]
 
     def save(self, target_path=None):
@@ -1334,6 +1340,95 @@ class inp(SWMMIOFile):
     def tags(self, df):
         """Set inp.tags DataFrame."""
         self._tags_df = df
+
+    @property
+    def streets(self):
+        """
+        Get/set streets section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the streets section of the inp file
+        >>> from swmmio.examples import streets
+        >>> streets.inp.streets[['Tcrown', 'Hcurb']] #doctest: +NORMALIZE_WHITESPACE
+                     Tcrown  Hcurb
+        Name
+        HalfStreet      20    0.5
+        FullStreet      20    0.5
+
+        """
+        if self._streets_df is None:
+            self._streets_df = dataframe_from_inp(self.path, "[STREETS]")
+        return self._streets_df
+
+    @streets.setter
+    def streets(self, df):
+        """Set inp.streets DataFrame."""
+        self._streets_df = df
+
+    @property
+    def inlets(self):
+        """
+        Get/set inlets section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the inlets section of the inp file
+        >>> from swmmio.examples import streets
+        >>> streets.inp.inlets #doctest: +NORMALIZE_WHITESPACE
+                     Tcrown  Hcurb
+        Name
+        HalfStreet      20    0.5
+        FullStreet      20    0.5
+
+        """
+        if self._inlets_df is None:
+            self._inlets_df = dataframe_from_inp(self.path, "[INLETS]")
+        return self._inlets_df
+
+    @inlets.setter
+    def inlets(self, df):
+        """Set inp.inlets DataFrame."""
+        self._inlets_df = df
+
+    @property
+    def inlet_usage(self):
+        """
+        Get/set inlet usage section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the inlet usage section of the inp file
+        >>> from swmmio.examples import streets
+        >>> streets.inp.inlet_usage[['Inlet', 'Node', 'Number', '%Clogged']] #doctest: +NORMALIZE_WHITESPACE
+                      Inlet Node  Number  %Clogged
+        Link
+        Street1  ComboInlet   J1       1        50
+        Street3  ComboInlet  J2a       1         0
+        Street4  ComboInlet   J2       1         0
+        Street5  ComboInlet  J11       2         0
+
+        """
+        if self._inlet_usage_df is None:
+            self._inlet_usage_df = dataframe_from_inp(self.path, "[INLET_USAGE]")
+        return self._inlet_usage_df
+
+    @inlet_usage.setter
+    def inlet_usage(self, df):
+        """Set inp.inlet_usage DataFrame."""
+        self._inlet_usage_df = df
 
 
 def drop_invalid_model_elements(inp):
