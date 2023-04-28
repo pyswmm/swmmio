@@ -1384,10 +1384,10 @@ class inp(SWMMIOFile):
         Access the inlets section of the inp file
         >>> from swmmio.examples import streets
         >>> streets.inp.inlets #doctest: +NORMALIZE_WHITESPACE
-                     Tcrown  Hcurb
+                     Type  Param1  Param2      Param3
         Name
-        HalfStreet      20    0.5
-        FullStreet      20    0.5
+        ComboInlet  GRATE       2     2.0    P_BAR-50
+        ComboInlet   CURB       2     0.5  HORIZONTAL
 
         """
         if self._inlets_df is None:

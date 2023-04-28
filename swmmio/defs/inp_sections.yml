@@ -73,7 +73,7 @@ inp_file_objects:
   ADJUSTMENTS: [blob]
   CURVES: [Name, Type, X-Value, Y-Value]
   STREETS: [Name, Tcrown, Hcurb, Sx, nRoad, a, W, Sides, Tback, Sback, nBack]
-  INLETS: [Name  GRATE    Length  Width   Type  Aopen  Vsplash]
+  INLETS: [Name, Type, Param1, Param2, Param3, Param4, Param5]
   INLET_USAGE: [Link, Inlet, Node, Number, "%Clogged", Qmax, aLocal, wLocal, Placement]
 
 
