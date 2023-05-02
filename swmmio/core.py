@@ -511,6 +511,7 @@ class inp(SWMMIOFile):
         self._files_df = None
         self._raingages_df = None
         self._evaporation_df = None
+        self._losses_df = None
         self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
@@ -551,6 +552,7 @@ class inp(SWMMIOFile):
             '[FILES]',
             '[RAINGAGES]',
             '[EVAPORATION]',
+            '[LOSSES]',
             '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
@@ -750,6 +752,23 @@ class inp(SWMMIOFile):
     def evaporation(self, df):
         """Set inp.evaporation DataFrame."""
         self._evaporation_df = df
+
+    @property
+    def losses(self):
+        """
+        get/set losses section of model
+
+        :return: dataframe of evaporation section in inp file
+        """
+        if self._losses_df is not None:
+            return self._losses_df
+        self._losses_df = dataframe_from_inp(self.path, 'losses')
+        return self._losses_df
+
+    @losses.setter
+    def losses(self, df):
+        """Set inp.losses DataFrame."""
+        self._losses_df = df
 
     @property
     def report(self):
