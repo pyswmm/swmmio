@@ -537,6 +537,8 @@ class inp(SWMMIOFile):
         self._subcatchments_df = None
         self._subareas_df = None
         self._infiltration_df = None
+        self._aquifers_df = None
+        self._groundwater_df = None
         self._inp_section_details = None
         self._inflows_df = None
         self._curves_df = None
@@ -574,6 +576,8 @@ class inp(SWMMIOFile):
             '[SUBCATCHMENTS]',
             '[SUBAREAS]',
             '[INFILTRATION]',
+            '[AQUIFERS]',
+            '[GROUNDWATER]',
             '[CURVES]',
             '[COORDINATES]',
             '[DWF]',
@@ -1208,6 +1212,64 @@ class inp(SWMMIOFile):
     def infiltration(self, df):
         """Set inp.infiltration DataFrame."""
         self._infiltration_df = df
+
+    @property
+    def aquifers(self):
+        """
+        Get/set the aquifers section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.aquifers.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Por        0.500
+        WP         0.150
+        FC         0.300
+        Ksat       0.100
+        Kslope    12.000
+        Tslope    15.000
+        ETu        0.350
+        ETs       14.000
+        Seep       0.002
+        Ebot       0.000
+        Egw        3.500
+        Umc        0.400
+        Name: 1, dtype: float64
+        """
+        if self._aquifers_df is None:
+            self._aquifers_df = dataframe_from_inp(self.path, "aquifers")
+        return self._aquifers_df
+
+    @aquifers.setter
+    def aquifers(self, df):
+        """Set inp.aquifers DataFrame."""
+        self._aquifers_df = df
+
+    @property
+    def groundwater(self):
+        """
+        Get/set the groundwater section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.groundwater.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Aquifer    1.0
+        Node       2.0
+        Esurf      6.0
+        A1         0.1
+        B1         1.0
+        A2         0.0
+        B2         0.0
+        A3         0.0
+        Dsw        0.0
+        Egwt       4.0
+        Name: 1, dtype: float64
+        """
+        if self._groundwater_df is None:
+            self._groundwater_df = dataframe_from_inp(self.path, "groundwater")
+        return self._groundwater_df
+
+    @groundwater.setter
+    def groundwater(self, df):
+        """Set inp.groundwater DataFrame."""
+        self._groundwater_df = df
 
     @property
     def coordinates(self):

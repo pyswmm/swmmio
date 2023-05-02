@@ -35,6 +35,8 @@ inp_file_objects:
       - SeepageRate
   CONDUITS: [Name, InletNode, OutletNode, Length, Roughness, InOffset, OutOffset, InitFlow, MaxFlow]
   INFILTRATION: [Subcatchment, Suction, HydCon, IMDmax]
+  AQUIFERS: [Name, Por, WP, FC, Ksat, Kslope, Tslope, ETu, ETs, Seep, Ebot, Egw, Umc, ETupat]
+  GROUNDWATER: [Subcatchment, Aquifer, Node, Esurf, A1, B1, A2, B2, A3, Dsw, Egwt, Ebot, Wgr, Umc]
   JUNCTIONS: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
   DWF:
     columns: [Node, Parameter, AverageValue, TimePatterns]
