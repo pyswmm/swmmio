@@ -62,13 +62,28 @@ def inline_comments_in_inp(filepath, overwrite=False):
 
 def extract_section_of_file(file_path, start_strings, end_strings, comment=';', **kwargs):
     """
-    Extract a portion of a file found between one or more start strings and the first
-    encountered end string.
-    :param file_path: path to the source file
-    :param start_strings: string or list of strings from which to start extracting
-    :param end_strings: string or list of strings at which to stop extracting
-    :param comment: comment string used to ignore parts of source file
-    :return: string extracted from source file
+    Extract a portion of a file found between one or more start strings and the first encountered end string.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the source file.
+    start_strings : str or list of str
+        String or list of strings from which to start extracting.
+    end_strings : str or list of str
+        String or list of strings at which to stop extracting.
+    comment : str, optional
+        Comment string used to ignore parts of the source file. Defaults to ';'.
+    **kwargs
+        Other keyword arguments.
+
+    Returns
+    -------
+    str
+        String extracted from source file.
+
+    Examples
+    --------
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment=None)
     >>> print(s.strip())

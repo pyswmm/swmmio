@@ -1353,6 +1353,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the streets section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.streets[['Tcrown', 'Hcurb']] #doctest: +NORMALIZE_WHITESPACE
                      Tcrown  Hcurb
@@ -1382,6 +1383,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the inlets section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.inlets #doctest: +NORMALIZE_WHITESPACE
                      Type  Param1  Param2      Param3
@@ -1411,6 +1413,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the inlet usage section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.inlet_usage[['Inlet', 'Node', 'Number', '%Clogged']] #doctest: +NORMALIZE_WHITESPACE
                       Inlet Node  Number  %Clogged
