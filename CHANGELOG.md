@@ -1,3 +1,9 @@
+## Version 0.6.5 (2023/05/02)
+
+### What's Changed
+* Added inp coverage for DIVIDERS, LOSSES, AQUIFERS, and GROUNDWATER [PR192](https://github.com/aerispaha/swmmio/pull/192)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections
+
 ## Version 0.6.4 (2023/04/28)
 
 ### What's Changed
