@@ -511,6 +511,7 @@ class inp(SWMMIOFile):
         self._files_df = None
         self._raingages_df = None
         self._evaporation_df = None
+        self._losses_df = None
         self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
@@ -526,6 +527,7 @@ class inp(SWMMIOFile):
         self._junctions_df = None
         self._outfalls_df = None
         self._storage_df = None
+        self._dividers_df = None
         self._coordinates_df = None
         self._dwf_df = None
         self._rdii_df = None
@@ -535,6 +537,8 @@ class inp(SWMMIOFile):
         self._subcatchments_df = None
         self._subareas_df = None
         self._infiltration_df = None
+        self._aquifers_df = None
+        self._groundwater_df = None
         self._inp_section_details = None
         self._inflows_df = None
         self._curves_df = None
@@ -551,6 +555,7 @@ class inp(SWMMIOFile):
             '[FILES]',
             '[RAINGAGES]',
             '[EVAPORATION]',
+            '[LOSSES]',
             '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
@@ -565,11 +570,14 @@ class inp(SWMMIOFile):
             '[WEIRS]',
             '[JUNCTIONS]',
             '[STORAGE]',
+            '[DIVIDERS]',
             '[OUTFALLS]',
             '[VERTICES]',
             '[SUBCATCHMENTS]',
             '[SUBAREAS]',
             '[INFILTRATION]',
+            '[AQUIFERS]',
+            '[GROUNDWATER]',
             '[CURVES]',
             '[COORDINATES]',
             '[DWF]',
@@ -750,6 +758,30 @@ class inp(SWMMIOFile):
     def evaporation(self, df):
         """Set inp.evaporation DataFrame."""
         self._evaporation_df = df
+
+    @property
+    def losses(self):
+        """
+        get/set losses section of model
+
+        :return: dataframe of evaporation section in inp file
+        
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.losses  #doctest: +NORMALIZE_WHITESPACE
+               Inlet  Outlet  Average Flap Gate  SeepageRate
+        Link
+        C1:C2      0       0        0       YES            0
+        C2.1       0       0        0       YES            0
+        """
+        if self._losses_df is not None:
+            return self._losses_df
+        self._losses_df = dataframe_from_inp(self.path, 'losses')
+        return self._losses_df
+
+    @losses.setter
+    def losses(self, df):
+        """Set inp.losses DataFrame."""
+        self._losses_df = df
 
     @property
     def report(self):
@@ -1101,6 +1133,29 @@ class inp(SWMMIOFile):
         self._storage_df = df
 
     @property
+    def dividers(self):
+        """
+        Get/set dividers section of the INP file.
+
+        :return: dividers section of the INP file
+        :rtype: pandas.DataFrame
+
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.dividers   #doctest: +NORMALIZE_WHITESPACE
+                   Elevation Diverted Link    Type  Parameters
+        Name
+        NODE5            3.0            C6  CUTOFF         1.0
+        """
+        if self._dividers_df is None:
+            self._dividers_df = dataframe_from_inp(self.path, "[DIVIDERS]")
+        return self._dividers_df
+
+    @dividers.setter
+    def dividers(self, df):
+        """Set inp.dividers DataFrame."""
+        self._dividers_df = df
+
+    @property
     def subcatchments(self):
         """
         Get/set subcatchments section of the INP file.
@@ -1157,6 +1212,64 @@ class inp(SWMMIOFile):
     def infiltration(self, df):
         """Set inp.infiltration DataFrame."""
         self._infiltration_df = df
+
+    @property
+    def aquifers(self):
+        """
+        Get/set the aquifers section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.aquifers.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Por        0.500
+        WP         0.150
+        FC         0.300
+        Ksat       0.100
+        Kslope    12.000
+        Tslope    15.000
+        ETu        0.350
+        ETs       14.000
+        Seep       0.002
+        Ebot       0.000
+        Egw        3.500
+        Umc        0.400
+        Name: 1, dtype: float64
+        """
+        if self._aquifers_df is None:
+            self._aquifers_df = dataframe_from_inp(self.path, "aquifers")
+        return self._aquifers_df
+
+    @aquifers.setter
+    def aquifers(self, df):
+        """Set inp.aquifers DataFrame."""
+        self._aquifers_df = df
+
+    @property
+    def groundwater(self):
+        """
+        Get/set the groundwater section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.groundwater.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Aquifer    1.0
+        Node       2.0
+        Esurf      6.0
+        A1         0.1
+        B1         1.0
+        A2         0.0
+        B2         0.0
+        A3         0.0
+        Dsw        0.0
+        Egwt       4.0
+        Name: 1, dtype: float64
+        """
+        if self._groundwater_df is None:
+            self._groundwater_df = dataframe_from_inp(self.path, "groundwater")
+        return self._groundwater_df
+
+    @groundwater.setter
+    def groundwater(self, df):
+        """Set inp.groundwater DataFrame."""
+        self._groundwater_df = df
 
     @property
     def coordinates(self):
@@ -1353,6 +1466,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the streets section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.streets[['Tcrown', 'Hcurb']] #doctest: +NORMALIZE_WHITESPACE
                      Tcrown  Hcurb
@@ -1382,6 +1496,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the inlets section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.inlets #doctest: +NORMALIZE_WHITESPACE
                      Type  Param1  Param2      Param3
@@ -1411,6 +1526,7 @@ class inp(SWMMIOFile):
         Examples
         --------
         Access the inlet usage section of the inp file
+
         >>> from swmmio.examples import streets
         >>> streets.inp.inlet_usage[['Inlet', 'Node', 'Number', '%Clogged']] #doctest: +NORMALIZE_WHITESPACE
                       Inlet Node  Number  %Clogged
