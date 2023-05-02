@@ -527,6 +527,7 @@ class inp(SWMMIOFile):
         self._junctions_df = None
         self._outfalls_df = None
         self._storage_df = None
+        self._dividers_df = None
         self._coordinates_df = None
         self._dwf_df = None
         self._rdii_df = None
@@ -567,6 +568,7 @@ class inp(SWMMIOFile):
             '[WEIRS]',
             '[JUNCTIONS]',
             '[STORAGE]',
+            '[DIVIDERS]',
             '[OUTFALLS]',
             '[VERTICES]',
             '[SUBCATCHMENTS]',
@@ -1118,6 +1120,24 @@ class inp(SWMMIOFile):
     def storage(self, df):
         """Set inp.storage DataFrame."""
         self._storage_df = df
+
+    @property
+    def dividers(self):
+        """
+        Get/set dividers section of the INP file.
+
+        :return: dividers section of the INP file
+        :rtype: pandas.DataFrame
+
+        """
+        if self._dividers_df is None:
+            self._dividers_df = dataframe_from_inp(self.path, "[DIVIDERS]")
+        return self._dividers_df
+
+    @dividers.setter
+    def dividers(self, df):
+        """Set inp.dividers DataFrame."""
+        self._dividers_df = df
 
     @property
     def subcatchments(self):

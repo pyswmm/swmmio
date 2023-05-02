@@ -52,6 +52,7 @@ inp_file_objects:
   PUMPS: [Name, InletNode, OutletNode, PumpCurve, InitStatus, Depth, ShutoffDepth]
   STORAGE: [Name, InvertElev, MaxD, InitDepth, StorageCurve, Coefficient, Exponent,
                 Constant, PondedArea, EvapFrac, SuctionHead, Conductivity, InitialDeficit]
+  DIVIDERS: [Name, Elevation, Diverted Link, Type, Parameters]
   SUBCATCHMENTS: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope,
                   CurbLength, SnowPack]
   SUBAREAS: [Name, N-Imperv, N-Perv, S-Imperv, S-Perv, PctZero, RouteTo, PctRouted]
