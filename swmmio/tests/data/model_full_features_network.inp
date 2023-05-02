@@ -88,6 +88,11 @@ J4               0          FREE                        NO
 ;;-------------- -------- ---------- ----------- ---------- ---------------------------- -------- --------          -------- --------
 J1               13.392   15         0          FUNCTIONAL 1000      0         0        0        0       
 
+[DIVIDERS]
+;;Name  Elev  Link Type    Parameters
+;;----- ----  ---- ------  ----------
+NODE5   3.0   C6   CUTOFF  1.0
+
 [CONDUITS]
 ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
 ;;-------------- ---------------- ---------------- ---------- ---------- ---------- ---------- ---------- ----------
@@ -120,6 +125,12 @@ C2.1             CIRCULAR     1                0          0          0          
 4                CIRCULAR     1                0          0          0          1                    
 5                CIRCULAR     1                0          0          0          1                    
 C3               RECT_OPEN    5                1          0          0         
+
+[LOSSES]
+;;Link           Kentry     Kexit      Kavg       Flap Gate  Seepage
+;;-------------- ---------- ---------- ---------- ---------- ----------
+C1:C2            0          0          0          YES        0
+C2.1             0          0          0          YES        0
 
 [INFLOWS]
 ;;Node           Constituent      Time Series      Type     Mfactor  Sfactor  Baseline Pattern

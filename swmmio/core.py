@@ -761,6 +761,13 @@ class inp(SWMMIOFile):
         get/set losses section of model
 
         :return: dataframe of evaporation section in inp file
+        
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.losses  #doctest: +NORMALIZE_WHITESPACE
+               Inlet  Outlet  Average Flap Gate  SeepageRate
+        Link
+        C1:C2      0       0        0       YES            0
+        C2.1       0       0        0       YES            0
         """
         if self._losses_df is not None:
             return self._losses_df
@@ -1129,6 +1136,11 @@ class inp(SWMMIOFile):
         :return: dividers section of the INP file
         :rtype: pandas.DataFrame
 
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.dividers   #doctest: +NORMALIZE_WHITESPACE
+                   Elevation Diverted Link    Type  Parameters
+        Name
+        NODE5            3.0            C6  CUTOFF         1.0
         """
         if self._dividers_df is None:
             self._dividers_df = dataframe_from_inp(self.path, "[DIVIDERS]")
