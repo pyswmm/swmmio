@@ -27,9 +27,16 @@ MODEL_CURVE_NUMBER = os.path.join(DATA_PATH, 'model_curve_num.inp')
 MODEL_MOD_HORTON = os.path.join(DATA_PATH, 'model_mod_horton.inp')
 MODEL_EX_1 = os.path.join(DATA_PATH, 'Example1.inp')
 MODEL_EX_1B = os.path.join(DATA_PATH, 'Example1b.inp')
+MODEL_EXAMPLE6 = os.path.join(DATA_PATH, 'Example6.inp')
+MODEL_EX_1_PARALLEL_LOOP = os.path.join(DATA_PATH, 'Example1_parallel_loop.inp')
+MODEL_INFILTRAION_PARSE_FAILURE = os.path.join(DATA_PATH, 'model-with-infiltration-parse-failure.inp')
+MODEL_EXTCNTRLMODEL = os.path.join(DATA_PATH, 'SWMMExtCntrlModel.inp')
+MODEL_TEST_INLET_DRAINS = os.path.join(DATA_PATH, 'test_inlet_drains.inp')
+MODEL_GROUNDWATER = os.path.join(DATA_PATH, 'groundwater_model.inp')
 
 # test rpt paths
 RPT_FULL_FEATURES = os.path.join(DATA_PATH, 'model_full_features_network.rpt')
+OWA_RPT_EXAMPLE = os.path.join(DATA_PATH, 'owa-rpt-example.rpt')
 
 # version control test models
 MODEL_XSECTION_BASELINE = os.path.join(DATA_PATH, 'baseline_test.inp')

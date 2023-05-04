@@ -176,5 +176,3 @@ composite:
     join_sections: [subareas]
     rpt_sections: [Subcatchment Runoff Summary]
     geomtype: polygon
-
-

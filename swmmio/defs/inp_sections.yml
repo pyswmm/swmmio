@@ -1,10 +1,10 @@
 
 infiltration_cols:
-  CURVE_NUMBER: [Param1,     Param2,     Param3,     Param4,     Param5]
-  GREEN_AMPT: [Param1,     Param2,     Param3,     Param4,     Param5]
-  HORTON: [Param1,     Param2,     Param3,     Param4,     Param5]
-  MODIFIED_GREEN_AMPT: [Param1,     Param2,     Param3,     Param4,     Param5]
-  MODIFIED_HORTON: [Param1,     Param2,     Param3,     Param4,     Param5]
+  CURVE_NUMBER: [Subcatchment, CurveNum, Conductivity (depreciated), DryTime, Param4, Param5]
+  GREEN_AMPT: [Subcatchment, Suction, HydCon, IMDmax, Param4, Param5]
+  HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
+  MODIFIED_GREEN_AMPT: [Subcatchment, Suction, Ksat, IMD, Param4, Param5]
+  MODIFIED_HORTON: [Subcatchment, MaxRate, MinRate, Decay, DryTime, MaxInfil]
 
 inp_file_objects:
   TITLE:
@@ -22,6 +22,8 @@ inp_file_objects:
     columns: [Action, FileType, FileName]
   RAINGAGES:
     columns: [Name, RainType, TimeIntrvl, SnowCatch, DataSource, DataSourceName]
+  EVAPORATION:
+    keys: [Type, Parameters]
   LOSSES:
     # SeepageRage is new?
     columns:
@@ -32,23 +34,36 @@ inp_file_objects:
       - Flap Gate
       - SeepageRate
   CONDUITS: [Name, InletNode, OutletNode, Length, Roughness, InOffset, OutOffset, InitFlow, MaxFlow]
-  INFILTRATION: [Subcatchment, Param1,     Param2,     Param3,     Param4,     Param5]
+  INFILTRATION: [Subcatchment, Suction, HydCon, IMDmax]
+  AQUIFERS: [Name, Por, WP, FC, Ksat, Kslope, Tslope, ETu, ETs, Seep, Ebot, Egw, Umc, ETupat]
+  GROUNDWATER: [Subcatchment, Aquifer, Node, Esurf, A1, B1, A2, B2, A3, Dsw, Egwt, Ebot, Wgr, Umc]
   JUNCTIONS: [Name, InvertElev, MaxDepth, InitDepth, SurchargeDepth, PondedArea]
   DWF:
     columns: [Node, Parameter, AverageValue, TimePatterns]
+  RDII: [Node, UnitHydrograph, SewerArea]
+  HYDROGRAPHS: [Hydrograph, RainGage/Month, Response, R, T, K, Dmax, Drecov, Dinit]
+  LANDUSES: [Name, CleaningInterval, FractionAvailable, LastCleaned]
+  BUILDUP: [LandUse, Pollutant, Function, Coeff1, Coeff2, Coeff3, Normalizer]
+  WASHOFF: [LandUse, Pollutant, Function, Coeff1, Coeff2, CleaningEffic, BMPEffic]
+  COVERAGES: [Subcatchment, LandUse, Percent]
+  LOADINGS: [Subcatchment, Pollutant, Loading]
   ORIFICES:
     columns: [Name, InletNode, OutletNode, OrificeType, CrestHeight, DischCoeff, FlapGate, OpenCloseTime]
-  OUTFALLS: [Name, InvertElev, OutfallType, StageOrTimeseries, TideGate]
+  OUTFALLS: [Name, InvertElev, OutfallType, StageOrTimeseries, TideGate, RouteTo]
   OUTLETS: [Name, InletNode, OutletNode, OutflowHeight, OutletType, Qcoeff/QTable, Qexpon, FlapGate]
   PUMPS: [Name, InletNode, OutletNode, PumpCurve, InitStatus, Depth, ShutoffDepth]
   STORAGE: [Name, InvertElev, MaxD, InitDepth, StorageCurve, Coefficient, Exponent,
                 Constant, PondedArea, EvapFrac, SuctionHead, Conductivity, InitialDeficit]
+  DIVIDERS: [Name, Elevation, Diverted Link, Type, Parameters]
   SUBCATCHMENTS: [Name, Raingage, Outlet, Area, PercImperv, Width, PercSlope,
                   CurbLength, SnowPack]
   SUBAREAS: [Name, N-Imperv, N-Perv, S-Imperv, S-Perv, PctZero, RouteTo, PctRouted]
   WEIRS: [Name, InletNode, OutletNode, WeirType, CrestHeight, DischCoeff, FlapGate, EndCon, EndCoeff,
           Surcharge, RoadWidth, RoadSurf]
-  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, Culvert]
+  XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
+  POLLUTANTS: [Name, MassUnits, RainConcen, GWConcen, I&IConcen, DecayCoeff, SnowOnly,
+               CoPollutName, CoPollutFraction, DWFConcen, InitConcen]
+
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
   LID_USAGE: [Subcatchment,   'LID_Process',      Number,  Area,       Width,      InitSat,    FromImp,    ToPerv,     RptFile,                  DrainTo,          FromPerv,]
 
@@ -62,6 +77,9 @@ inp_file_objects:
   TAGS: [ElementType, Name, Tag]
   ADJUSTMENTS: [blob]
   CURVES: [Name, Type, X-Value, Y-Value]
+  STREETS: [Name, Tcrown, Hcurb, Sx, nRoad, a, W, Sides, Tback, Sback, nBack]
+  INLETS: [Name, Type, Param1, Param2, Param3, Param4, Param5]
+  INLET_USAGE: [Link, Inlet, Node, Number, "%Clogged", Qmax, aLocal, wLocal, Placement]
 
 
 
@@ -73,5 +91,5 @@ inp_section_tags:
   '[WASHOFF', '[COVERAGE', '[INFLOW', '[DWF', '[PATTERN', '[RDII', '[HYDROGRAPH',
   '[LOADING', '[TREATMENT', '[CURVE', '[TIMESERIES', '[REPORT', '[MAP', '[COORDINATE',
   '[VERTICES', '[POLYGON', '[Polygons', '[SYMBOL', '[LABEL', '[BACKDROP', '[TAG', '[PROFILE', '[LID_CONTROL',
-  '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT']
+  '[LID_USAGE', '[GW_FLOW', '[GWF', '[ADJUSTMENT', '[EVENT', '[STREETS', '[INLETS', '[INLET_USAGE',]
 

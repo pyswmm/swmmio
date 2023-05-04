@@ -39,7 +39,7 @@ class Model(object):
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> m = Model(MODEL_FULL_FEATURES_XY)
     >>> # access sections of inp via the Model.inp object
-    >>> m.inp.junctions
+    >>> m.inp.junctions #doctest: +NORMALIZE_WHITESPACE
           InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
     Name
     J3         6.547        15          0               0           0
@@ -49,7 +49,7 @@ class Model(object):
     4         16.000         0          0               0           0
     5         15.000         0          0               0           0
     J2        13.000        15          0               0           0
-    >>> m.inp.coordinates
+    >>> m.inp.coordinates #doctest: +NORMALIZE_WHITESPACE
                     X            Y
     Name
     J3    2748073.306  1117746.087
@@ -68,7 +68,7 @@ class Model(object):
     and ORIFICES joined with XSECTIONS, COORDINATES and the Link Flow Summary (if
     there is an rpt file found).
 
-    >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']]
+    >>> m.links.dataframe[['InletNode', 'OutletNode', 'Length', 'Roughness', 'Geom1']] #doctest: +NORMALIZE_WHITESPACE
           InletNode OutletNode  Length  Roughness  Geom1
     Name
     C1:C2        J1         J2  244.63       0.01    1.0
@@ -82,7 +82,7 @@ class Model(object):
     C2           J2         J3     NaN        NaN    NaN
     >>> # return all conduits (drop coords for clarity)
     >>> from swmmio.examples import jersey
-    >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']]
+    >>> jersey.nodes.dataframe[['InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea']] #doctest: +NORMALIZE_WHITESPACE
           InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
     Name
     J3         6.547      15.0        0.0             0.0         0.0
@@ -189,6 +189,7 @@ class Model(object):
         # create dataframes of relevant sections from the INP
         conduits_df = dataframe_from_inp(inp.path, "CONDUITS")
         xsections_df = dataframe_from_inp(inp.path, "XSECTIONS")
+        tags = dataframe_from_inp(inp.path, "TAGS")
         conduits_df = conduits_df.join(xsections_df)
 
         if rpt:
@@ -212,6 +213,9 @@ class Model(object):
 
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
+
+        if "Link" in set(inp.tags.index):
+            df = df.merge(inp.tags, left_on="Name", right_on="Name", how="left")
 
         self._conduits_df = df
 
@@ -258,7 +262,7 @@ class Model(object):
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
         >>> pumps = model.pumps.dataframe
-        >>> pumps[['PumpCurve', 'InitStatus']]
+        >>> pumps[['PumpCurve', 'InitStatus']]  #doctest: +NORMALIZE_WHITESPACE
              PumpCurve InitStatus
         Name
         C2    P1_Curve         ON
@@ -279,7 +283,23 @@ class Model(object):
         Examples
         ---------
         >>> from swmmio.examples import philly
-        >>> philly.links.dataframe
+        >>> philly.links.dataframe.loc['J1-025.1']  #doctest: +NORMALIZE_WHITESPACE
+        InletNode                                                       J1-025
+        OutletNode                                                      J1-026
+        Length                                                      309.456216
+        Roughness                                                        0.014
+        InOffset                                                             0
+        OutOffset                                                          0.0
+        InitFlow                                                             0
+        MaxFlow                                                              0
+        Shape                                                         CIRCULAR
+        Geom1                                                             1.25
+        Geom2                                                                0
+        Geom3                                                                0
+        Geom4                                                                0
+        Barrels                                                              1
+        coords        [(2746229.223, 1118867.764), (2746461.473, 1118663.257)]
+        Name: J1-025.1, dtype: object
         """
         if self._links_df is not None:
             return self._links_df
@@ -329,6 +349,7 @@ class Model(object):
             return self._subcatchments_df
 
         df = ModelSection(model=self, **COMPOSITE_OBJECTS['subcatchments'])
+
         self._subcatchments_df = df
         return df
 
@@ -357,24 +378,24 @@ class Model(object):
         >>> import swmmio
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
-        >>> m.inp.coordinates
-                      X          Y
+        >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                     X         Y
         Name
-        J3   -74.866424  42.365958
-        1    -74.870614  42.368292
-        2    -74.867615  42.367916
-        3    -74.869387  42.368527
-        4    -74.869024  42.368089
-        5    -74.868888  42.367709
-        J2   -74.868458  42.366748
-        J4   -74.864787  42.365966
-        J1   -74.868861  42.366968
-        >>> m.inp.vertices
-                       X          Y
+        J3   -74.86642  42.36596
+        1    -74.87061  42.36829
+        2    -74.86762  42.36792
+        3    -74.86939  42.36853
+        4    -74.86902  42.36809
+        5    -74.86889  42.36771
+        J2   -74.86846  42.36675
+        J4   -74.86479  42.36597
+        J1   -74.86886  42.36697
+        >>> m.inp.vertices.round(5)  #doctest: +NORMALIZE_WHITESPACE
+                      X         Y
         Name
-        C1:C2 -74.868703  42.366833
-        C2.1  -74.868034  42.366271
-        C2.1  -74.867305  42.365974
+        C1:C2 -74.86870  42.36683
+        C2.1  -74.86803  42.36627
+        C2.1  -74.86731  42.36597
         """
         try:
             import pyproj
@@ -443,9 +464,15 @@ class rpt(SWMMIOFile):
 
     >>> from swmmio.tests.data import RPT_FULL_FEATURES
     >>> report = rpt(RPT_FULL_FEATURES)
-    >>> report.link_flow_summary
-    >>> from swmmio.examples import spruce
-    >>> spruce.rpt.link_results
+    >>> report.link_flow_summary.loc['C1:C2']
+    Type        CONDUIT
+    MaxQ           2.45
+    MaxDay            0
+    MaxHr         10:19
+    MaxV           6.23
+    MaxQPerc       1.32
+    MaxDPerc        0.5
+    Name: C1:C2, dtype: object
     """
 
     def __init__(self, filePath):
@@ -497,51 +524,89 @@ class inp(SWMMIOFile):
     def __init__(self, file_path):
         self._options_df = None
         self._files_df = None
+        self._raingages_df = None
+        self._evaporation_df = None
+        self._losses_df = None
+        self._report_df = None
         self._conduits_df = None
         self._xsections_df = None
         self._lid_usage_df = None
+        self._pollutants_df = None
+        self._landuses_df = None
+        self._buildup_df = None
+        self._washoff_df = None
+        self._coverages_df = None
+        self._loadings_df = None
         self._pumps_df = None
         self._orifices_df = None
         self._weirs_df = None
         self._junctions_df = None
         self._outfalls_df = None
         self._storage_df = None
+        self._dividers_df = None
         self._coordinates_df = None
+        self._dwf_df = None
+        self._rdii_df = None
+        self._hydrographs_df = None
         self._vertices_df = None
         self._polygons_df = None
         self._subcatchments_df = None
         self._subareas_df = None
         self._infiltration_df = None
+        self._aquifers_df = None
+        self._groundwater_df = None
         self._inp_section_details = None
         self._inflows_df = None
         self._curves_df = None
         self._timeseries_df = None
-        self._raingages_df = None
+        self._tags_df = None
+        self._streets_df = None
+        self._inlets_df = None
+        self._inlet_usage_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
         self._sections = [
             '[OPTIONS]',
             '[FILES]',
+            '[RAINGAGES]',
+            '[EVAPORATION]',
+            '[LOSSES]',
+            '[REPORT]',
             '[CONDUITS]',
             '[XSECTIONS]',
+            '[POLLUTANTS]',
+            '[LANDUSES]',
+            '[BUILDUP]',
+            '[WASHOFF]',
+            '[COVERAGES]',
+            '[LOADINGS]',
             '[PUMPS]',
             '[ORIFICES]',
             '[WEIRS]',
             '[JUNCTIONS]',
             '[STORAGE]',
+            '[DIVIDERS]',
             '[OUTFALLS]',
             '[VERTICES]',
             '[SUBCATCHMENTS]',
             '[SUBAREAS]',
             '[INFILTRATION]',
+            '[AQUIFERS]',
+            '[GROUNDWATER]',
             '[CURVES]',
             '[COORDINATES]',
+            '[DWF]',
+            '[RDII]',
+            '[HYDROGRAPHS]',
             '[INFLOWS]',
             '[Polygons]',
             '[TIMESERIES]',
             '[LID_USAGE]',
-            '[RAINGAGES]'
+            '[TAGS]',
+            '[STREETS]',
+            '[INLETS]',
+            '[INLET_USAGE]',
         ]
 
     def save(self, target_path=None):
@@ -557,9 +622,13 @@ class inp(SWMMIOFile):
         """
         from swmmio.utils.modify_model import replace_inp_section
         import shutil
-        target_path = target_path if target_path is not None else self.path
-        if not self.path==target_path:
+
+        if target_path is not None:
             shutil.copyfile(self.path, target_path)
+        else:
+            target_path = self.path
+
+
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
             sect_id = section.translate({ord(i): None for i in '[]'}).lower()
@@ -572,6 +641,7 @@ class inp(SWMMIOFile):
     def validate(self):
         """
         Detect and remove invalid model elements
+
         :return: None
         """
         drop_invalid_model_elements(self)
@@ -618,7 +688,7 @@ class inp(SWMMIOFile):
         ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
         >>> model.inp.options.loc['INFILTRATION', 'Value'] = 'GREEN_AMPT'
         >>> model.inp.headers['[INFILTRATION]']
-        ['Subcatchment', 'Suction', 'HydCon', 'IMDmax']
+        ['Subcatchment', 'Suction', 'HydCon', 'IMDmax', 'Param4', 'Param5']
         """
         if self._options_df is None:
             self._options_df = get_inp_options_df(self.path)
@@ -646,8 +716,6 @@ class inp(SWMMIOFile):
 
         :return: files section of the INP file
         :rtype: pandas.DataFrame
-
-        Examples:
         """
         if self._files_df is None:
             self._files_df = dataframe_from_inp(self.path, "[FILES]")
@@ -658,6 +726,108 @@ class inp(SWMMIOFile):
         """Set inp.files DataFrame."""
         first_col = df.columns[0]
         self._files_df = df.set_index(first_col)
+
+    @property
+    def raingages(self):
+        """
+        get/set raingages section of model
+
+        :return: dataframe of raingages in the model
+
+        Examples:
+
+        >>> from swmmio.examples import philly
+        >>> philly.inp.raingages #doctest: +NORMALIZE_WHITESPACE
+               RainType TimeIntrvl  SnowCatch  DataSource DataSourceName
+        Name
+        RG1   INTENSITY       1:00        1.0  TIMESERIES   design-storm
+        """
+        if self._raingages_df is not None:
+            return self._raingages_df
+        self._raingages_df = dataframe_from_inp(self.path, 'raingages')
+        return self._raingages_df
+
+    @raingages.setter
+    def raingages(self, df):
+        """Set inp.raingages DataFrame."""
+        self._raingages_df = df
+
+    @property
+    def evaporation(self):
+        """
+        get/set evaporation section of model
+
+        :return: dataframe of evaporation section in inp file
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.evaporation #doctest: +NORMALIZE_WHITESPACE
+                 Value
+        Key
+        CONSTANT   0.0
+        DRY_ONLY    NO
+        """
+        if self._evaporation_df is not None:
+            return self._evaporation_df
+        self._evaporation_df = dataframe_from_inp(self.path, 'evaporation')
+        return self._evaporation_df
+
+    @evaporation.setter
+    def evaporation(self, df):
+        """Set inp.evaporation DataFrame."""
+        self._evaporation_df = df
+
+    @property
+    def losses(self):
+        """
+        get/set losses section of model
+
+        :return: dataframe of evaporation section in inp file
+        
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.losses  #doctest: +NORMALIZE_WHITESPACE
+               Inlet  Outlet  Average Flap Gate  SeepageRate
+        Link
+        C1:C2      0       0        0       YES            0
+        C2.1       0       0        0       YES            0
+        """
+        if self._losses_df is not None:
+            return self._losses_df
+        self._losses_df = dataframe_from_inp(self.path, 'losses')
+        return self._losses_df
+
+    @losses.setter
+    def losses(self, df):
+        """Set inp.losses DataFrame."""
+        self._losses_df = df
+
+    @property
+    def report(self):
+        """
+        Get/set report section of the INP file.
+
+        :return: report section of the INP file
+        :rtype: pandas.DataFrame
+
+        >>> from swmmio.examples import jersey
+        >>> jersey.inp.report  #doctest: +NORMALIZE_WHITESPACE
+                      Status
+        Param
+        INPUT            YES
+        CONTROLS         YES
+        SUBCATCHMENTS   NONE
+        NODES            ALL
+        LINKS           NONE
+        """
+        if self._report_df is None:
+            self._report_df = dataframe_from_inp(self.path, "report")
+        return self._report_df
+
+    @report.setter
+    def report(self, df):
+        """Set inp.report DataFrame."""
+        self._report_df = df
 
     @property
     def conduits(self):
@@ -672,8 +842,8 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.conduits[['InletNode', 'OutletNode', 'Length', 'ManningN']]
-              InletNode OutletNode  Length  ManningN
+        >>> model.inp.conduits[['InletNode', 'OutletNode', 'Length', 'Roughness']] #doctest: +NORMALIZE_WHITESPACE
+              InletNode OutletNode  Length  Roughness
         Name
         C1:C2        J1         J2  244.63      0.01
         C2.1         J2         J3  666.00      0.01
@@ -732,6 +902,160 @@ class inp(SWMMIOFile):
         self._lid_usage_df = df
 
     @property
+    def pollutants(self):
+        """
+        get/set pollutants section of model
+
+        :return: dataframe of pollutants section in inp file
+
+        Examples:
+        The `walnut` example model contains two entries in the POLLUTANTS section, one
+        of which is TSS. Below we show how to retrieve this information, by accessing the
+        `TSS` index of the pollutants dataframe:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.pollutants.loc['TSS'] #doctest: +NORMALIZE_WHITESPACE
+        MassUnits           MG/L
+        RainConcen           0.0
+        GWConcen             0.0
+        I&IConcen              0
+        DecayCoeff           0.0
+        SnowOnly              NO
+        CoPollutName           *
+        CoPollutFraction     0.0
+        DWFConcen              0
+        InitConcen             0
+        Name: TSS, dtype: object
+        """
+        if self._pollutants_df is not None:
+            return self._pollutants_df
+        self._pollutants_df = dataframe_from_inp(self.path, 'pollutants')
+        return self._pollutants_df
+
+    @pollutants.setter
+    def pollutants(self, df):
+        """Set inp.pollutants DataFrame."""
+        self._pollutants_df = df
+
+    @property
+    def landuses(self):
+        """
+        Get/set landuses section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.landuses #doctest: +NORMALIZE_WHITESPACE
+                     CleaningInterval  FractionAvailable  LastCleaned
+        Name
+        Residential                 0                  0            0
+        Undeveloped                 0                  0            0
+        """
+        if self._landuses_df is None:
+            self._landuses_df = dataframe_from_inp(self.path, "LANDUSES")
+        return self._landuses_df
+
+    @landuses.setter
+    def landuses(self, df):
+        """Set inp.landuses DataFrame."""
+        self._landuses_df = df
+
+    @property
+    def buildup(self):
+        """
+        Get/set buildup section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.buildup[['Pollutant', 'Function', 'Normalizer']] #doctest: +NORMALIZE_WHITESPACE
+                    Pollutant Function Normalizer
+        LandUse
+        Residential      Lead     NONE       AREA
+        Residential       TSS      SAT       AREA
+        Undeveloped      Lead     NONE       AREA
+        Undeveloped       TSS      SAT       AREA
+        """
+        if self._buildup_df is None:
+            self._buildup_df = dataframe_from_inp(self.path, "BUILDUP")
+        return self._buildup_df
+
+    @buildup.setter
+    def buildup(self, df):
+        """Set inp.buildup DataFrame."""
+        self._buildup_df = df
+
+    @property
+    def washoff(self):
+        """
+        Get/set washoff section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.washoff[['Pollutant', 'Function']] #doctest: +NORMALIZE_WHITESPACE
+                    Pollutant Function
+        LandUse
+        Residential      Lead      EMC
+        Residential       TSS      EXP
+        Undeveloped      Lead      EMC
+        Undeveloped       TSS      EXP
+        """
+        if self._washoff_df is None:
+            self._washoff_df = dataframe_from_inp(self.path, "WASHOFF")
+        return self._washoff_df
+
+    @washoff.setter
+    def washoff(self, df):
+        """Set inp.washoff DataFrame."""
+        self._washoff_df = df
+
+    @property
+    def coverages(self):
+        """
+        Get/set coverages section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.coverages #doctest: +NORMALIZE_WHITESPACE
+                          LandUse  Percent
+        Subcatchment
+        1             Residential    100.0
+        2             Residential     50.0
+        2             Undeveloped     50.0
+        3             Residential    100.0
+        4             Residential     50.0
+        4             Undeveloped     50.0
+        5             Residential    100.0
+        6             Undeveloped    100.0
+        7             Undeveloped    100.0
+        8             Undeveloped    100.0
+        """
+        if self._coverages_df is None:
+            self._coverages_df = dataframe_from_inp(self.path, "coverages")
+        return self._coverages_df
+
+    @coverages.setter
+    def coverages(self, df):
+        """Set inp.coverages DataFrame."""
+        self._coverages_df = df
+
+    @property
+    def loadings(self):
+        """
+        Get/set loadings section of the INP file.
+        """
+        if self._loadings_df is None:
+            self._loadings_df = dataframe_from_inp(self.path, "loadings")
+        return self._loadings_df
+
+    @loadings.setter
+    def loadings(self, df):
+        """Set inp.loadings DataFrame."""
+        self._loadings_df = df
+
+    @property
     def pumps(self):
         """
         Get/set pumps section of the INP file.
@@ -786,7 +1110,7 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.junctions
+        >>> model.inp.junctions #doctest: +NORMALIZE_WHITESPACE
               InvertElev  MaxDepth  InitDepth  SurchargeDepth  PondedArea
         Name
         J3         6.547        15          0               0           0
@@ -819,10 +1143,10 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> model = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> model.inp.outfalls
-              InvertElev OutfallType StageOrTimeseries  TideGate
+        >>> model.inp.outfalls  #doctest: +NORMALIZE_WHITESPACE
+              InvertElev OutfallType StageOrTimeseries
         Name
-        J4             0        FREE                NO       NaN
+        J4             0        FREE                NO
         """
         if self._outfalls_df is None:
             self._outfalls_df = dataframe_from_inp(self.path, "[OUTFALLS]")
@@ -851,6 +1175,29 @@ class inp(SWMMIOFile):
     def storage(self, df):
         """Set inp.storage DataFrame."""
         self._storage_df = df
+
+    @property
+    def dividers(self):
+        """
+        Get/set dividers section of the INP file.
+
+        :return: dividers section of the INP file
+        :rtype: pandas.DataFrame
+
+        >>> from swmmio.examples import spruce
+        >>> spruce.inp.dividers   #doctest: +NORMALIZE_WHITESPACE
+                   Elevation Diverted Link    Type  Parameters
+        Name
+        NODE5            3.0            C6  CUTOFF         1.0
+        """
+        if self._dividers_df is None:
+            self._dividers_df = dataframe_from_inp(self.path, "[DIVIDERS]")
+        return self._dividers_df
+
+    @dividers.setter
+    def dividers(self, df):
+        """Set inp.dividers DataFrame."""
+        self._dividers_df = df
 
     @property
     def subcatchments(self):
@@ -893,7 +1240,7 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
         >>> m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH)
-        >>> m.inp.infiltration
+        >>> m.inp.infiltration  #doctest: +NORMALIZE_WHITESPACE
                       MaxRate  MinRate  Decay  DryTime  MaxInfil
         Subcatchment
         S1                3.0      0.5      4        7         0
@@ -911,6 +1258,64 @@ class inp(SWMMIOFile):
         self._infiltration_df = df
 
     @property
+    def aquifers(self):
+        """
+        Get/set the aquifers section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.aquifers.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Por        0.500
+        WP         0.150
+        FC         0.300
+        Ksat       0.100
+        Kslope    12.000
+        Tslope    15.000
+        ETu        0.350
+        ETs       14.000
+        Seep       0.002
+        Ebot       0.000
+        Egw        3.500
+        Umc        0.400
+        Name: 1, dtype: float64
+        """
+        if self._aquifers_df is None:
+            self._aquifers_df = dataframe_from_inp(self.path, "aquifers")
+        return self._aquifers_df
+
+    @aquifers.setter
+    def aquifers(self, df):
+        """Set inp.aquifers DataFrame."""
+        self._aquifers_df = df
+
+    @property
+    def groundwater(self):
+        """
+        Get/set the groundwater section of the INP file.
+
+        >>> from swmmio.examples import groundwater
+        >>> groundwater.inp.groundwater.loc['1'] #doctest: +NORMALIZE_WHITESPACE
+        Aquifer    1.0
+        Node       2.0
+        Esurf      6.0
+        A1         0.1
+        B1         1.0
+        A2         0.0
+        B2         0.0
+        A3         0.0
+        Dsw        0.0
+        Egwt       4.0
+        Name: 1, dtype: float64
+        """
+        if self._groundwater_df is None:
+            self._groundwater_df = dataframe_from_inp(self.path, "groundwater")
+        return self._groundwater_df
+
+    @groundwater.setter
+    def groundwater(self, df):
+        """Set inp.groundwater DataFrame."""
+        self._groundwater_df = df
+
+    @property
     def coordinates(self):
         """
         Get/set coordinates section of model
@@ -925,6 +1330,68 @@ class inp(SWMMIOFile):
     def coordinates(self, df):
         """Set inp.coordinates DataFrame."""
         self._coordinates_df = df
+
+    @property
+    def dwf(self):
+        """
+        Get/set DWF section of model
+        :return: dataframe of model DWF section
+        """
+        if self._dwf_df is not None:
+            return self._dwf_df
+        self._dwf_df = dataframe_from_inp(self.path, "DWF")
+        return self._dwf_df
+
+    @dwf.setter
+    def dwf(self, df):
+        """Set inp.dwf DataFrame."""
+        self._dwf_df = df
+
+    @property
+    def rdii(self):
+        """
+        Get/set RDII section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.rdii #doctest: +NORMALIZE_WHITESPACE
+             UnitHydrograph  SewerArea
+        Node
+        13      Hydrograph1  58.944186
+        14      Hydrograph1  58.944186
+        """
+        if self._rdii_df is None:
+            self._rdii_df = dataframe_from_inp(self.path, "[RDII]")
+        return self._rdii_df
+
+    @rdii.setter
+    def rdii(self, df):
+        """Set inp.rdii DataFrame."""
+        self._rdii_df = df
+
+    @property
+    def hydrographs(self):
+        """
+        Get/set hydrographs section of the INP file.
+
+        Examples:
+
+        >>> from swmmio.examples import walnut
+        >>> walnut.inp.hydrographs #doctest: +NORMALIZE_WHITESPACE
+                    RainGage/Month
+        Hydrograph
+        Hydrograph1            TS1
+        """
+        if self._hydrographs_df is None:
+            self._hydrographs_df = dataframe_from_inp(self.path, "hydrographs")
+        return self._hydrographs_df
+
+    @hydrographs.setter
+    def hydrographs(self, df):
+        """Set inp.hydrographs DataFrame."""
+        self._hydrographs_df = df
+
 
     @property
     def vertices(self):
@@ -950,7 +1417,7 @@ class inp(SWMMIOFile):
         :return: dataframe of nodes with inflows
 
         >>> from swmmio.examples import jersey
-        >>> jersey.inp.inflows[['Constituent', 'Mfactor', 'Baseline']]
+        >>> jersey.inp.inflows[['Constituent', 'Mfactor', 'Baseline']]  #doctest: +NORMALIZE_WHITESPACE
              Constituent  Mfactor  Baseline
         Node
         J3          Flow      1.0         1
@@ -1017,6 +1484,113 @@ class inp(SWMMIOFile):
         """Set inp.timeseries DataFrame."""
         self._timeseries_df = df
 
+    @property
+    def tags(self):
+        """
+        Get/set tags section of the INP file.
+        """
+        if self._tags_df is None:
+            self._tags_df = dataframe_from_inp(self.path, "[TAGS]")
+        return self._tags_df
+
+    @tags.setter
+    def tags(self, df):
+        """Set inp.tags DataFrame."""
+        self._tags_df = df
+
+    @property
+    def streets(self):
+        """
+        Get/set streets section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the streets section of the inp file
+
+        >>> from swmmio.examples import streets
+        >>> streets.inp.streets[['Tcrown', 'Hcurb']] #doctest: +NORMALIZE_WHITESPACE
+                     Tcrown  Hcurb
+        Name
+        HalfStreet      20    0.5
+        FullStreet      20    0.5
+
+        """
+        if self._streets_df is None:
+            self._streets_df = dataframe_from_inp(self.path, "[STREETS]")
+        return self._streets_df
+
+    @streets.setter
+    def streets(self, df):
+        """Set inp.streets DataFrame."""
+        self._streets_df = df
+
+    @property
+    def inlets(self):
+        """
+        Get/set inlets section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the inlets section of the inp file
+
+        >>> from swmmio.examples import streets
+        >>> streets.inp.inlets #doctest: +NORMALIZE_WHITESPACE
+                     Type  Param1  Param2      Param3
+        Name
+        ComboInlet  GRATE       2     2.0    P_BAR-50
+        ComboInlet   CURB       2     0.5  HORIZONTAL
+
+        """
+        if self._inlets_df is None:
+            self._inlets_df = dataframe_from_inp(self.path, "[INLETS]")
+        return self._inlets_df
+
+    @inlets.setter
+    def inlets(self, df):
+        """Set inp.inlets DataFrame."""
+        self._inlets_df = df
+
+    @property
+    def inlet_usage(self):
+        """
+        Get/set inlet usage section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the inlet usage section of the inp file
+
+        >>> from swmmio.examples import streets
+        >>> streets.inp.inlet_usage[['Inlet', 'Node', 'Number', '%Clogged']] #doctest: +NORMALIZE_WHITESPACE
+                      Inlet Node  Number  %Clogged
+        Link
+        Street1  ComboInlet   J1       1        50
+        Street3  ComboInlet  J2a       1         0
+        Street4  ComboInlet   J2       1         0
+        Street5  ComboInlet  J11       2         0
+
+        """
+        if self._inlet_usage_df is None:
+            self._inlet_usage_df = dataframe_from_inp(self.path, "[INLET_USAGE]")
+        return self._inlet_usage_df
+
+    @inlet_usage.setter
+    def inlet_usage(self, df):
+        """Set inp.inlet_usage DataFrame."""
+        self._inlet_usage_df = df
+
+
 def drop_invalid_model_elements(inp):
     """
     Identify references to elements in the model that are undefined and remove them from the
@@ -1027,10 +1601,9 @@ def drop_invalid_model_elements(inp):
     >>> import swmmio
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_INVALID
     >>> m = swmmio.Model(MODEL_FULL_FEATURES_INVALID)
-    >>> drop_invalid_model_elements(m.inp)
-    ['InvalidLink2', 'InvalidLink1']
-    >>> m.inp
-    Index(['C1:C2', 'C2.1', '1', '2', '4', '5'], dtype='object', name='Name')
+    >>> dropped_links, dropped_subcats = drop_invalid_model_elements(m.inp)
+    >>> dropped_links
+    ['InvalidLink2', 'InvalidLink1', 'OR1']
     """
 
     juncs = dataframe_from_inp(inp.path, "[JUNCTIONS]").index.tolist()
@@ -1055,7 +1628,7 @@ def drop_invalid_model_elements(inp):
     inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
     inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
 
-    return invalid_links + invalid_subcats
+    return invalid_links, invalid_subcats
 
 
 # dynamically add read properties to rpt object

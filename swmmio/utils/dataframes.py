@@ -8,6 +8,7 @@ import warnings
 import pandas as pd
 import re
 
+
 def dataframe_from_bi(bi_path, section='[CONDUITS]'):
     """
     given a path to a build instructions file, create a dataframe of data in a
@@ -94,6 +95,12 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
         start_strings = [section, '-'*20, '-'*20]
     cols = headers[section]['columns']
 
+    # check for no Node Flooding Summary Edge case "No nodes were flooded."
+    if section == 'Node Flooding Summary':
+        s = extract_section_of_file(rpt_path, [section, 'No nodes were flooded.'], end_strings)
+        if 'No nodes were flooded' in s:
+            return pd.DataFrame(columns=cols)
+
     # extract the string and read into a dataframe
     s = extract_section_of_file(rpt_path, start_strings, end_strings)
     df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
@@ -135,10 +142,15 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     # replace occurrences of double quotes ""
     s = s.replace('""', quote_replace)
 
+    # count tokens in first non-empty line, after the header, ignoring comments
+    # if zero tokens counted (i.e. empty line), fall back to headers dict
+    n_tokens = len(re.sub(r"(\n)\1+", r"\1", s).split('\n')[1].split(';')[0].split())
+    n_tokens = len(headers[sect]['columns']) if n_tokens == 0 else n_tokens
+
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = headers[sect]['columns'] + additional_cols
+    cols = headers[sect]['columns'][:n_tokens] + additional_cols
 
     if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
@@ -146,10 +158,9 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     else:
         try:
             df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
-                           skiprows=[0], index_col=0, names=cols)
-        except IndexError:
-            print(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
-            raise
+                             skiprows=[0], index_col=0, names=cols)
+        except:
+            raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
 
     # confirm index name is string
     df = df.rename(index=str)

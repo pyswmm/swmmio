@@ -3,11 +3,8 @@ import os
 # This is the swmmio project root
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# path to the SWMM5 executable used within the run_models module
-if os.name == 'posix':
-    SWMM_ENGINE_PATH = os.path.join(ROOT_DIR, 'lib', 'linux', 'swmm5')
-else:
-    SWMM_ENGINE_PATH = os.path.join(ROOT_DIR, 'lib', 'windows', 'swmm5_22.exe')
+# path to the Python executable used to run your version of Python
+PYTHON_EXE_PATH = "python"#os.path.join(os.__file__.split("lib/")[0],"bin","python")
 
 # feature class name of parcels in geodatabase
 PARCEL_FEATURES = r'PWD_PARCELS_SHEDS_PPORT'
@@ -25,3 +22,5 @@ GEODATABASE = r'C:\Data\ArcGIS\GDBs\LocalData.gdb'
 BASEMAP_PATH = os.path.join(ROOT_DIR, 'swmmio', 'reporting', 'basemaps', 'index.html')
 BETTER_BASEMAP_PATH = os.path.join(ROOT_DIR, 'swmmio', 'reporting', 'basemaps', 'mapbox_base.html')
 
+# PySWMM Wrapper Path
+PYSWMM_WRAPPER_PATH = os.path.join(ROOT_DIR, 'swmmio', 'wrapper', 'pyswmm_wrapper.py')

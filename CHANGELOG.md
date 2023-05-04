@@ -1,8 +1,145 @@
+## Version 0.6.5 (2023/05/02)
+
+### What's Changed
+* Added inp coverage for DIVIDERS, LOSSES, AQUIFERS, and GROUNDWATER [PR192](https://github.com/aerispaha/swmmio/pull/192)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections
+
+## Version 0.6.4 (2023/04/28)
+
+### What's Changed
+* Added coverage for STREETS, INLETS, and INLET_USAGE in [PR186](https://github.com/aerispaha/swmmio/pull/186)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections 
+* added AUTHORS, provided by @bemmcdonnel and @aerispaha in [PR183](https://github.com/aerispaha/swmmio/pull/183)
+
+## Version 0.6.3 (2023/04/26)
+
+### What's Changed
+* Added coverage for TAGS, provided by @BuczynskiRafal in [PR186](https://github.com/aerispaha/swmmio/pull/186)
+* Code simplification in Model.conduits [PR189](https://github.com/aerispaha/swmmio/pull/189)
+
+## Version 0.6.2 (2023/02/02)
+
+### What's Changed
+* Profile wrapup by @bemcdonnell in https://github.com/aerispaha/swmmio/pull/173
+* minor tweaks for pep8 code style enforcement by @aerispaha in https://github.com/aerispaha/swmmio/pull/178
+* drop appveyor and release with GitHub Actions by @aerispaha in https://github.com/aerispaha/swmmio/pull/179
+* write_inp_section changes - don't change the Polygons header by @BuczynskiRafal in https://github.com/aerispaha/swmmio/pull/182
+
+## New Contributors
+* @BuczynskiRafal made their first contribution in https://github.com/aerispaha/swmmio/pull/182
+
+**Full Changelog**: https://github.com/aerispaha/swmmio/compare/v0.6.0...v0.6.2
+
+## Version 0.6.1 (2023/01/05)
+
+### Issues Closed
+
+* [Issue 175](https://github.com/aerispaha/swmmio/issues/175) - Drop Appveyor, leverage GitHub Actions for deploy logic
+* [Issue 172](https://github.com/aerispaha/swmmio/issues/172) - Improvements to Profile Plotter feature
+
+In this release 2 issues were closed, 2 PRs were merged.
+
+## Version 0.6.0 (2022/12/29)
+
+### Issues Closed
+
+* [Issue 75](https://github.com/aerispaha/swmmio/issues/75) - Update and unit test the run_models module
+* [Issue 153](https://github.com/aerispaha/swmmio/issues/153) - Add Profile Plotter
+* [PR 165](https://github.com/aerispaha/swmmio/pull/165) - Add profile plotter and pyswmm integration
+* [PR 170](https://github.com/aerispaha/swmmio/pull/170) - Add INP sections to model.inp properties
+  * raingages 
+  * evaporation 
+  * pollutants 
+  * rdii 
+  * hydrographs 
+  * buildup 
+  * washoff 
+  * coverages 
+  * loadings 
+  * landuses
+
+In this release 2 issues were closed, 2 PRs were merged, and a lot of progress was 
+made on [Issue 57](https://github.com/aerispaha/swmmio/issues/57). 
+
+
+## Version 0.5.3 (2022/12/21)
+
+### Issues Closed
+
+* [Issue 162](https://github.com/aerispaha/swmmio/issues/162) - fix version number in readthedocs title
+
+In this release 1 issues was closed.
+
+## Version 0.5.2 (2022/12/20)
+
+### Issues Closed
+
+* [Issue 159](https://github.com/aerispaha/swmmio/issues/159) - Drop travis CI from the build pipeline
+* [Issue 157](https://github.com/aerispaha/swmmio/issues/157) - Configure GitHub Actions test matrix
+* [Issue 141](https://github.com/aerispaha/swmmio/issues/141) - model.inp.headers gives "UnboundLocalError: local variable 'h' referenced before assignment"
+* Include core.py doctests in GitHub Actions and Appveyor build tests
+
+In this release 3 issues were closed.
+
+## Version 0.5.1 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 151](https://github.com/aerispaha/swmmio/issues/151) - Model.nodes.geojson coordinates are improperly structured
+
+In this release 1 issues were closed.
+
+## Version 0.5.0 (2022/12/08)
+
+### Issues Closed
+
+* [Issue 150](https://github.com/aerispaha/swmmio/issues/150) - add DWF to inp module
+* [Issue 148](https://github.com/aerispaha/swmmio/issues/148) - pyproj>=3.0.0 needed in setup.py
+* Update test environment to Python 3.8
+
+In this release 2 issues were closed.
+
+## Version 0.4.13 (2022/12/07)
+
+### Issues Closed
+
+* [Issue 108](https://github.com/aerispaha/swmmio/issues/108) - rpt.node_flooding_summary fails when no nodes are flooded
+* [Issue 146](https://github.com/aerispaha/swmmio/issues/146) - add optional custom basemap to create_map function
+
+In this release 2 issues were closed.
+
+## Version 0.4.12 (2022/12/05)
+
+### Issues Closed
+
+* [Issue 142](https://github.com/aerispaha/swmmio/issues/142) - fails to parse RPT when generated with Open Water Analytics SWMM
+
+In this release 1 issues were closed.
+
+## Version 0.4.11 (2022/12/04)
+
+### Issues Closed
+
+* [Issue 134](https://github.com/aerispaha/swmmio/issues/134) - update export_to_shapefile to handle changes to pyshp API
+
+In this release 1 issues were closed.
+
+
+## Version 0.4.10 (2022/09/22)
+
+### Issues Closed
+
+* [Issue 130](https://github.com/aerispaha/swmmio/issues/130) - model.inp.infiltration yielding IndexError: list index out of range
+* [Issue 131](https://github.com/aerispaha/swmmio/issues/131) - KeyError 'Horton' while extracting data
+* [Issue 132](https://github.com/aerispaha/swmmio/issue/132) - Weir Dataframe Problem
+
+In this release 3 issues were closed.
+
 ## Version 0.4.9 (2022/02/22)
 
 ### Issues Closed
 
-* [PR 128](https://github.com/aerispaha/swmmio/issues/128) - Docs build fails due to m2r dependency
+* [Issue 128](https://github.com/aerispaha/swmmio/issues/128) - Docs build fails due to m2r dependency
 * [PR 127](https://github.com/aerispaha/swmmio/pull/127) - Define max_columns option as a display option
 * [PR 117](https://github.com/aerispaha/swmmio/pull/117) - Speeding up lookup of inp sections and bracketed words
 

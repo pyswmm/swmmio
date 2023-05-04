@@ -62,13 +62,28 @@ def inline_comments_in_inp(filepath, overwrite=False):
 
 def extract_section_of_file(file_path, start_strings, end_strings, comment=';', **kwargs):
     """
-    Extract a portion of a file found between one or more start strings and the first
-    encountered end string.
-    :param file_path: path to the source file
-    :param start_strings: string or list of strings from which to start extracting
-    :param end_strings: string or list of strings at which to stop extracting
-    :param comment: comment string used to ignore parts of source file
-    :return: string extracted from source file
+    Extract a portion of a file found between one or more start strings and the first encountered end string.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the source file.
+    start_strings : str or list of str
+        String or list of strings from which to start extracting.
+    end_strings : str or list of str
+        String or list of strings at which to stop extracting.
+    comment : str, optional
+        Comment string used to ignore parts of the source file. Defaults to ';'.
+    **kwargs
+        Other keyword arguments.
+
+    Returns
+    -------
+    str
+        String extracted from source file.
+
+    Examples
+    --------
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> s = extract_section_of_file(MODEL_FULL_FEATURES_XY, '[EVAPORATI', '[', comment=None)
     >>> print(s.strip())
@@ -97,7 +112,7 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
             if starts_ix < starts_len:
                 search_str = start_strings[starts_ix]
 
-            if start_found and any(es in line for es in end_strings):
+            if start_found and any(es.upper() in line.upper() for es in end_strings):
                 # if we found the start and the line contains any of
                 # the end strings, break out
                 break
@@ -149,7 +164,7 @@ def get_rpt_metadata(file_path):
                 simulation_start = line.split(".. ")[1].replace("\n", "")
             if "Ending Date" in line:
                 simulation_end = line.split(".. ")[1].replace("\n", "")
-            if "EPA STORM WATER MANAGEMENT MODEL - VERSION" in line:
+            if "STORM WATER MANAGEMENT MODEL - VERSION" in line:
                 version = re.search(r"\d+.\d+.\d+", line)
                 if version is not None:
                     version = version.group(0).split('.')
@@ -238,15 +253,10 @@ def get_inp_sections_details(inp_path, include_brackets=False):
         bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]", txt)
 
         for sect in bracketed_words:
+            sect_id = f'[{sect.upper()}]' if include_brackets else sect.upper()
             if sect not in section_dict:
-                if not include_brackets:
-                    h = sect.replace('[', '').replace(']', '')
-                found_sects[h] = OrderedDict(columns=['blob'])
+                found_sects[sect_id] = OrderedDict(columns=['blob'])
             else:
-                if include_brackets:
-                    sect_id = '[{}]'.format(sect.upper())
-                else:
-                    sect_id = sect.upper()
                 found_sects[sect_id] = INP_OBJECTS[sect]
 
     # make necessary adjustments to columns that change based on options
@@ -262,7 +272,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
         infil_type = options['Value'].get('INFILTRATION', None)
         if pd.isna(infil_type):
             infil_type = 'HORTON'
-        infil_cols = INFILTRATION_COLS[infil_type]
+        infil_cols = INFILTRATION_COLS[infil_type.upper()]
 
         inf_id = 'INFILTRATION'
         if include_brackets:

@@ -37,8 +37,10 @@ install_requires = [
     'pandas>=0.24.2',
     'pyshp==2.1.0',
     'geojson>=2.4.1',
-    'networkx>=2.4',
+    "networkx>=2.3,<2.8.1;python_version<'3.8'",
+    "networkx>=2.3,<3;python_version>='3.8'",
     'pyyaml>=3.12',
+    'pyproj>=3.0.0'
 ]
 
 tests_require = [
@@ -66,7 +68,9 @@ setup(name='swmmio',
           "Development Status :: 3 - Alpha",
           "License :: OSI Approved :: MIT License",
           "Operating System :: OS Independent",
-          "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: 3.9",
+          "Programming Language :: Python :: 3.10",
       ]
       )
