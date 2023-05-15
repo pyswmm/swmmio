@@ -1,3 +1,10 @@
+## Version 0.6.6 (2023/05/15)
+
+### What's Changed
+* Added inp coverage for LID_USAGE, provided by @asselapathirana [PR193](https://github.com/pyswmm/swmmio/pull/193)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections
+* updated AUTHORS, fixed issue causing not all contributors included in AUTHORS file [#190](https://github.com/pyswmm/swmmio/issues/190), read/write interface to all INP sections
+
 ## Version 0.6.5 (2023/05/02)
 
 ### What's Changed
