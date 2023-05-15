@@ -500,16 +500,26 @@ class rpt(SWMMIOFile):
         return self._rpt_section_details
 
     @property
-    def external_outflow_volume(self):
+    def _external_outflow_volume(self):
         """
         Return the external outflow from rpt file in mm or inches
+
+        Notes:
+            This function will likely be depreciated and replaced with a general
+            parser function to retrieve the entire Flow Routing Continuity section
+            of the rpt file. See https://github.com/pyswmm/swmmio/issues/194
         """
         return float(swmmio.utils.text.get_rpt_value(self.path, "External Outflow"))
 
     @property
-    def flooding_loss_volume(self):
+    def _flooding_loss_volume(self):
         """
         Return the flooding loss from rpt file in mm or inches
+
+        Notes:
+            This function will likely be depreciated and replaced with a general
+            parser function to retrieve the entire Flow Routing Continuity section
+            of the rpt file. See https://github.com/pyswmm/swmmio/issues/194
         """
         return float(swmmio.utils.text.get_rpt_value(self.path, "Flooding Loss"))
 
@@ -628,12 +638,10 @@ class inp(SWMMIOFile):
         else:
             target_path = self.path
 
-
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
             sect_id = section.translate({ord(i): None for i in '[]'}).lower()
             sect_id_private = '_{}_df'.format(sect_id)
-            #print(sect_id_private)
             data = getattr(self, sect_id_private)
             if data is not None:
                 replace_inp_section(target_path, section, data)
@@ -876,7 +884,6 @@ class inp(SWMMIOFile):
         """Set inp.xsections DataFrame."""
         self._xsections_df = df
 
-
     @property
     def lid_usage(self):
         """
@@ -885,16 +892,6 @@ class inp(SWMMIOFile):
         if self._lid_usage_df is None:
             self._lid_usage_df = dataframe_from_inp(self.path, "[LID_USAGE]")
         return self._lid_usage_df
-
-    @property
-    def raingages(self):
-        """
-        Get/set RAINGAGES section of the INP file.
-        """
-        if self._raingages_df is None:
-            self._raingages_df = dataframe_from_inp(self.path, "[RAINGAGES]")
-        return self._raingages_df
-    
 
     @lid_usage.setter
     def lid_usage(self, df):
