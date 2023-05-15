@@ -137,6 +137,19 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
     return out_string
 
 
+def get_rpt_value(file_path, value_type):
+    """
+    scan rpt file and find the line starting with value_type and return the last numeric value
+
+    """
+
+    with open(file_path,"r") as fi:
+        for ln in fi:
+            if ln.strip().startswith(value_type):
+                #print(ln)
+                return ln.split()[-1]
+        return None
+
 def get_rpt_metadata(file_path):
     """
     Scan rpt file and extract meta data

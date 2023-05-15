@@ -63,7 +63,9 @@ inp_file_objects:
   XSECTIONS: [Link, Shape, Geom1, Geom2, Geom3, Geom4, Barrels, XX]
   POLLUTANTS: [Name, MassUnits, RainConcen, GWConcen, I&IConcen, DecayCoeff, SnowOnly,
                CoPollutName, CoPollutFraction, DWFConcen, InitConcen]
+
   INFLOWS: [Node, Constituent, Time Series, Type, Mfactor, Sfactor, Baseline, Pattern]
+  LID_USAGE: [Subcatchment,   'LID_Process',      Number,  Area,       Width,      InitSat,    FromImp,    ToPerv,     RptFile,                  DrainTo,          FromPerv,]
 
   TIMESERIES: [Name, Date, Time, Value]
   COORDINATES: [Name, X, Y]
@@ -82,7 +84,7 @@ inp_file_objects:
 
 
 inp_section_tags:
-  ['[TITLE', '[OPTION', '[FILE', '[RAINGAGE', '[TEMPERATURE', '[EVAP',
+  ['[TITLE', '[OPTION', '[FILE', '[RAINGAGES', '[TEMPERATURE', '[EVAP',
   '[SUBCATCHMENT', '[SUBAREA', '[INFIL', '[AQUIFER', '[GROUNDWATER', '[SNOWPACK',
   '[JUNC', '[OUTFALL', '[STORAGE', '[DIVIDER', '[CONDUIT', '[PUMP', '[ORIFICE', '[WEIR',
   '[OUTLET', '[XSECT', '[TRANSECT', '[LOSS', '[CONTROL', '[POLLUT', '[LANDUSE', '[BUILDUP',
