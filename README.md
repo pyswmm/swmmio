@@ -71,8 +71,7 @@ nodes.dataframe
 Create an image (.png) visualization of the model. By default, pipe stress and node flood duration is visualized if your model includes output data (a .rpt file should accompany the .inp).
 
 ```python
-from swmmio.graphics import swmm_graphics as sg
-sg.draw_model(mymodel)
+swmmio.draw_model(mymodel)
 ```
 
 ![Default Draw Output](docs/img/default_draw.png?raw=true "Sewer Stress, Node Flooding")
@@ -99,7 +98,7 @@ conds['draw_size'] = conds.Geom1
 
 #add an informative annotation, and draw:
 annotation = 'Flooded Volume: {}MG\nFlooded Nodes:{}'.format(round(flood_vol), flooded_count)
-sg.draw_model(mymodel, annotation=annotation, file_path='flooded_anno_example.png')
+swmmio.draw_model(mymodel, annotation=annotation, file_path='flooded_anno_example.png')
 ```
 ![Flooded highlight](docs/img/flooded_anno_example.png?raw=true "Node Flooding with annotation")
 

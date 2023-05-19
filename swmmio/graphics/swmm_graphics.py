@@ -1,5 +1,6 @@
 # graphical functions for SWMM files
 import os
+import tempfile
 
 from PIL import Image, ImageDraw
 
@@ -71,7 +72,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     # gather the nodes and conduits data if a swmmio Model object was passed in
     if model is not None:
         nodes = model.nodes()
-        conduits = model.conduits()
+        conduits = model.links()
 
     # antialias X2
     xplier = 1
@@ -113,7 +114,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     return img
 
 
-def create_map(model=None, filename=None, basemap=None):
+def create_map(model=None, filename=None, basemap=None, auto_open=False):
     """
     export model as a geojson object
     """
@@ -121,8 +122,9 @@ def create_map(model=None, filename=None, basemap=None):
     import geojson
 
     basemap = BETTER_BASEMAP_PATH if basemap is None else basemap
+    return_html = False if filename is not None else True
     if filename is None:
-        filename = f'{model.name}.html'
+        filename = os.path.join(tempfile.gettempdir(), f'{model.name}.html')
 
     if model.crs:
         model.to_crs("EPSG:4326")
@@ -142,8 +144,10 @@ def create_map(model=None, filename=None, basemap=None):
                 elif '// INSERT MAP CENTER HERE' in line:
                     newmap.write('\tcenter:[{}, {}],\n'.format(c[0], c[1]))
                 elif '// INSERT BBOX HERE' in line and bbox is not None:
-                    newmap.write('\tmap.fitBounds([[{}, {}], [{}, {}]]);\n'
-                                 .format(bbox[0], bbox[1], bbox[2],
-                                         bbox[3]))
+                    newmap.write(f'\tmap.fitBounds([[{bbox[0]}, {bbox[1]}], [{bbox[2]}, {bbox[3]}]]);\n')
                 else:
                     newmap.write(line)
+
+    if return_html:
+        with open(filename, 'r') as f:
+            return f.read()

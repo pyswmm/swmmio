@@ -48,7 +48,7 @@ def conduit_draw_size(conduit):
         fill = gradient_grey_red(conduit.MaxQ * 100, 0, capacity * 300)
         draw_size = int(round(math.pow(stress * 10, 0.8)))
 
-    elif 'Geom1' in conduit:
+    elif 'Geom1' in conduit and not math.isnan(conduit.Geom1):
         draw_size = conduit.Geom1
 
     return draw_size
@@ -107,11 +107,11 @@ def draw_conduit(conduit, draw):
     draw_size = int(conduit_draw_size(conduit))
     xys = conduit.draw_coords
 
-	# draw that thing
+    # draw that thing
     draw.line(xys, fill=fill, width=draw_size)
     if length_bw_coords(xys[0], xys[-1]) > draw_size * 0.75:
         # if length is long enough, add circles on the ends to smooth em out
-		# this check avoids circles being drawn for tiny pipe segs
+        # this check avoids circles being drawn for tiny pipe segs
         draw.ellipse(circle_bbox(xys[0], draw_size * 0.5), fill=fill)
         draw.ellipse(circle_bbox(xys[1], draw_size * 0.5), fill=fill)
 
@@ -232,4 +232,3 @@ def annotate_details(txt, draw):
 
     draw.text((10, size[1] - txt_height - 10),
               txt, fill=black, font=fnt)
-
