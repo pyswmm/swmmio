@@ -1,3 +1,9 @@
+## Version 0.6.7 (2023/05/19)
+
+### What's Changed
+* draw_model should include all links, not just conduits [#196](https://github.com/pyswmm/swmmio/pull/196)
+* include all links in draw_model, optionally return html in create_map [#197](https://github.com/pyswmm/swmmio/pull/197)
+
 ## Version 0.6.6 (2023/05/15)
 
 ### What's Changed
