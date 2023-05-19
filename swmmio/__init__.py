@@ -3,7 +3,7 @@ from swmmio.elements import *
 from swmmio.version_control import *
 from swmmio.utils.dataframes import dataframe_from_bi, dataframe_from_rpt, dataframe_from_inp
 from swmmio.utils.functions import find_network_trace
-from swmmio.graphics.swmm_graphics import create_map
+from swmmio.graphics.swmm_graphics import create_map, draw_model
 from swmmio.graphics.profiler import (build_profile_plot, add_hgl_plot,
                                       add_node_labels_plot, add_link_labels_plot)
 
