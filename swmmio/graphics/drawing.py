@@ -1,3 +1,5 @@
+import numpy as np
+
 from swmmio.defs.constants import red, purple, lightblue, lightgreen, black, lightgrey, grey
 from swmmio.defs.config import FONT_PATH
 from swmmio.graphics.utils import circle_bbox, length_bw_coords, angle_bw_points, midpoint
@@ -49,7 +51,7 @@ def conduit_draw_size(conduit):
         draw_size = int(round(math.pow(stress * 10, 0.8)))
 
     elif 'Geom1' in conduit:
-        draw_size = conduit.Geom1
+        draw_size = 0 if np.isnan(conduit.Geom1) else conduit.Geom1
 
     return draw_size
 

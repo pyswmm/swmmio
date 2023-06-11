@@ -24,7 +24,7 @@ DRY_DAYS             0
 REPORT_STEP          00:05:00
 WET_STEP             00:05:00
 DRY_STEP             01:00:00
-ROUTING_STEP         0:00:05 
+ROUTING_STEP         0:00:05
 
 INERTIAL_DAMPING     NONE
 NORMAL_FLOW_LIMITED  BOTH
@@ -63,7 +63,7 @@ S2-028           0.01       0.1        0.05       0.05       25         OUTLET
 S2-092           0.01       0.1        0.05       0.05       25         OUTLET    
 
 [INFILTRATION]
-;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil  
+;;Subcatchment   MaxRate    MinRate    Decay      DryTime    MaxInfil
 ;;-------------- ---------- ---------- ---------- ---------- ----------
 S2-028           3.0        0.5        4          7          0         
 S2-092           3.0        0.5        4          7          0         
@@ -107,23 +107,24 @@ J2-369           963        3          0          0          0
 ;;Name           Elevation  Type       Stage Data       Gated    Route To        
 ;;-------------- ---------- ---------- ---------------- -------- ----------------
 J3-485           925.661    FREE                        NO                       
+J4-485           925.661    FIXED      0                NO                       
 
 [STORAGE]
-;;Name           Elev.    MaxDepth   InitDepth  Shape      Curve Name/Params            N/A      Fevap    Psi      Ksat     IMD     
+;;Name           Elev.    MaxDepth   InitDepth  Shape      Curve Name/Params            N/A      Fevap    Psi      Ksat     IMD
 ;;-------------- -------- ---------- ----------- ---------- ---------------------------- -------- --------          -------- --------
-J1-035           935.442  11.3       0          FUNCTIONAL 15        0         0        0        0       
-J1-037           935.712  13.707     0          FUNCTIONAL 13.72     0         0        0        0       
-J1-188           965.823  10         0          FUNCTIONAL 62.68     0         0        0        0       
-J1-192           949.631  10.5       0          FUNCTIONAL 15        0         0        0        0       
-J1-194           947.409  10.6       0          FUNCTIONAL 15        0         0        0        0       
-J2-023           982.636  17.006     0          FUNCTIONAL 15        0         0        0        0       
-J2-024           987.421  10         0          FUNCTIONAL 15        0         0        0        0       
-J2-095           1017.919 11.3       0          FUNCTIONAL 15        0         0        0        0       
-J2-260           978.662  15.8       0          FUNCTIONAL 15        0         0        0        0       
-J2-381           1008.579 16.5       0          FUNCTIONAL 15        0         0        0        0       
-J2-411           995.249  9.6        0          FUNCTIONAL 6.44      0         0        0        0       
-J2-412           1000.978 12.9       0          FUNCTIONAL 22.48     0         0        0        0       
-J2-416           979.917  16.3       0          FUNCTIONAL 15        0         0        0        0       
+J1-035           935.442  11.3       0          FUNCTIONAL 15        0         0        0        0
+J1-037           935.712  13.707     0          FUNCTIONAL 13.72     0         0        0        0
+J1-188           965.823  10         0          FUNCTIONAL 62.68     0         0        0        0
+J1-192           949.631  10.5       0          FUNCTIONAL 15        0         0        0        0
+J1-194           947.409  10.6       0          FUNCTIONAL 15        0         0        0        0
+J2-023           982.636  17.006     0          FUNCTIONAL 15        0         0        0        0
+J2-024           987.421  10         0          FUNCTIONAL 15        0         0        0        0
+J2-095           1017.919 11.3       0          FUNCTIONAL 15        0         0        0        0
+J2-260           978.662  15.8       0          FUNCTIONAL 15        0         0        0        0
+J2-381           1008.579 16.5       0          FUNCTIONAL 15        0         0        0        0
+J2-411           995.249  9.6        0          FUNCTIONAL 6.44      0         0        0        0
+J2-412           1000.978 12.9       0          FUNCTIONAL 22.48     0         0        0        0
+J2-416           979.917  16.3       0          FUNCTIONAL 15        0         0        0        0
 
 [CONDUITS]
 ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
@@ -336,6 +337,7 @@ J2-094           2747085.761        1121265.773
 J2-317           2747448.509        1119684.475       
 J2-369           2747448.112        1118966.478       
 J3-485           2749098.306        1117287.218       
+J4-485           2749092.269        1117557.055       
 J1-035           2747473.260        1117462.702       
 J1-037           2747435.935        1117127.264       
 J1-188           2747376.384        1117730.771       
@@ -366,7 +368,7 @@ S2-028           2746733.836        1119701.584
 S2-028           2746363.029        1120048.372       
 S2-092           2746565.169        1120521.021       
 S2-092           2746996.417        1120396.623       
-S2-092           2746902.427        1120692.415       
+S2-092           2746902.427        1120692.415
 
 [SYMBOLS]
 ;;Gage           X-Coord            Y-Coord           

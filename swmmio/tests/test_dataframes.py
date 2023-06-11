@@ -5,7 +5,7 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
-                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
+                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE, MODEL_A_PATH)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 import swmmio
 
@@ -257,4 +257,13 @@ def test_polygons(test_model_02):
 
     assert poly1.equals(test_model_02.inp.polygons)
 
-    # print()
+
+def test_swmmio_outfall():
+    model = swmmio.Model(MODEL_A_PATH)
+    outfalls = model.inp.outfalls
+
+    assert outfalls.loc['J3-485', 'StageOrTimeseries'] == " ", "StageOrTimeseries for J3-485 should be empty"
+    assert outfalls.loc['J3-485', 'TideGate'] == 'NO', "TideGate for J3-485 should be 'NO'"
+
+    assert outfalls.loc['J4-485', 'StageOrTimeseries'] == '0', "StageOrTimeseries for J4-485 should be 0"
+    assert outfalls.loc['J4-485', 'TideGate'] == 'NO', "TideGate for J4-485 should be 'NO'"

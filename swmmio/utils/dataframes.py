@@ -144,7 +144,15 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
 
     # count tokens in first non-empty line, after the header, ignoring comments
     # if zero tokens counted (i.e. empty line), fall back to headers dict
-    n_tokens = len(re.sub(r"(\n)\1+", r"\1", s).split('\n')[1].split(';')[0].split())
+
+    lines = re.sub(r"(\n)\1+", r"\1", s).split('\n')
+    try:
+        n_tokens_min = min(
+            len(line.split(';')[0].split()) for line in lines if line.strip() and len(line.split(';')[0].split()) > 1)
+    except ValueError:
+        n_tokens_min = 1
+
+    n_tokens = max(len(line.split(';')[0].split()) for line in lines)
     n_tokens = len(headers[sect]['columns']) if n_tokens == 0 else n_tokens
 
     # and get the list of columns to use for parsing this section
@@ -157,8 +165,12 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
         try:
-            df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
-                             skiprows=[0], index_col=0, names=cols)
+            if n_tokens == n_tokens_min:
+                df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
+                                 skiprows=[0], index_col=0, names=cols, na_values=' ', usecols=range(len(cols)))
+            else:
+                df = pd.read_fwf(StringIO(s), header=None, delim_whitespace=True, na_values='',
+                                 skiprows=[0], index_col=0, names=cols, usecols=range(len(cols)))
         except:
             raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
 
