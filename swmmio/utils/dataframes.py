@@ -1,4 +1,5 @@
 import math
+from typing import List, Tuple
 
 from swmmio.utils.functions import format_inp_section_header, remove_braces
 from swmmio.utils.text import (extract_section_of_file, get_inp_sections_details,
@@ -112,8 +113,73 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
     return df
 
 
-def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' ', **kwargs):
+def process_lines(s: str) -> Tuple[int, int]:
+    """
+    Given a string `s`, splits it into lines and calculates the minimum
+    and maximum number of tokens in each line.
 
+    Parameters:
+    s (str): A string containing multiple lines.
+
+    Returns:
+    Tuple[int, int]: A tuple containing the minimum and maximum 
+                     number of tokens in each line.
+    """
+    # Remove consecutive duplicate newline
+    # characters and split the string into lines
+    lines = re.sub(r"(\n)\1+", r"\1", s).split('\n')
+
+    n_tokens_min, n_tokens_max = float('inf'), 0
+
+    for line in lines:
+        if line.strip():
+            n_tokens = len(line.split(';')[0].split())
+            if n_tokens > 1:
+                n_tokens_min = min(n_tokens, n_tokens_min)
+            n_tokens_max = max(n_tokens, n_tokens_max)
+
+    n_tokens_min = n_tokens_min if n_tokens_min != float('inf') else 1
+
+    return n_tokens_min, n_tokens_max
+
+
+def parse_csv(
+    s: str, cols: List[str], n_tokens: int, n_tokens_min: int, section: str
+) -> pd.DataFrame:
+    """
+    Parse a CSV string into a pandas DataFrame using 
+    either `read_csv` or `read_fwf` depending on the number of tokens.
+    Parameters:
+    :param s (str): The CSV string to parse.
+    :param cols (List[str]): List of column names for the DataFrame.
+    :param n_tokens (int): Number of tokens in the CSV string.
+    :param n_tokens_min (int): Minimum number of tokens required to use `read_csv`.
+    :param section (str): Name of the section being parsed.:
+
+    :Return:
+        pd.DataFrame: The parsed DataFrame.
+
+    :Raises:
+        IndexError: If parsing fails.
+    """
+    try:
+        parsing_function = pd.read_csv if n_tokens == n_tokens_min else pd.read_fwf
+        df = parsing_function(
+                StringIO(s),
+                header=None,
+                delim_whitespace=True,
+                skiprows=[0],
+                index_col=0,
+                names=cols,
+                na_values='',
+                usecols=range(len(cols))
+            )
+        return df
+    except Exception as e:
+        raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}') from e
+
+
+def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' ', **kwargs):
     """
     create a dataframe from a section of an INP file
     :param inp_path:
@@ -145,34 +211,21 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     # count tokens in first non-empty line, after the header, ignoring comments
     # if zero tokens counted (i.e. empty line), fall back to headers dict
 
-    lines = re.sub(r"(\n)\1+", r"\1", s).split('\n')
-    try:
-        n_tokens_min = min(
-            len(line.split(';')[0].split()) for line in lines if line.strip() and len(line.split(';')[0].split()) > 1)
-    except ValueError:
-        n_tokens_min = 1
-
-    n_tokens = max(len(line.split(';')[0].split()) for line in lines)
-    n_tokens = len(headers[sect]['columns']) if n_tokens == 0 else n_tokens
+    n_tokens_min, n_tokens_max = process_lines(s)
+    n_tokens_max = len(
+        headers[sect]['columns']
+        ) if n_tokens_max == 0 else n_tokens_max
 
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = headers[sect]['columns'][:n_tokens] + additional_cols
+    cols = headers[sect]['columns'][:n_tokens_max] + additional_cols
 
     if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
-        try:
-            if n_tokens == n_tokens_min:
-                df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
-                                 skiprows=[0], index_col=0, names=cols, na_values=' ', usecols=range(len(cols)))
-            else:
-                df = pd.read_fwf(StringIO(s), header=None, delim_whitespace=True, na_values='',
-                                 skiprows=[0], index_col=0, names=cols, usecols=range(len(cols)))
-        except:
-            raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
+        df = parse_csv(s, cols, n_tokens_max, n_tokens_min, section)
 
     # confirm index name is string
     df = df.rename(index=str)

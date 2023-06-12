@@ -50,8 +50,8 @@ def conduit_draw_size(conduit):
         fill = gradient_grey_red(conduit.MaxQ * 100, 0, capacity * 300)
         draw_size = int(round(math.pow(stress * 10, 0.8)))
 
-    elif 'Geom1' in conduit:
-        draw_size = 0 if np.isnan(conduit.Geom1) else conduit.Geom1
+    elif 'Geom1' in conduit and not math.isnan(conduit.Geom1):
+        draw_size = conduit.Geom1
 
     return draw_size
 
