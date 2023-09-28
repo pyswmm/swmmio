@@ -1,3 +1,8 @@
+## Version 0.6.8 (2023/09/28)
+
+### What's Changed
+* fixed that written polygon shapefile may be not correctly loaded in ArcGIS [#205](https://github.com/pyswmm/swmmio/pull/205)
+
 ## Version 0.6.7 (2023/05/19)
 
 ### What's Changed
