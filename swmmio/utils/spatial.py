@@ -216,7 +216,8 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
             w.line([row.coords])
         if geomtype == 'point':
             w.point(*row.coords[0])
-
+        if geomtype == 'polygon':
+            w.poly([row.coords])
     w.close()
 
     # add projection data to the shapefile,
