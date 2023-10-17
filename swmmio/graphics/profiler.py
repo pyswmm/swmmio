@@ -133,8 +133,11 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
     nodes = model.nodes.dataframe
     links = model.links.dataframe
 
-    us_node_el = float(nodes.loc[[us_node]].InvertElev)
-    ds_node_el = float(nodes.loc[[ds_node]].InvertElev)
+    if model.inp.options.loc['LINK_OFFSETS','Value'] == "ELEVATION":
+        us_node_el, ds_node_el = 0.0, 0.0
+    else:
+        us_node_el = float(nodes.loc[[us_node]].InvertElev)
+        ds_node_el = float(nodes.loc[[ds_node]].InvertElev)
 
     link_type = links.loc[[link_id]].Type[0]
     mid_x = []
