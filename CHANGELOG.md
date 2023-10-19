@@ -1,3 +1,8 @@
+## Version 0.6.9 (2023/10/19)
+
+### What's Changed
+* Fixed [#204](https://github.com/pyswmm/swmmio/issues/204) causing negative offset elevations to be handled incorrectly in profile plot.
+
 ## Version 0.6.8 (2023/09/28)
 
 ### What's Changed
