@@ -179,7 +179,7 @@ class Model(object):
         """
         # first, make sure the rpt is valid
         if self.rpt_is_valid(verbose=verbose):
-            # check if the rpt has ERRORS output from SWMM
+            # check if the rpt has WARNINGS output from SWMM
             warnings = list()
             with open(self.rpt.path) as f:
                 for line in f:
@@ -188,7 +188,9 @@ class Model(object):
                         warnings.append(line[:-1])
                     elif '****************' in line:
                         break
-                return warnings
+        else:
+            warnings = 'RPT file is not valid'
+        return warnings
 
 
     def conduits(self):
