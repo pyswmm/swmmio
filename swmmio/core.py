@@ -136,6 +136,7 @@ class Model(object):
             self._links_df = None
             self._subcatchments_df = None
             self._network = None
+            self._summary = None
 
     def rpt_is_valid(self, verbose=False):
         """
@@ -171,6 +172,24 @@ class Model(object):
             return False
         else:
             return True
+        
+    def rpt_warnings(self, verbose=False):
+        """
+        Return warning messages from the rpt file
+        """
+        # first, make sure the rpt is valid
+        if self.rpt_is_valid(verbose=verbose):
+            # check if the rpt has ERRORS output from SWMM
+            warnings = list()
+            with open(self.rpt.path) as f:
+                for line in f:
+                    spl = line.split()
+                    if len(spl) > 0 and spl[0] == 'WARNING':
+                        warnings.append(line[:-1])
+                    elif '****************' in line:
+                        break
+                return warnings
+
 
     def conduits(self):
         """
@@ -446,6 +465,12 @@ class Model(object):
         nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
         spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
 
+    @property
+    def summary(self):
+        if self._summary is None:
+            model_summary = functions.summarize_model(self)
+            self._summary = model_summary
+        return self._summary
 
 class SWMMIOFile(object):
     defaultSection = "Link Flow Summary"

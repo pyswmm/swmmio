@@ -275,3 +275,25 @@ def find_network_trace(model, start_node, end_node,
         raise error.NoTraceFound
 
     return path_selection
+
+def summarize_model(model):
+    model_summary = dict()
+
+    # numbers of elements
+    model_summary['num_subcatchments'] = len(model.inp.subcatchments)
+    model_summary['num_conduits'] = len(model.inp.conduits)
+    model_summary['num_junctions'] = len(model.inp.junctions)
+    model_summary['num_outfalls'] = len(model.inp.outfalls)
+    model_summary['num_raingages'] = len(model.inp.raingages)
+
+    # calculated values - only calculate if elements exist
+    if len(model.inp.subcatchments) != 0:
+        model_summary['catchment_area'] = model.inp.subcatchments.Area.sum()
+        model_summary['mean_subcatchment_slope'] = ((model.inp.subcatchments.Area / model.inp.subcatchments.Area.sum()) * model.inp.subcatchments.PercSlope).sum()
+    
+    if len(model.inp.conduits) != 0:
+        model_summary['total_conduit_length'] = model.inp.conduits.Length.sum()
+    
+    if len(model.nodes.dataframe) != 0:
+        model_summary['invert_range'] = model.nodes().InvertElev.max() - model.nodes().InvertElev.min()
+    return model_summary
