@@ -1,4 +1,7 @@
 commonmark==0.9.1
+Jinja2<3.1
+m2r
+mistune==0.8.4
 recommonmark==0.6.0
 Sphinx==3.2.1
 sphinx-rtd-theme==0.5.0

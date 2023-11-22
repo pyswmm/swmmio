@@ -13,9 +13,3 @@ pyproj>=3.0.0
 geopandas
 matplotlib
 pyswmm>=1.2
-
-#docs dependencies
-Jinja2<3.1
-recommonmark
-m2r
-mistune==0.8.4
