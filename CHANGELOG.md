@@ -1,3 +1,9 @@
+## Version 0.6.10 (2023/11/22)
+
+### What's Changed
+* PR [#154](https://github.com/pyswmm/swmmio/pull/154) Added model summary property and RPT warning function, by @everettsp
+* Fixed [#210](https://github.com/pyswmm/swmmio/issues/210) causing readthedocs builds to fail.
+
 ## Version 0.6.9 (2023/10/19)
 
 ### What's Changed
