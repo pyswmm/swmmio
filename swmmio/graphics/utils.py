@@ -10,7 +10,7 @@ def save_image(img, img_path, antialias=True, auto_open=False):
     imgSize = (img.getbbox()[2], img.getbbox()[3])
     if antialias:
         size = (int(imgSize[0] * 0.5), int(imgSize[1] * 0.5))
-        img.thumbnail(size, Image.ANTIALIAS)
+        img.thumbnail(size, Image.LANCZOS)
 
     img.save(img_path)
     if auto_open:

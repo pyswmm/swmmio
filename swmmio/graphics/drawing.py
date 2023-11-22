@@ -217,8 +217,7 @@ def annotate_timestamp(draw):
     fnt = ImageFont.truetype(FONT_PATH, int(20 * scale))
 
     timestamp = strftime("%b-%d-%Y %H:%M:%S")
-    txt_height = draw.textsize(timestamp, fnt)[1]
-    txt_width = draw.textsize(timestamp, fnt)[0]
+    txt_width = draw.textlength(timestamp, fnt)
     xy = (size[0] - txt_width - 10, 15)
     draw.text(xy, timestamp, fill=grey, font=fnt)
 
@@ -228,7 +227,8 @@ def annotate_details(txt, draw):
     scale = 1 * size[0] / 2048
     fnt = ImageFont.truetype(FONT_PATH, int(20 * scale))
 
-    txt_height = draw.textsize(txt, fnt)[1]
+    _, top, _, bottom = draw.textbbox((0, 0), txt, fnt)
+    txt_height = top - bottom
 
     draw.text((10, size[1] - txt_height - 10),
               txt, fill=black, font=fnt)
