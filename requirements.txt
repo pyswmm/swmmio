@@ -1,5 +1,4 @@
 # Build dependencies
-#python
 pytest
 pillow>=6.2.0,<10.0.0
 numpy>=1.16.4
@@ -8,9 +7,7 @@ pyshp==2.1.0
 geojson==2.5.0
 networkx>=2.3
 pyyaml>=3.12
-recommonmark
-m2r
-mistune==0.8.4
+
 # Run dependencies
 pyproj>=3.0.0
 geopandas
