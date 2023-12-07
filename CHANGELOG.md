@@ -1,3 +1,8 @@
+## Version 0.6.11 (2023/12/07)
+
+### What's Changed
+* PR [#213](https://github.com/pyswmm/swmmio/pull/213) bump pillow version, drop Python 3.7 support, add 3.11 support
+
 ## Version 0.6.10 (2023/11/22)
 
 ### What's Changed
