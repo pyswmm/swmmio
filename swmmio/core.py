@@ -1456,7 +1456,7 @@ class inp(SWMMIOFile):
         if self._inflows_df is not None:
             return self._inflows_df
         inf = dataframe_from_inp(self.path, 'INFLOWS', quote_replace='_!!!!_')
-        self._inflows_df = inf.replace('_!!!!_', np.nan)
+        self._inflows_df = inf.replace('_!!!!_', '""') # revert quote replace
         return self._inflows_df
 
     @inflows.setter
