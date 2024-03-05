@@ -56,7 +56,7 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
 
     df = pd.DataFrame(data=data, columns=cols)
     if sect == 'CURVES':
-        df = df.set_index(['Name', 'Type'])
+        df = df.set_index(['Name']) #, 'Type']) # changed index to Name to correct INP write
     elif sect == 'TIMESERIES':
         df = df.set_index(['Name'])
 
