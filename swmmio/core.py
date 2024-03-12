@@ -1561,16 +1561,18 @@ class inp(SWMMIOFile):
             control_entry_list = []
             control_entry = {}
             controls = self._controls_df['[CONTROLS]']
+            # make sure the first entry starts with RULE
+            assert controls[0][0:5] == "RULE "
             for row in controls:
-                if 'RULE ' in row: # new control
-                    if len(control_entry) > 0:
+                if row[0:5] == 'RULE ': # new control
+                    if len(control_entry) > 0: # add control to the list
                         control_entry_list.append(control_entry)
                     control_entry = {}
                     control_entry['Name'] = row.rstrip() # remove white space
                     control_entry['Control'] = ''
                 else:
                     control_entry['Control'] = control_entry['Control'] + row + ' '
-            if len(control_entry) > 0:
+            if len(control_entry) > 0: # add last control to the list
                 control_entry_list.append(control_entry)
             
             self._controls_df = pd.DataFrame(control_entry_list)
