@@ -600,6 +600,8 @@ class inp(SWMMIOFile):
         self._streets_df = None
         self._inlets_df = None
         self._inlet_usage_df = None
+        self._patterns_df = None
+        self._controls_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -644,6 +646,8 @@ class inp(SWMMIOFile):
             '[STREETS]',
             '[INLETS]',
             '[INLET_USAGE]',
+            '[PATTERNS]',
+            '[CONTROLS]',
         ]
 
     def save(self, target_path=None):
@@ -1452,7 +1456,7 @@ class inp(SWMMIOFile):
         if self._inflows_df is not None:
             return self._inflows_df
         inf = dataframe_from_inp(self.path, 'INFLOWS', quote_replace='_!!!!_')
-        self._inflows_df = inf.replace('_!!!!_', np.nan)
+        self._inflows_df = inf.replace('_!!!!_', '""') # revert quote replace
         return self._inflows_df
 
     @inflows.setter
@@ -1508,6 +1512,79 @@ class inp(SWMMIOFile):
         """Set inp.timeseries DataFrame."""
         self._timeseries_df = df
 
+    @property
+    def patterns(self):
+        """
+        get/set patterns section of model
+        :return: multi-index dataframe of model patterns
+        """
+        if self._patterns_df is not None:
+            return self._patterns_df
+        self._patterns_df = dataframe_from_inp(self.path, '[PATTERNS]')
+
+        if self._patterns_df.shape[0] > 0:
+            # reformat, 1 row per pattern
+            pattern_entry_list = []
+            for name, pattern in self._patterns_df.groupby('Name'):
+                pattern_entry = {}
+                pattern_entry['Name'] = name
+                pattern_entry['Type'] = pattern['Type'].iloc[0]
+                if pattern.shape[0] > 1:
+                    # shift pattern values to the right
+                    pattern.iloc[1::, 1::] = pattern.iloc[1::, 0:-1].values
+                    pattern['Factors'] = pattern['Factors'].astype(float)
+                values = pattern.iloc[:, 1:].values.flatten()
+                for i in range(len(values)):
+                    pattern_entry['Factor'+str(i+1)] = values[i]
+                pattern_entry_list.append(pattern_entry)
+
+            self._patterns_df = pd.DataFrame(pattern_entry_list)
+            self._patterns_df.set_index('Name', inplace=True)
+
+        return self._patterns_df
+
+    @patterns.setter
+    def patterns(self, df):
+        """Set inp.patterns DataFrame."""
+        self._patterns_df = df
+
+    @property
+    def controls(self):
+        """
+        Get/set controls section of the INP file.
+        """
+        if self._controls_df is None:
+            self._controls_df = dataframe_from_inp(self.path, "[CONTROLS]")
+        
+        if self._controls_df.shape[0] > 0:
+            # reformat, 1 row per control
+            control_entry_list = []
+            control_entry = {}
+            controls = self._controls_df['[CONTROLS]']
+            # make sure the first entry starts with RULE
+            assert controls[0][0:5] == "RULE "
+            for row in controls:
+                if row[0:5] == 'RULE ': # new control
+                    if len(control_entry) > 0: # add control to the list
+                        control_entry_list.append(control_entry)
+                    control_entry = {}
+                    control_entry['Name'] = row.rstrip() # remove white space
+                    control_entry['Control'] = ''
+                else:
+                    control_entry['Control'] = control_entry['Control'] + row + ' '
+            if len(control_entry) > 0: # add last control to the list
+                control_entry_list.append(control_entry)
+            
+            self._controls_df = pd.DataFrame(control_entry_list)
+            self._controls_df.set_index('Name', inplace=True)
+                
+        return self._controls_df
+
+    @controls.setter
+    def controls(self, df):
+        """Set inp.controls DataFrame."""
+        self._controls_df = df
+        
     @property
     def tags(self):
         """

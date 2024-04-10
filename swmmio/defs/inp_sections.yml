@@ -78,8 +78,8 @@ inp_file_objects:
   STREETS: [Name, Tcrown, Hcurb, Sx, nRoad, a, W, Sides, Tback, Sback, nBack]
   INLETS: [Name, Type, Param1, Param2, Param3, Param4, Param5]
   INLET_USAGE: [Link, Inlet, Node, Number, "%Clogged", Qmax, aLocal, wLocal, Placement]
-
-
+  PATTERNS: [Name, Type, Factors]
+  CONTROLS: [blob]
 
 inp_section_tags:
   ['[TITLE', '[OPTION', '[FILE', '[RAINGAGES', '[TEMPERATURE', '[EVAP',

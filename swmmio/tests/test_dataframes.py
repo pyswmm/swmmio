@@ -173,7 +173,7 @@ def test_inflow_dwf_dataframe():
 
     inf = m.inp.inflows
     assert (inf.loc['dummy_node2', 'Time Series'] == 'my_time_series')
-    assert (pd.isna(inf.loc['dummy_node6', 'Time Series']))
+    assert inf.loc['dummy_node6', 'Time Series'] == '""'
 
 
 def test_coordinates():

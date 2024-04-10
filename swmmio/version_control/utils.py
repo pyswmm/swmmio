@@ -81,6 +81,11 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
                 formatters=objectformatter  # {'Comment':formatter}
             )
 
+        # Deliminate control string using keywords
+        if sectionheader == '[CONTROLS]':
+            for sep in [' IF ', ' THEN ', ' PRIORITY ', ' AND ',  ' OR ', ' ELSE ']:
+                add_str = add_str.replace(sep, '\n'+sep)
+
         # write the dataframe as a string
         f.write(add_str + '\n\n')
 
