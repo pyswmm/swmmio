@@ -92,6 +92,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
         # and get the list of columns to use for parsing this section
         end_strings = list(headers.keys())
         end_strings.append('***********')
+        end_strings.append('Analysis begun on')
         start_strings = [section, '-'*20, '-'*20]
     cols = headers[section]['columns']
 
