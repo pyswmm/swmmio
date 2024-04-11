@@ -1,6 +1,5 @@
 from io import StringIO
 from pandas.testing import assert_series_equal
-import subprocess
 
 from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
@@ -10,6 +9,7 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 from swmmio.utils.text import get_inp_sections_details
+from swmmio.run_models.run import run_simple
 import swmmio
 
 import pandas as pd
@@ -275,7 +275,7 @@ def test_inp_sections():
         
         # Run SWMM with the original INP file
         headers = get_inp_sections_details(inpfile, include_brackets=False)
-        p = subprocess.run("python -m swmmio --run " + inpfile)
+        run_simple(inpfile)
         model = swmmio.Model(inpfile, include_rpt=True)
         links = model.links()
         
@@ -299,7 +299,7 @@ def test_inp_sections():
         model.inp.save(temp_inpfile)
         headers2 = get_inp_sections_details(temp_inpfile, 
                                             include_brackets=False)
-        p = subprocess.run("python -m swmmio --run " + temp_inpfile)
+        run_simple(temp_inpfile)
         model2 = swmmio.Model(temp_inpfile, include_rpt=True)
         links2 = model2.links()
         
