@@ -1,4 +1,6 @@
 from io import StringIO
+from pandas.testing import assert_series_equal
+import subprocess
 
 from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
@@ -7,6 +9,7 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
                                MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
+from swmmio.utils.text import get_inp_sections_details
 import swmmio
 
 import pandas as pd
@@ -258,3 +261,59 @@ def test_polygons(test_model_02):
     assert poly1.equals(test_model_02.inp.polygons)
 
     # print()
+
+def test_inp_sections():
+        
+    inpfiles = [
+                MODEL_FULL_FEATURES_PATH,
+                MODEL_CURVE_NUMBER,
+                MODEL_MOD_HORTON,
+                ]
+    
+    for inpfile in inpfiles:
+        print(inpfile)
+        
+        # Run SWMM with the original INP file
+        headers = get_inp_sections_details(inpfile, include_brackets=False)
+        p = subprocess.run("python -m swmmio --run " + inpfile)
+        model = swmmio.Model(inpfile, include_rpt=True)
+        links = model.links()
+        
+        # Check that the simulation results loaded into the swmmio model
+        assert 'MaxQ' in links.columns
+    
+        # Create a swmmio model, reassign each section to force the use
+        # of "replace_inp_section", save the INP file, and then run SWMM
+        temp_inpfile = 'temp.inp'
+        model = swmmio.Model(inpfile, include_rpt=False)
+        empty_sections = []
+        unsupported_sections = []
+        for sec in headers.keys():
+            try:
+                df = getattr(model.inp, sec.lower())
+                if df.empty:
+                    empty_sections.append(sec)
+                setattr(model.inp, sec, df.copy())
+            except:
+                unsupported_sections.append(sec)
+        model.inp.save(temp_inpfile)
+        headers2 = get_inp_sections_details(temp_inpfile, 
+                                            include_brackets=False)
+        p = subprocess.run("python -m swmmio --run " + temp_inpfile)
+        model2 = swmmio.Model(temp_inpfile, include_rpt=True)
+        links2 = model2.links()
+        
+        # Check that the INP file headers are the same
+        header_set = set(headers.keys() - empty_sections)
+        header2_set = set(headers2.keys() - empty_sections)
+        assert header_set == header2_set
+        # Check that the simulation results loaded into the swmmio model
+        assert 'MaxQ' in links2.columns
+        # Check that results are the same
+        assert_series_equal(links['MaxQ'], links2['MaxQ']) 
+        # Print empty and unsupported INP file sections
+        print('Empty sections', empty_sections)
+        print('Unsupported sections', unsupported_sections)
+
+if __name__ == "__main__":
+    test_inp_sections()
