@@ -6,7 +6,8 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
-                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
+                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE,
+                               MODEL_TEST_INLET_DRAINS, MODEL_PUMP_CONTROL)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 from swmmio.utils.text import get_inp_sections_details
 from swmmio.run_models.run import run_simple
@@ -263,12 +264,22 @@ def test_polygons(test_model_02):
     # print()
 
 def test_inp_sections():
-        
+    
+    # Additional models could be added to this test, or additional features 
+    # could be added to the full feature model
     inpfiles = [
                 MODEL_FULL_FEATURES_PATH,
                 MODEL_CURVE_NUMBER,
                 MODEL_MOD_HORTON,
+                MODEL_GREEN_AMPT,
+                MODEL_TEST_INLET_DRAINS,
+                MODEL_PUMP_CONTROL,
                 ]
+    
+    from swmmio.defs import INP_OBJECTS
+    all_sections = set(sec.upper() for sec in INP_OBJECTS.keys())
+    unsupported_sections = set()
+    tested_sections = set()
     
     for inpfile in inpfiles:
         print(inpfile)
@@ -287,15 +298,16 @@ def test_inp_sections():
         temp_inpfile = 'temp.inp'
         model = swmmio.Model(inpfile, include_rpt=False)
         empty_sections = []
-        unsupported_sections = []
         for sec in headers.keys():
             try:
                 df = getattr(model.inp, sec.lower())
-                if df.empty:
-                    empty_sections.append(sec)
+                if not df.empty:
+                    tested_sections.add(sec.upper())
+                else:
+                    empty_sections.append(sec.upper())
                 setattr(model.inp, sec, df.copy())
             except:
-                unsupported_sections.append(sec)
+                unsupported_sections.add(sec.upper())
         model.inp.save(temp_inpfile)
         headers2 = get_inp_sections_details(temp_inpfile, 
                                             include_brackets=False)
@@ -311,9 +323,10 @@ def test_inp_sections():
         assert 'MaxQ' in links2.columns
         # Check that results are the same
         assert_series_equal(links['MaxQ'], links2['MaxQ']) 
-        # Print empty and unsupported INP file sections
-        print('Empty sections', empty_sections)
-        print('Unsupported sections', unsupported_sections)
-
+        
+    # Print empty and unsupported INP file sections
+    print('Unsupported sections', unsupported_sections)
+    print('Untested sections', all_sections - unsupported_sections - tested_sections)
+    
 if __name__ == "__main__":
     test_inp_sections()
