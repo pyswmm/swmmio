@@ -1520,10 +1520,11 @@ class inp(SWMMIOFile):
         :return: dataframe of patterns
         
         >>> from swmmio.examples import pump_control
-        >>> pump_control.inp.patterns  #doctest: +NORMALIZE_WHITESPACE
-                Type  Factor1  ...  Factor23  Factor24
-        Name                   ...                    
-        DWF   HOURLY   0.0151  ...   0.02499   0.02718
+        >>> # NOTE, only the first 5 columns are shown in the following example
+        >>> pump_control.inp.patterns.iloc[:,0:5]  #doctest: +NORMALIZE_WHITESPACE
+                Type  Factor1  Factor2  Factor3  Factor4
+        Name                                            
+        DWF   HOURLY   0.0151  0.01373  0.01812  0.01098
         """
         
         if self._patterns_df is not None:
