@@ -1515,9 +1515,17 @@ class inp(SWMMIOFile):
     @property
     def patterns(self):
         """
-        get/set patterns section of model
-        :return: multi-index dataframe of model patterns
+        Get/set patterns section of the model
+        
+        :return: dataframe of patterns
+        
+        >>> from swmmio.examples import pump_control
+        >>> pump_control.inp.patterns  #doctest: +NORMALIZE_WHITESPACE
+                Type  Factor1  ...  Factor23  Factor24
+        Name                   ...                    
+        DWF   HOURLY   0.0151  ...   0.02499   0.02718
         """
+        
         if self._patterns_df is not None:
             return self._patterns_df
         self._patterns_df = dataframe_from_inp(self.path, '[PATTERNS]')
@@ -1551,8 +1559,18 @@ class inp(SWMMIOFile):
     @property
     def controls(self):
         """
-        Get/set controls section of the INP file.
+        Get/set controls section of the model
+        
+        :return: dataframe of controls
+        
+        >>> from swmmio.examples import pump_control
+        >>> pump_control.inp.controls  #doctest: +NORMALIZE_WHITESPACE
+                                                                            Control
+        Name                                                                       
+        RULE PUMP1A  IF NODE SU1 DEPTH >= 4 THEN PUMP PUMP1 status = ON PRIORITY 1 
+        RULE PUMP1B  IF NODE SU1 DEPTH < 1 THEN PUMP PUMP1 status = OFF PRIORITY 1 
         """
+        
         if self._controls_df is None:
             self._controls_df = dataframe_from_inp(self.path, "[CONTROLS]")
         
