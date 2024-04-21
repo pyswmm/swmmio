@@ -132,6 +132,16 @@ rpt_sections:
     - SlopePerc
     - RainGage
     - Outlet
+  Pumping Summary:
+    - PercentUtilized
+    - NumberOfStartUps
+    - MinFlowCFS
+    - AvgFlowCFS
+    - MaxFlowCFS
+    - TotalVolume(MG)
+    - PowerUsage(kW-hr)
+    - PercentTimeOffPumpCurveLow
+    - PercentTimeOffPumpCurveHigh
 
 swmm5_version:
   1.13:

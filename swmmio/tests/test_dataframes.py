@@ -1,12 +1,16 @@
 from io import StringIO
+from pandas.testing import assert_series_equal
 
 from swmmio.elements import Links
 from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NET_PATH,
                                BUILD_INSTR_01, MODEL_XSECTION_ALT_01, df_test_coordinates_csv,
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
-                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE)
+                               MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE,
+                               MODEL_TEST_INLET_DRAINS, MODEL_PUMP_CONTROL)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
+from swmmio.utils.text import get_inp_sections_details
+from swmmio.run_models.run import run_simple
 import swmmio
 
 import pandas as pd
@@ -173,7 +177,7 @@ def test_inflow_dwf_dataframe():
 
     inf = m.inp.inflows
     assert (inf.loc['dummy_node2', 'Time Series'] == 'my_time_series')
-    assert (pd.isna(inf.loc['dummy_node6', 'Time Series']))
+    assert inf.loc['dummy_node6', 'Time Series'] == '""'
 
 
 def test_coordinates():
@@ -258,3 +262,71 @@ def test_polygons(test_model_02):
     assert poly1.equals(test_model_02.inp.polygons)
 
     # print()
+
+def test_inp_sections():
+    
+    # Additional models could be added to this test, or additional features 
+    # could be added to the full feature model
+    inpfiles = [
+                MODEL_FULL_FEATURES_PATH,
+                MODEL_CURVE_NUMBER,
+                MODEL_MOD_HORTON,
+                MODEL_GREEN_AMPT,
+                MODEL_TEST_INLET_DRAINS,
+                MODEL_PUMP_CONTROL,
+                ]
+    
+    from swmmio.defs import INP_OBJECTS
+    all_sections = set(sec.upper() for sec in INP_OBJECTS.keys())
+    unsupported_sections = set()
+    tested_sections = set()
+    
+    for inpfile in inpfiles:
+        print(inpfile)
+        
+        # Run SWMM with the original INP file
+        headers = get_inp_sections_details(inpfile, include_brackets=False)
+        run_simple(inpfile)
+        model = swmmio.Model(inpfile, include_rpt=True)
+        links = model.links()
+        
+        # Check that the simulation results loaded into the swmmio model
+        assert 'MaxQ' in links.columns
+    
+        # Create a swmmio model, reassign each section to force the use
+        # of "replace_inp_section", save the INP file, and then run SWMM
+        temp_inpfile = 'temp.inp'
+        model = swmmio.Model(inpfile, include_rpt=False)
+        empty_sections = []
+        for sec in headers.keys():
+            try:
+                df = getattr(model.inp, sec.lower())
+                if not df.empty:
+                    tested_sections.add(sec.upper())
+                else:
+                    empty_sections.append(sec.upper())
+                setattr(model.inp, sec, df.copy())
+            except:
+                unsupported_sections.add(sec.upper())
+        model.inp.save(temp_inpfile)
+        headers2 = get_inp_sections_details(temp_inpfile, 
+                                            include_brackets=False)
+        run_simple(temp_inpfile)
+        model2 = swmmio.Model(temp_inpfile, include_rpt=True)
+        links2 = model2.links()
+        
+        # Check that the INP file headers are the same
+        header_set = set(headers.keys() - empty_sections)
+        header2_set = set(headers2.keys() - empty_sections)
+        assert header_set == header2_set
+        # Check that the simulation results loaded into the swmmio model
+        assert 'MaxQ' in links2.columns
+        # Check that results are the same
+        assert_series_equal(links['MaxQ'], links2['MaxQ']) 
+        
+    # Print empty and unsupported INP file sections
+    print('Unsupported sections', unsupported_sections)
+    print('Untested sections', all_sections - unsupported_sections - tested_sections)
+    
+if __name__ == "__main__":
+    test_inp_sections()

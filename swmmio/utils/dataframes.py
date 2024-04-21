@@ -56,7 +56,7 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
 
     df = pd.DataFrame(data=data, columns=cols)
     if sect == 'CURVES':
-        df = df.set_index(['Name', 'Type'])
+        df = df.set_index(['Name']) #, 'Type']) # changed index to Name to correct INP write
     elif sect == 'TIMESERIES':
         df = df.set_index(['Name'])
 
@@ -92,6 +92,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
         # and get the list of columns to use for parsing this section
         end_strings = list(headers.keys())
         end_strings.append('***********')
+        end_strings.append('Analysis begun on')
         start_strings = [section, '-'*20, '-'*20]
     cols = headers[section]['columns']
 
@@ -142,16 +143,22 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     # replace occurrences of double quotes ""
     s = s.replace('""', quote_replace)
 
-    # count tokens in first non-empty line, after the header, ignoring comments
+    # find max tokens after the header, ignoring comments
     # if zero tokens counted (i.e. empty line), fall back to headers dict
-    n_tokens = len(re.sub(r"(\n)\1+", r"\1", s).split('\n')[1].split(';')[0].split())
+    n_tokens = 0
+    lines = re.sub(r"(\n)\1+", r"\1", s).split('\n')
+    for line in lines[1::]:
+        n_tokens = max([n_tokens, len(line.split(';')[0].split())])
     n_tokens = len(headers[sect]['columns']) if n_tokens == 0 else n_tokens
 
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = headers[sect]['columns'][:n_tokens] + additional_cols
-
+    cols = headers[sect]['columns'][:n_tokens]
+    if n_tokens > len(cols):
+        cols = cols + ["col"+str(len(cols)+i) for i in range(n_tokens-len(cols))]
+    cols = cols + additional_cols
+    
     if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s), delim_whitespace=False)

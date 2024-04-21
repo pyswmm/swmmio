@@ -48,3 +48,6 @@ BUILD_INSTR_01 = os.path.join(DATA_PATH, 'test_build_instructions_01.txt')
 
 df_test_coordinates_csv = os.path.join(DATA_PATH, 'df_test_coordinates.csv')
 OUTFALLS_MODIFIED = os.path.join(DATA_PATH, 'outfalls_modified_10.csv')
+
+# SWMM example model
+MODEL_PUMP_CONTROL = os.path.join(DATA_PATH, 'Pump_Control_Model.inp')
