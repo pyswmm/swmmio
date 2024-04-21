@@ -17,12 +17,14 @@
 
 **5.)** Update the version number in [README.md](https://github.com/aerispaha/swmmio/blob/master/README.md)
 
-**5.)** Commit changes
+**6.)** Update the AUTHORS by running the [update_authors.sh](tools/update-authors.sh)
+
+**6.)** Commit changes
 
     git add .
     git commit -m "Set release version"
 
-**6.)** Add release tag and push to origin
+**7.)** Add release tag and push to origin
 
     git tag -a vX.X.X -m 'Release version'
     git push  --follow-tags

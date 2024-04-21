@@ -1,3 +1,11 @@
+## Version 0.7.0 (2024/04/21)
+
+### What's Changed
+* Added inp coverage for CONTROLS and PATTERNS, provided by @kaklise [PR219](https://github.com/pyswmm/swmmio/pull/219)
+* Made progress on [#57](https://github.com/aerispaha/swmmio/issues/57), read/write interface to all INP sections 
+* PR [#218](https://github.com/pyswmm/swmmio/pull/218) bump pillow version from 10.2.0 to 10.3.0
+* PR [#216](https://github.com/pyswmm/swmmio/pull/216) bump pillow version from 10.2.0 to 10.3.0
+
 ## Version 0.6.11 (2023/12/07)
 
 ### What's Changed
