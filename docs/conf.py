@@ -12,8 +12,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-from recommonmark.transform import AutoStructify
-from m2r import MdInclude
+# from recommonmark.transform import AutoStructify
+# from m2r import MdInclude
 import os
 import sys
 import swmmio
@@ -23,11 +23,11 @@ sys.path.insert(0, os.path.abspath('../../swmmio'))
 # -- Project information -----------------------------------------------------
 
 project = 'swmmio'
-copyright = '2022, Adam Erispaha'
+copyright = '2024, Adam Erispaha'
 author = 'Adam Erispaha'
 
 # The short X.Y version
-version = ''
+version = swmmio.__version__
 # The full version, including alpha/beta/rc tags
 release = swmmio.__version__
 
@@ -46,7 +46,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
-    'recommonmark',
+    'myst_parser',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,8 +55,10 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-source_suffix = ['.rst', '.md']
-# source_suffix = '.rst'
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
 # The master toctree document.
 master_doc = 'index'
@@ -66,7 +68,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -83,7 +85,7 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -181,27 +183,3 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
 
-
-# -- Extension configuration -------------------------------------------------
-def setup(app):
-    config = {
-        # 'url_resolver': lambda url: github_doc_root + url,
-        'auto_toc_tree_section': 'Contents',
-        'enable_eval_rst': True,
-    }
-    app.add_config_value('recommonmark_config', config, True)
-    app.add_transform(AutoStructify)
-
-    # from m2r to make `mdinclude` work
-    app.add_config_value('no_underscore_emphasis', False, 'env')
-    app.add_config_value('m2r_parse_relative_links', False, 'env')
-    app.add_config_value('m2r_anonymous_references', False, 'env')
-    app.add_config_value('m2r_disable_inline_math', False, 'env')
-    app.add_directive('mdinclude', MdInclude)
-
-
-# custom logic
-from shutil import copytree
-import os
-os.makedirs('_build/html/docs', exist_ok=True)
-copytree('img', '_build/html/docs/img')
