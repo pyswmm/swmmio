@@ -263,7 +263,7 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     ops_cols = INP_OBJECTS['OPTIONS']['columns']
     ops_string = extract_section_of_file(inp_path, '[OPTIONS]', INP_SECTION_TAGS, )
     options = pd.read_csv(StringIO(ops_string), header=None,
-                          delim_whitespace=True, skiprows=[0], index_col=0,
+                          sep='\s+', skiprows=[0], index_col=0,
                           names=ops_cols)
 
     if 'INFILTRATION' in found_sects:
