@@ -104,7 +104,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
 
     # extract the string and read into a dataframe
     s = extract_section_of_file(rpt_path, start_strings, end_strings)
-    df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True, skiprows=[0],
+    df = pd.read_csv(StringIO(s), header=None, sep='\s+', skiprows=[0],
                      index_col=0, names=cols)
 
     # confirm index name is string
@@ -164,7 +164,7 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
         try:
-            df = pd.read_csv(StringIO(s), header=None, delim_whitespace=True,
+            df = pd.read_csv(StringIO(s), header=None, sep='\s+',
                              skiprows=[0], index_col=0, names=cols)
         except:
             raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
