@@ -1,3 +1,9 @@
+## Version 0.7.1 (2024/08/19)
+
+### What's Changed
+* Handle depreciated delim_whitespace warnings, provided by @bowguy [PR222](https://github.com/pyswmm/swmmio/pull/222)
+
+
 ## Version 0.7.0 (2024/04/21)
 
 ### What's Changed
