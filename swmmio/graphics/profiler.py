@@ -32,7 +32,7 @@ def build_profile_plot(ax, model, path_selection):
         us_node, ds_node, link_id = link_set
         # Plot first Node
         if ind == 0:
-            invert_el = float(nodes.loc[[us_node]].InvertElev)
+            invert_el = float(nodes.loc[us_node].InvertElev)
             profile_config['nodes'].append({"id_name": us_node,
                                             "rolling_x_pos": rolling_x_pos,
                                             "invert_el": invert_el})
@@ -43,18 +43,18 @@ def build_profile_plot(ax, model, path_selection):
         # Add next link length to offset
         old_rolling_x_pos = rolling_x_pos
         # check link type
-        if links.loc[[link_id]].Type[0] == "CONDUIT":
-            rolling_x_pos += float(links.loc[[link_id]].Length)
-        elif links.loc[[link_id]].Type[0] == "WEIR":
+        if links.loc[link_id].Type == "CONDUIT":
+            rolling_x_pos += float(links.loc[link_id].Length)
+        elif links.loc[link_id].Type == "WEIR":
             rolling_x_pos += DEFAULT_WEIR_LENGTH
-        elif links.loc[[link_id]].Type[0] == "ORIFICE":
+        elif links.loc[link_id].Type == "ORIFICE":
             rolling_x_pos += DEFAULT_ORIFICE_LENGTH
-        elif links.loc[[link_id]].Type[0] == "PUMP":
+        elif links.loc[link_id].Type == "PUMP":
             rolling_x_pos += DEFAULT_PUMP_LENGTH
-        elif links.loc[[link_id]].Type[0] == "OUTLET":
+        elif links.loc[link_id].Type == "OUTLET":
             rolling_x_pos += DEFAULT_OUTLET_LENGTH
         # Plot DS node
-        invert_el = float(nodes.loc[[ds_node]].InvertElev)
+        invert_el = float(nodes.loc[ds_node].InvertElev)
         profile_config['nodes'].append({"id_name": ds_node,
                                         "rolling_x_pos": rolling_x_pos,
                                         "invert_el": invert_el})
@@ -87,17 +87,17 @@ def _add_node_plot(ax, x, model, node_name, link_set, surcharge_depth=0, width=M
     nodes = model.nodes.dataframe
     links = model.links.dataframe
 
-    invert_el = float(nodes.loc[[node_name]].InvertElev)
+    invert_el = float(nodes.loc[node_name].InvertElev)
     # Node Type checker
     if hasattr(model.inp, "junctions"):
         if node_name in model.inp.junctions.index:
-            depth = float(nodes.loc[[node_name]].MaxDepth)
+            depth = float(nodes.loc[node_name].MaxDepth)
     if hasattr(model.inp, "outfalls"):
         if node_name in model.inp.outfalls.index:
-            depth = float(links.loc[[link_id]].Geom1)
+            depth = float(links.loc[link_id].Geom1)
     if hasattr(model.inp, "storage"):
         if node_name in model.inp.storage.index:
-            depth = float(nodes.loc[[node_name]].MaxD)
+            depth = float(nodes.loc[node_name].MaxD)
 
     # Plotting Configuration
     ll_x, ll_y = x - width, invert_el
@@ -136,17 +136,17 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
     if model.inp.options.loc['LINK_OFFSETS','Value'] == "ELEVATION":
         us_node_el, ds_node_el = 0.0, 0.0
     else:
-        us_node_el = float(nodes.loc[[us_node]].InvertElev)
-        ds_node_el = float(nodes.loc[[ds_node]].InvertElev)
+        us_node_el = float(nodes.loc[us_node].InvertElev)
+        ds_node_el = float(nodes.loc[ds_node].InvertElev)
 
-    link_type = links.loc[[link_id]].Type[0]
+    link_type = links.loc[link_id].Type
     mid_x = []
     mid_y = []
     # check link type
     if link_type == "CONDUIT":
-        depth = float(links.loc[[link_id]].Geom1)
-        us_link_offset = float(links.loc[[link_id]].InOffset)
-        ds_link_offset = float(links.loc[[link_id]].OutOffset)
+        depth = float(links.loc[link_id].Geom1)
+        us_link_offset = float(links.loc[link_id].InOffset)
+        ds_link_offset = float(links.loc[link_id].OutOffset)
         #
         us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
         ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
@@ -158,10 +158,10 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
                 lw=0.75, zorder=0)
 
     elif link_type == "ORIFICE":
-        depth = float(links.loc[[link_id]].Geom1)
-        us_link_offset = float(links.loc[[link_id]].CrestHeight)
-        ds_node_el = float(nodes.loc[[us_node]].InvertElev)  # Plot it flat
-        ds_link_offset = float(links.loc[[link_id]].CrestHeight)
+        depth = float(links.loc[link_id].Geom1)
+        us_link_offset = float(links.loc[link_id].CrestHeight)
+        ds_node_el = float(nodes.loc[us_node].InvertElev)  # Plot it flat
+        ds_link_offset = float(links.loc[link_id].CrestHeight)
 
         us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
         ds_bot_x, ds_bot_y = ds_x_position - width, ds_node_el + ds_link_offset
@@ -186,8 +186,8 @@ def _add_link_plot(ax, us_x_position, ds_x_position, model, link_set, width=0, g
                 lw=0.75, zorder=0)
 
     elif link_type == "WEIR":
-        depth = float(links.loc[[link_id]].Geom1)
-        us_link_offset = float(links.loc[[link_id]].CrestHeight)
+        depth = float(links.loc[link_id].Geom1)
+        us_link_offset = float(links.loc[link_id].CrestHeight)
         ds_link_offset = 0.0
 
         us_bot_x, us_bot_y = us_x_position + width, us_node_el + us_link_offset
@@ -274,17 +274,17 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
     label_y_max = 0
     for val in profile_config['nodes']:
         name = val['id_name']
-        invert_el = float(nodes.loc[[name]].InvertElev)
+        invert_el = float(nodes.loc[name].InvertElev)
         # Node Type checker
         if hasattr(model.inp, "junctions"):
             if name in model.inp.junctions.index:
-                depth = float(nodes.loc[[name]].MaxDepth)
+                depth = float(nodes.loc[name].MaxDepth)
         if hasattr(model.inp, "outfalls"):
             if name in model.inp.outfalls.index:
                 depth = 0
         if hasattr(model.inp, "storage"):
             if name in model.inp.storage.index:
-                depth = float(nodes.loc[[name]].MaxD)
+                depth = float(nodes.loc[name].MaxD)
 
         calc = invert_el + depth
         if calc > label_y_max:
@@ -298,17 +298,17 @@ def add_node_labels_plot(ax, model, profile_config, font_size=8,
                 stagger_value = 4
         name = val['id_name']
         x_offset = val['rolling_x_pos']
-        invert_el = float(nodes.loc[[name]].InvertElev)
+        invert_el = float(nodes.loc[name].InvertElev)
         # Node Type checker
         if hasattr(model.inp, "junctions"):
             if name in model.inp.junctions.index:
-                depth = float(nodes.loc[[name]].MaxDepth)
+                depth = float(nodes.loc[name].MaxDepth)
         if hasattr(model.inp, "outfalls"):
             if name in model.inp.outfalls.index:
                 depth = 0
         if hasattr(model.inp, "storage"):
             if name in model.inp.storage.index:
-                depth = float(nodes.loc[[name]].MaxD)
+                depth = float(nodes.loc[name].MaxD)
         pos_y = invert_el + depth
         label = ax.annotate(name, xy=(x_offset, pos_y),
                             xytext=(x_offset, label_y_max + label_offset + stagger_value),
