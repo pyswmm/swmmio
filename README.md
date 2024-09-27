@@ -58,7 +58,7 @@ m = Model("coolest-model.inp")
 # pass custom init arguments into the Nodes object instead of using default settings referenced by m.nodes() 
 nodes = Nodes(
     model=m, 
-    inp_sections=['junctions', 'storages', 'outfalls'],
+    inp_sections=['junctions', 'storage', 'outfalls'],
     rpt_sections=['Node Depth Summary', 'Node Inflow Summary'],
     columns=[ 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'MaxTotalInflow', 'coords']
 )
