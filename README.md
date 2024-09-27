@@ -1,5 +1,5 @@
 # swmmio
-*v0.7.1 (2024/08/19)*
+*v0.7.0 (2024/04/21)*
 
 [![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
 ![example workflow](https://github.com/aerispaha/swmmio/actions/workflows/python-app.yml/badge.svg)
@@ -58,7 +58,7 @@ m = Model("coolest-model.inp")
 # pass custom init arguments into the Nodes object instead of using default settings referenced by m.nodes() 
 nodes = Nodes(
     model=m, 
-    inp_sections=['junctions', 'storages', 'outfalls'],
+    inp_sections=['junctions', 'storage', 'outfalls'],
     rpt_sections=['Node Depth Summary', 'Node Inflow Summary'],
     columns=[ 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'MaxTotalInflow', 'coords']
 )
