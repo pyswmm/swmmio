@@ -187,6 +187,11 @@ Street3          ComboInlet       J2a              1         0         0        
 Street4          ComboInlet       J2               1         0         0         0         0
 Street5          ComboInlet       J11              2         0         0         0         0
 
+[OUTLETS]
+;;Name           From Node        To Node          Offset     Type            QTable/Qcoeff    Qexpon     Gated   
+;;-------------- ---------------- ---------------- ---------- --------------- ---------------- ---------- --------
+TestOutlet       J100             J101             1.07       TABULAR/DEPTH   TestOutletTB                YES     
+
 [TIMESERIES]
 ;;Name           Date       Time       Value
 ;;-------------- ---------- ---------- ----------

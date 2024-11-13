@@ -599,6 +599,7 @@ class inp(SWMMIOFile):
         self._tags_df = None
         self._streets_df = None
         self._inlets_df = None
+        self._outlets_df = None
         self._inlet_usage_df = None
         self._patterns_df = None
         self._controls_df = None
@@ -645,6 +646,7 @@ class inp(SWMMIOFile):
             '[TAGS]',
             '[STREETS]',
             '[INLETS]',
+            '[OUTLETS]',
             '[INLET_USAGE]',
             '[PATTERNS]',
             '[CONTROLS]',
@@ -1677,6 +1679,34 @@ class inp(SWMMIOFile):
     def inlets(self, df):
         """Set inp.inlets DataFrame."""
         self._inlets_df = df
+    
+    @property
+    def outlets(self):
+        """
+        Get/set outlets section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the outlets section of the inp file
+
+        >>> from swmmio.examples import streets
+        >>> streets.inp.outlets #doctest: +NORMALIZE_WHITESPACE
+                   InletNode OutletNode  ...   Qcoeff/QTable Qexpon
+        Name                             ...                       
+        TestOutlet      J100    J101     ...  TestOutletTB    YES
+        """
+        if self._outlets_df is None:
+            self._outlets_df = dataframe_from_inp(self.path, "[OUTLETS]")
+        return self._outlets_df
+
+    @outlets.setter
+    def outlets(self, df):
+        """Set inp.outlets DataFrame."""
+        self._outlets_df = df
 
     @property
     def inlet_usage(self):
