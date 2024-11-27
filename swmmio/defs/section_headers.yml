@@ -175,7 +175,7 @@ composite:
     rpt_sections: [Link Flow Summary]
   outfalls: [Name, Elevation, Type, Stage Data, Gated, Route To]
   links:
-    inp_sections: [CONDUITS, WEIRS, ORIFICES, PUMPS]
+    inp_sections: [CONDUITS, WEIRS, ORIFICES, PUMPS, OUTLETS]
     join_sections: [XSECTIONS]
     rpt_sections: [Link Flow Summary]
   pumps:
