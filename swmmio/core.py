@@ -1694,10 +1694,15 @@ class inp(SWMMIOFile):
         Access the outlets section of the inp file
 
         >>> from swmmio.examples import streets
-        >>> streets.inp.outlets #doctest: +NORMALIZE_WHITESPACE
-                   InletNode OutletNode  ...   Qcoeff/QTable Qexpon
-        Name                             ...                       
-        TestOutlet      J100    J101     ...  TestOutletTB    YES
+        >>> streets.inp.outlets.loc['C11'] #doctest: +NORMALIZE_WHITESPACE
+        InletNode                     J11
+        OutletNode                     O1
+        OutflowHeight                   0
+        OutletType       FUNCTIONAL/DEPTH
+        Qcoeff/QTable                  10
+        Qexpon                        0.5
+        FlapGate                       NO
+        Name: C11, dtype: object
         """
         if self._outlets_df is None:
             self._outlets_df = dataframe_from_inp(self.path, "[OUTLETS]")
