@@ -83,7 +83,7 @@ def test_change_crs():
     J4-001.1 -70.959423  43.730452
     J2-095.1 -70.951378  43.767796
     """
-    v2_test = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+    v2_test = pd.read_csv(StringIO(s), index_col=0, sep=r'\s+', skiprows=[0])
     assert v2['X'].values == pytest.approx(v2_test['X'].values, rel=1e-3)
     assert v2['Y'].values == pytest.approx(v2_test['Y'].values, rel=1e-3)
 
