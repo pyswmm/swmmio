@@ -129,7 +129,6 @@ C7               J6               J8               95.0       0.016      0      
 C8               J8               J9               166.0      0.05       0          0          0          0
 C9               J9               J10              320.0      0.05       0          6          0          0
 C10              J10              J11              145.0      0.05       6          6          0          0
-C11              J11              O1               89.0       0.016      0          0          0          0
 C_Aux3           Aux3             J3               444.75     0.05       6          0          0          0
 P1               J1               J5               185.39     0.016      0          0          0          0
 P2               J2a              J2               157.48     0.016      0          0          0          0
@@ -139,6 +138,12 @@ P5               J5               J4               125.98     0.016      0      
 P6               J4               J7               360.39     0.016      0          0          0          0
 P7               J7               J10              507.76     0.016      0          0          0          0
 P8               J10              J11              144.50     0.016      0          0          0          0
+
+[OUTLETS]
+;;Name           From Node        To Node          Offset     Type             QTable/Qcoeff    Qexpon     Gated   
+;;-------------- ---------------- ---------------- ---------- ---------------- ---------------- ---------- --------
+C11              J11              O1               0          FUNCTIONAL/DEPTH 10               0.5        NO      
+
 
 [XSECTIONS]
 ;;Link           Shape        Geom1            Geom2      Geom3      Geom4      Barrels    Culvert
@@ -156,7 +161,6 @@ C7               CIRCULAR     3.5              0          0          0          
 C8               TRAPEZOIDAL  3                5          5          5          1
 C9               TRAPEZOIDAL  3                5          5          5          1
 C10              TRAPEZOIDAL  3                5          5          5          1
-C11              CIRCULAR     4.75             0          0          0          1
 C_Aux3           TRAPEZOIDAL  3                5          5          5          1
 P1               CIRCULAR     0.5              0          0          0          1
 P2               CIRCULAR     1.5              0          0          0          1
@@ -186,11 +190,6 @@ Street1          ComboInlet       J1               1         50        2.2      
 Street3          ComboInlet       J2a              1         0         0         0         0
 Street4          ComboInlet       J2               1         0         0         0         0
 Street5          ComboInlet       J11              2         0         0         0         0
-
-[OUTLETS]
-;;Name           From Node        To Node          Offset     Type            QTable/Qcoeff    Qexpon     Gated   
-;;-------------- ---------------- ---------------- ---------- --------------- ---------------- ---------- --------
-TestOutlet       J100             J101             1.07       TABULAR/DEPTH   TestOutletTB                YES     
 
 [TIMESERIES]
 ;;Name           Date       Time       Value
