@@ -14,6 +14,7 @@
 #
 # from recommonmark.transform import AutoStructify
 # from m2r import MdInclude
+from datetime import datetime
 import os
 import sys
 import swmmio
@@ -23,7 +24,7 @@ sys.path.insert(0, os.path.abspath('../../swmmio'))
 # -- Project information -----------------------------------------------------
 
 project = 'swmmio'
-copyright = '2024, Adam Erispaha'
+copyright = f'{datetime.now().year}, Adam Erispaha'
 author = 'Adam Erispaha'
 
 # The short X.Y version

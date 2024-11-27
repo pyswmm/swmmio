@@ -27,3 +27,7 @@ _build/
 
 # env
 venv/
+
+# docs artifacts
+docs/_build/
+docs/site/
