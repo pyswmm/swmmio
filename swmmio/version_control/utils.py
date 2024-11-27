@@ -74,7 +74,7 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
             numformatter = {hedr: '  {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
                             for hedr in section_data.columns if section_data[hedr].dtype != "O"}
             objectformatter.update(numformatter)
-            add_str = section_data.fillna(na_fill).to_string(
+            add_str = section_data.infer_objects(copy=False).fillna(na_fill).to_string(
                 index_names=False,
                 header=True,
                 justify='left',

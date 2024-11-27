@@ -207,7 +207,7 @@ def test_links_dataframe_from_rpt(test_model_02):
     C2        PUMP  4.33       0  09:59  0.22       NaN       NaN
     C3        WEIR  7.00       0  10:00  0.33       NaN       NaN
     '''
-    lfs_df = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+    lfs_df = pd.read_csv(StringIO(s), index_col=0, sep=r'\s+', skiprows=[0])
     assert(lfs_df.equals(link_flow_summary))
 
 
@@ -257,7 +257,7 @@ def test_polygons(test_model_02):
     S4   -154.695 -168.608
     S4   -148.499 -126.120
     """
-    poly1 = pd.read_csv(StringIO(s), index_col=0, delim_whitespace=True, skiprows=[0])
+    poly1 = pd.read_csv(StringIO(s), index_col=0, sep=r'\s+', skiprows=[0])
 
     assert poly1.equals(test_model_02.inp.polygons)
 

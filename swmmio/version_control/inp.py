@@ -115,14 +115,16 @@ class BuildInstructions(object):
                     new_section = basedf.drop(remove_ids)
 
                     # add elements
-                    new_section = pd.concat([new_section, changes.altered, changes.added])
+                    # get a list of the dataframes that have changes (omit empty ones)
+                    changes_dfs = list(filter(lambda x: not x.empty, [new_section, changes.altered, changes.added]))
+                    if len(changes_dfs) > 0:
+                        # write the section
+                        vc_utils.write_inp_section(f, allheaders, section, pd.concat(changes_dfs))
                 else:
                     # section is not well understood or is problematic, just blindly copy
                     new_section = dataframe_from_bi(basemodel.inp.path, section=section)
                     new_section[';'] = ';'
-
-                # write the section
-                vc_utils.write_inp_section(f, allheaders, section, new_section)
+                    vc_utils.write_inp_section(f, allheaders, section, new_section)
 
 
 class INPSectionDiff(object):
@@ -313,10 +315,15 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
             if section not in problem_sections:
                 # calculate the changes in the current section
                 changes = INPSectionDiff(modela, modelb, section)
-                data = pd.concat([changes.removed, changes.added, changes.altered], axis=0, sort=False)
-                # vc_utils.write_excel_inp_section(excelwriter, allsections_a, section, data)
-                vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
-                                           na_fill='NaN')  # na fill fixes SNOWPACK blanks spaces issue
+
+                # get a list of the dataframes that have changes
+                changes_dfs = list(filter(lambda x: not x.empty, [changes.removed, changes.added, changes.altered]))
+                
+                # if no changes, don't write the section
+                if len(changes_dfs) > 0:
+                    data = pd.concat(changes_dfs, axis=0, sort=False)
+                    vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
+                                            na_fill='NaN')  # na fill fixes SNOWPACK blanks spaces issue
 
     return BuildInstructions(filepath)
 
