@@ -1542,7 +1542,7 @@ class inp(SWMMIOFile):
                 pattern_entry['Type'] = pattern['Type'].iloc[0]
                 if pattern.shape[0] > 1:
                     # shift pattern values to the right
-                    pattern.iloc[1::, 1::] = pattern.iloc[1::, 0:-1].values
+                    pattern.iloc[1::, 1::] = pattern.iloc[1::, 0:-1].values.astype(float)
                     pattern['Factors'] = pattern['Factors'].astype(float)
                 values = pattern.iloc[:, 1:].values.flatten()
                 for i in range(len(values)):

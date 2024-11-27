@@ -161,7 +161,7 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     
     if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
-        return pd.read_csv(StringIO(s), delim_whitespace=False)
+        return pd.read_csv(StringIO(s))
     else:
         try:
             df = pd.read_csv(StringIO(s), header=None, sep=r'\s+',
