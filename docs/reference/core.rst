@@ -1,4 +1,4 @@
-`swmmio` Core Objects
+`swmmio` core objects
 ========================
 
 .. automodule:: swmmio.core

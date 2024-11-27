@@ -1,3 +1,11 @@
+## Version 0.7.2 (2024/11/27)
+
+### What's Changed
+* Handle several Pandas FutureWarnings, provided by @dirwin5 [PR224](https://github.com/pyswmm/swmmio/pull/224)
+* Fix docs build process and update docs layout and theme [PR220](https://github.com/pyswmm/swmmio/pull/220)
+* Fixed typos in the README [226](https://github.com/pyswmm/swmmio/pull/226)
+
+
 ## Version 0.7.1 (2024/08/19)
 
 ### What's Changed

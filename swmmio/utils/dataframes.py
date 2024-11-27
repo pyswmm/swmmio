@@ -104,7 +104,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
 
     # extract the string and read into a dataframe
     s = extract_section_of_file(rpt_path, start_strings, end_strings)
-    df = pd.read_csv(StringIO(s), header=None, sep='\s+', skiprows=[0],
+    df = pd.read_csv(StringIO(s), header=None, sep=r'\s+', skiprows=[0],
                      index_col=0, names=cols)
 
     # confirm index name is string
@@ -164,7 +164,7 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
         return pd.read_csv(StringIO(s), delim_whitespace=False)
     else:
         try:
-            df = pd.read_csv(StringIO(s), header=None, sep='\s+',
+            df = pd.read_csv(StringIO(s), header=None, sep=r'\s+',
                              skiprows=[0], index_col=0, names=cols)
         except:
             raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
@@ -225,7 +225,7 @@ def get_inp_options_df(inp_path):
     ops_tag = '[OPTIONS]'
     ops_cols = INP_OBJECTS['OPTIONS']['columns']
     ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment=';')
-    ops_df = pd.read_csv(StringIO(ops_string), header=None, delim_whitespace=True, skiprows=[0],
+    ops_df = pd.read_csv(StringIO(ops_string), header=None, sep=r'\s+', skiprows=[0],
                          index_col=0, names=ops_cols)
     return ops_df
 
