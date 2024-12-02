@@ -38,7 +38,7 @@ install_requires = [
     'pyshp==2.1.0',
     'geojson>=2.4.1',
     "networkx>=2.3,<2.8.1;python_version<'3.8'",
-    "networkx>=2.3,<3;python_version>='3.8'",
+    "networkx>=2.3;python_version>='3.8'",
     'pyyaml>=3.12',
     'pyproj>=3.0.0'
 ]
