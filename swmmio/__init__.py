@@ -11,7 +11,7 @@ from swmmio.graphics.profiler import (build_profile_plot, add_hgl_plot,
 '''Python SWMM Input/Output Tools'''
 
 
-VERSION_INFO = (0, 7, 3)
+VERSION_INFO = (0, 7, 4, 'dev0')
 __version__ = '.'.join(map(str, VERSION_INFO))
 __author__ = 'Adam Erispaha'
 __copyright__ = 'Copyright (c) 2024'
