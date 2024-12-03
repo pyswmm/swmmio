@@ -1,9 +1,8 @@
 # swmmio
-*v0.7.2 (2024/11/27)*
+*v0.7.3 (2024/12/02)*
 
-[![Build status](https://ci.appveyor.com/api/projects/status/qywujm5w2wm0y2tv/branch/master?svg=true)](https://ci.appveyor.com/project/aerispaha/swmmio/branch/master)
 ![example workflow](https://github.com/aerispaha/swmmio/actions/workflows/python-app.yml/badge.svg)
-[![Documentation Status](https://readthedocs.org/projects/swmmio/badge/?version=v0.6.10)](https://swmmio.readthedocs.io/en/v0.6.10/?badge=v0.6.10)
+[![Documentation Status](https://readthedocs.org/projects/swmmio/badge/?version=latest)](https://swmmio.readthedocs.io/en/latest/?badge=latest)
 
 ![Kool Picture](docs/img/impact_of_option.png?raw=true "Impact of Option")
 `swmmio` is a set of python tools aiming to provide a means for version control and visualizing results from the EPA Stormwater Management Model (SWMM). Command line tools are also provided for running models individually and in parallel via Python's `multiprocessing` module. These tools are being developed specifically for the application of flood risk management, though most functionality is applicable to SWMM modeling in general.

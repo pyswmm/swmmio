@@ -1,3 +1,10 @@
+## Version 0.7.3 (2024/12/02)
+
+### What's Changed
+* Added coverage for the [OUTLETS] INP section. Now we can get a dataframe of the OUTLETS section in models with model.inp.outlets. The higher level API now also include outlets in the model.links accessor. [PR229](https://github.com/pyswmm/swmmio/pull/229)
+* handled all future warnings from Pandas and a few warnings from pytest [PR230](https://github.com/pyswmm/swmmio/pull/230)
+* Revised setup.py to allow networkx>3, provided by @barneydobson [PR232](https://github.com/pyswmm/swmmio/pull/232)
+
 ## Version 0.7.2 (2024/11/27)
 
 ### What's Changed
