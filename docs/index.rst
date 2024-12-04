@@ -10,11 +10,10 @@ allowing engineers to programmatically create, modify, and
 analyze SWMM models.
 
 With `swmmio`, model parameters encoded in the `.inp` file can be
-retrieved conveniently as Pandas dataframes making it possible to make
+retrieved conveniently as Pandas dataframes making it possible to
 automate your hydraulics and hydologic modeling workflow. After simulations are
 completed, results in the `.rpt` file can also be retrieved as Pandas dataframes,
 making post-processing automation trivial.
-
 
 
 .. swmmio documentation master file, created by
