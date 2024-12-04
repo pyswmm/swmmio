@@ -48,7 +48,10 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'myst_parser',
+    # 'myst_parser',
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "myst_nb",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,7 +62,9 @@ templates_path = ['_templates']
 #
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    '.md': 'myst-nb',
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
 }
 
 # The master toctree document.

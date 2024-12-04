@@ -151,3 +151,13 @@ python -m swmmio -sp Model_Dir1 Model_Dir2  -cores_left=1
     <p class="first admonition-title">Warning</p>
     <p class="last">Using all cores for simultaneous model runs can put your machine's CPU usage at 100% for extended periods of time. This probably puts stress on your hardware. Use at your own risk.</p>
 </div>
+
+```{toctree}
+---
+hidden:
+maxdepth: 2
+---
+index.md
+hello.ipynb
+silly.md
+```

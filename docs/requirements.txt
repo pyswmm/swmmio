@@ -3,8 +3,8 @@ pydata-sphinx-theme==0.15.2
 sphinx==7.2.6
 sphinx_copybutton==0.5.2
 ipython==8.23.0
-myst-parser
-
+myst-parser==3.0.1
+myst-nb==1.1.2
 
 
 # commonmark==0.9.1

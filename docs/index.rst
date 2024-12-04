@@ -30,7 +30,7 @@ Contents
 
    reference/index
    installing
-   usage
+   usage/index
 
 
 Indices and tables
