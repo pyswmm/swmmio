@@ -1,9 +1,12 @@
 import pytest
+import unittest
+from unittest.mock import patch, mock_open, MagicMock
+
 import swmmio
 from swmmio.tests.data import (MODEL_FULL_FEATURES__NET_PATH,
                                OWA_RPT_EXAMPLE, RPT_FULL_FEATURES,
                                MODEL_EX_1_PARALLEL_LOOP, MODEL_EX_1)
-from swmmio.utils.functions import format_inp_section_header, find_network_trace
+from swmmio.utils.functions import format_inp_section_header, find_network_trace, check_if_url_and_download
 from swmmio.utils import error
 from swmmio.utils.text import get_rpt_metadata
 
@@ -97,3 +100,48 @@ def test_network_trace_bad_include_node():
         path_selection = find_network_trace(m, start_node,
                                             end_node,
                                             include_nodes=["1000"])
+
+class TestCheckIfUrlAndDownload(unittest.TestCase):
+
+    @patch('requests.get')
+    @patch('tempfile.gettempdir')
+    @patch('builtins.open', new_callable=mock_open)
+    def test_download_file(self, mock_open, mock_gettempdir, mock_requests_get):
+        # Mock the response from requests.get
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.content = b'Test content'
+        mock_requests_get.return_value = mock_response
+
+        # Mock the temporary directory
+        mock_gettempdir.return_value = '/tmp'
+
+        url = 'https://example.com/path/to/file.txt'
+        expected_path = '/tmp/file.txt'
+
+        result = check_if_url_and_download(url)
+
+        # Check if the file was written correctly
+        mock_open.assert_called_once_with(expected_path, 'wb')
+        mock_open().write.assert_called_once_with(b'Test content')
+
+        self.assertEqual(result, expected_path)
+
+    @patch('requests.get')
+    def test_download_file_failed(self, mock_requests_get):
+        # Mock the response from requests.get
+        mock_response = MagicMock()
+        mock_response.status_code = 404
+        mock_requests_get.return_value = mock_response
+
+        url = 'https://example.com/path/to/file.txt'
+
+        with self.assertRaises(Exception) as context:
+            check_if_url_and_download(url)
+
+        self.assertIn('Failed to download file: 404', str(context.exception))
+
+    def test_not_a_url(self):
+        non_url_string = '/Users/bingo/models/not_a_url.inp'
+        result = check_if_url_and_download(non_url_string)
+        self.assertEqual(result, non_url_string)

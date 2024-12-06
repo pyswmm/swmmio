@@ -96,9 +96,26 @@ class Model(object):
     J1        13.392       NaN        0.0             NaN         0.0
     """
     def __init__(self, in_file_path, crs=None, include_rpt=True):
+        """
+        Initialize a swmmio.Model object by pointing it to a local INP file
+        or a URL to a remote INP file. 
+
+        Parameters
+        ----------
+        in_file_path : str
+            Path to local INP file or URL to remote INP file
+        crs : str, optional
+            String representation of a coordinate reference system, by default None
+        include_rpt : bool, optional
+            whether to include data from an RPT (if an RPT exists), by default True
+        """
 
         self.crs = None
         inp_path = None
+
+        # if the input is a URL, download it to a temp location
+        in_file_path = functions.check_if_url_and_download(in_file_path)
+
         if os.path.isdir(in_file_path):
             # a directory was passed in
             inps_in_dir = glob.glob1(in_file_path, "*.inp")

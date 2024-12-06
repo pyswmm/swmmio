@@ -1,6 +1,11 @@
 import warnings
 import pandas as pd
 import networkx as nx
+import os
+from urllib.parse import urlparse
+import tempfile
+
+import requests
 
 from swmmio.utils import error
 
@@ -297,3 +302,38 @@ def summarize_model(model):
     if len(model.nodes.dataframe) != 0:
         model_summary['invert_range'] = model.nodes().InvertElev.max() - model.nodes().InvertElev.min()
     return model_summary
+
+
+def check_if_url_and_download(url):
+    """
+    Check if a given string is a URL and download the 
+    file to a temporary directory if it is.
+
+    Parameters
+    ----------
+    url : str
+        string that may be a URL
+
+    Returns
+    -------
+    str
+        path to the downloaded file in the temporary directory or 
+        the original string if it is not a URL
+    """
+
+    if url.startswith(('http://', 'https://')):
+        r = requests.get(url)
+
+        # get the filename from the url
+        parsed_url = urlparse(url)
+        filename = parsed_url.path.split('/')[-1]
+
+        temp_path = os.path.join(tempfile.gettempdir(), filename)
+        with open(temp_path, 'wb') as f:
+            if r.status_code == 200:
+                f.write(r.content)
+            else:
+                raise Exception(f"Failed to download file: {r.status_code}")
+        return temp_path
+    else:
+        return url
