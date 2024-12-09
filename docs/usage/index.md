@@ -158,6 +158,5 @@ hidden:
 maxdepth: 2
 ---
 index.md
-hello.ipynb
-silly.md
+visualizing_models.ipynb
 ```
