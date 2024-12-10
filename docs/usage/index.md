@@ -159,4 +159,5 @@ maxdepth: 2
 ---
 index.md
 visualizing_models.ipynb
+making_art_with_swmm.ipynb
 ```
