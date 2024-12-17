@@ -18,6 +18,10 @@ from datetime import datetime
 import os
 import sys
 import swmmio
+import pandas as pd
+
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.max_rows', 5)
 
 sys.path.insert(0, os.path.abspath('../../swmmio'))
 
@@ -80,7 +84,10 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = [
+    # 'usage/visualizing_models.ipynb', 
+    # 'usage/making_art_with_swmm.ipynb'
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -100,6 +107,7 @@ html_theme = "pydata_sphinx_theme"
 #
 html_theme_options = {
     "github_url": "https://github.com/pyswmm/swmmio",
+    "navbar_align": "content",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
