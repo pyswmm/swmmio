@@ -7,6 +7,7 @@ pyshp==2.1.0
 geojson==2.5.0
 networkx>=2.3
 pyyaml>=3.12
+requests==2.32.3
 
 # Run dependencies
 pyproj>=3.0.0
