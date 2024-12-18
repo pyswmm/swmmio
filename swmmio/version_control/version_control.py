@@ -47,24 +47,29 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
         bi.build(baseline_dir, model.inp.path)  # overwrite old inp
 
 
-def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='',
-                        comments=''):
+def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comments=''):
     """
     Generate SWMM5 models of each logical combination of all implementation
     phases (IP) across all relief sewer networks (RSN).
 
-    Inputs:
-        baseline_dir -> path to directory containing the baseline SWMM5 model
-        rsn_dir ->      path to directory containing subdirectories for each RSN
-                        containing directories for each IP within the network
-        combi_dir ->    target directory in which child models will be created
-        version_id ->   identifier for a given version (optional)
-        comments ->     comments tracked within build instructions log for
-                        each model scenario (optional)
+    Parameters
+    ----------
+    baseline_dir : str
+        Path to directory containing the baseline SWMM5 model.
+    rsn_dir : str
+        Path to directory containing subdirectories for each RSN, which contain
+        directories for each IP within the network.
+    combi_dir : str
+        Target directory in which child models will be created.
+    version_id : str, optional
+        Identifier for a given version (default is an empty string).
+    comments : str, optional
+        Comments tracked within build instructions log for each model scenario
+        (default is an empty string).
 
-    Calling create_combinations will update child models if parent models have
-    been changed.
-
+    Notes
+    -----
+    Calling `create_combinations` will update child models if parent models have
     """
 
     base_inp_path = Model(baseline_dir).inp.path
