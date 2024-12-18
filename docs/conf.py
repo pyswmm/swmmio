@@ -96,7 +96,7 @@ exclude_patterns = [
     # 'usage/making_art_with_swmm.ipynb'
 ]
 
-nb_execution_mode = "cache"
+# nb_execution_mode = "cache"
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
