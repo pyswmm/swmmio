@@ -923,7 +923,7 @@ class inp(SWMMIOFile):
     @property
     def xsections(self):
         """
-        Get/set pumps section of the INP file.
+        Get/set xsections section of the INP file.
         """
         if self._xsections_df is None:
             self._xsections_df = dataframe_from_inp(self.path, "[XSECTIONS]")
