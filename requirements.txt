@@ -3,7 +3,7 @@ pytest
 Pillow==10.3.0
 numpy>=1.16.4
 pandas>=0.24.2
-pyshp==2.1.0
+pyshp==2.3.1
 geojson==2.5.0
 networkx>=2.3
 pyyaml>=3.12
