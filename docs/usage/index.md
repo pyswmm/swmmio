@@ -2,7 +2,6 @@
 
 ```{toctree}
 ---
-hidden:
 maxdepth: 2
 ---
 getting_started

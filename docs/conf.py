@@ -18,10 +18,7 @@ from datetime import datetime
 import os
 import sys
 import swmmio
-import pandas as pd
 
-pd.set_option('display.max_columns', 50)
-pd.set_option('display.max_rows', 5)
 
 sys.path.insert(0, os.path.abspath('../../swmmio'))
 
@@ -46,17 +43,38 @@ release = swmmio.__version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+# extensions = [
+#     'sphinx.ext.autodoc',
+#     'sphinx.ext.coverage',
+#     'sphinx.ext.mathjax',
+#     'sphinx.ext.viewcode',
+#     'sphinx.ext.autosummary',
+#     "IPython.sphinxext.ipython_console_highlighting",
+#     "IPython.sphinxext.ipython_directive",
+#     "myst_nb",
+# ]
+
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
-    # 'myst_parser',
+    "sphinx.ext.autosummary",
+    "sphinx.ext.autodoc",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.viewcode",
+    "sphinx_copybutton",
     "myst_nb",
+    "numpydoc",
 ]
+
+myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
+
+# sphinx-copybutton configurations
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -89,7 +107,7 @@ exclude_patterns = [
     # 'usage/making_art_with_swmm.ipynb'
 ]
 
-nb_execution_mode = "cache"
+# nb_execution_mode = "cache"
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -204,3 +222,12 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
 
+
+# lines of code to run in each jupyter notebook in the docs
+ipython_execlines = [
+    "import pandas as pd",
+    "pd.set_option('display.max_columns', 50)",
+    "pd.set_option('display.max_rows', 5)",
+]
+
+numpydoc_class_members_toctree = False

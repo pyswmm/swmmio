@@ -5,7 +5,6 @@ Reference
 .. only:: html
 
    :Release: |release|
-   :Date: |today|
 
 
 .. toctree::
