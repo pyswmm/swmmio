@@ -1,5 +1,4 @@
 from swmmio.defs.config import ROOT_DIR
-from swmmio.tests.data import MODEL_FULL_FEATURES_XY
 import json
 import pandas as pd
 from geojson import Point, LineString, Polygon, FeatureCollection, Feature
@@ -9,14 +8,27 @@ import shutil
 
 def change_crs(series, in_crs, to_crs):
     """
-    Change the projection of a series of coordinates
-    :param series:
-    :param to_crs:
-    :param in_crs:
-    :return: series of reprojected coordinates
+    Change the projection of a series of coordinates.
+
+    Parameters
+    ----------
+    series : pd.Series, pd.DataFrame, list, or tuple
+        Series of coordinates to be reprojected.
+    in_crs : str
+        The current coordinate reference system of the series.
+    to_crs : str
+        The target coordinate reference system to reproject the series to.
+
+    Returns
+    -------
+    pd.Series, pd.DataFrame, list, or tuple
+        Object with reprojected coordinates.
+
+    Examples
+    --------
     >>> import swmmio
     >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY)
-    >>> proj4_str = '+proj=tmerc +lat_0=36.16666666666666 +lon_0=-94.5 +k=0.9999411764705882 +x_0=850000 +y_0=0 +datum=NAD83 +units=us-ft +no_defs' #"+init=EPSG:102698"
+    >>> proj4_str = '+proj=tmerc +lat_0=36.16666666666666 +lon_0=-94.5 +k=0.9999411764705882 +x_0=850000 +y_0=0 +datum=NAD83 +units=us-ft +no_defs'
     >>> m.crs = proj4_str
     >>> nodes = m.nodes()
     >>> change_crs(nodes['coords'], proj4_str, "EPSG:4326")
@@ -77,11 +89,24 @@ def change_crs(series, in_crs, to_crs):
 
 def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
     """
-    Convert a series of coords (list of list(s)) to a series of geometry objects.
-    :param coords: series of lists of xy coordinates
-    :param geomtype: geometry type of target 
-    :param dtype: format of geometry objects to be created ('geojson', 'shapely')
-    :return: series of geometry objects
+    Convert a series of coordinates to a series of geometry objects.
+
+    Parameters
+    ----------
+    coords : pd.Series
+        Series of lists of xy coordinates.
+    geomtype : str, optional
+        Geometry type of target ('linestring', 'point', 'polygon'). Default is 'linestring'.
+    dtype : str, optional
+        Format of geometry objects to be created ('geojson', 'shapely'). Default is 'geojson'.
+
+    Returns
+    -------
+    pd.Series
+        Series of geometry objects.
+
+    Examples
+    --------
     >>> import swmmio
     >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
     >>> nodes = model.nodes()
@@ -113,13 +138,26 @@ def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
 
 def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
     """
-    convert dataframe with coords series to geojson format
-    :param df: target dataframe
-    :param filename: optional path of new file to contain geojson
-    :param geomtype: geometry type [linestring, point, polygon]
-    :param drop_na: whether to remove properties with None values
-    :return: geojson.FeatureCollection
+    Convert dataframe with coords series to geojson format.
 
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Target dataframe.
+    filename : str, optional
+        Path of new file to contain geojson.
+    geomtype : str, optional
+        Geometry type ('linestring', 'point', 'polygon'). Default is 'linestring'.
+    drop_na : bool, optional
+        Whether to remove properties with None values. Default is True.
+
+    Returns
+    -------
+    geojson.FeatureCollection
+        GeoJSON FeatureCollection.
+
+    Examples
+    --------
     >>> from swmmio.examples import philly
     >>> geoj = write_geojson(philly.links.dataframe, drop_na=True)
     >>> print(json.dumps(geoj['features'][0]['properties'], indent=2))
