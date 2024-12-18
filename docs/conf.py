@@ -110,6 +110,8 @@ html_theme = "pydata_sphinx_theme"
 html_theme_options = {
     "github_url": "https://github.com/pyswmm/swmmio",
     "navbar_align": "content",
+    "navigation_depth": 4,
+    "collapse_navigation": True,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
