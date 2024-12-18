@@ -10,9 +10,11 @@ Reference
 .. toctree::
    :maxdepth: 2
 
-   core
+   swmmio_model
+   swmmio_inp
+   swmmio_rpt
    elements
-   utils
+   utils/index
    graphics
    version_control
 
