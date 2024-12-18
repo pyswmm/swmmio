@@ -1,18 +1,15 @@
-utils
+graphics
 ====================
 
 .. only:: html
 
    :Release: |release|
 
-
 .. toctree::
    :maxdepth: 2
 
-   dataframes
-   functions
-   spatial
-   text
-   modify_model
+   swmm_graphics
+   drawing
+   utils
 
 .. only:: html

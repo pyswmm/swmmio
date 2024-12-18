@@ -1,4 +1,4 @@
-utils.spatial module
+spatial
 ---------------------------
 
 .. automodule:: swmmio.utils.spatial

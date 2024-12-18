@@ -15,7 +15,7 @@ Reference
    swmmio_rpt
    elements
    utils/index
-   graphics
-   version_control
+   graphics/index
+   version_control/index
 
 .. only:: html

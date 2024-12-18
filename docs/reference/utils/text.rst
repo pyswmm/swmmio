@@ -1,4 +1,4 @@
-utils.text module
+text
 ------------------------
 
 .. automodule:: swmmio.utils.text

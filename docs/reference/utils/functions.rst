@@ -1,4 +1,4 @@
-utils.functions module
+functions
 -----------------------------
 
 .. automodule:: swmmio.utils.functions

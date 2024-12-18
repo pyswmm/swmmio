@@ -1,4 +1,4 @@
-utils.modify\_model module
+modify\_model
 ---------------------------------
 
 .. automodule:: swmmio.utils.modify_model
