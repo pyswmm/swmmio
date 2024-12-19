@@ -31,7 +31,7 @@ class Model(object):
     Class representing a complete SWMM model incorporating its INP and RPT
     files and data
 
-    initialize a swmmio.Model object by pointing it to a directory containing
+    Initialize a swmmio.Model object by pointing it to a directory containing
     a single INP (and optionally an RPT file with matching filename) or by
     pointing it directly to an .inp file.
 
@@ -96,9 +96,26 @@ class Model(object):
     J1        13.392       NaN        0.0             NaN         0.0
     """
     def __init__(self, in_file_path, crs=None, include_rpt=True):
+        """
+        Initialize a swmmio.Model object by pointing it to a local INP file
+        or a URL to a remote INP file. 
+
+        Parameters
+        ----------
+        in_file_path : str
+            Path to local INP file or URL to remote INP file
+        crs : str, optional
+            String representation of a coordinate reference system, by default None
+        include_rpt : bool, optional
+            whether to include data from an RPT (if an RPT exists), by default True
+        """
 
         self.crs = None
         inp_path = None
+
+        # if the input is a URL, download it to a temp location
+        in_file_path = functions.check_if_url_and_download(in_file_path)
+
         if os.path.isdir(in_file_path):
             # a directory was passed in
             inps_in_dir = glob.glob1(in_file_path, "*.inp")
@@ -191,7 +208,6 @@ class Model(object):
         else:
             warnings = 'RPT file is not valid'
         return warnings
-
 
     def conduits(self):
         """
@@ -363,8 +379,17 @@ class Model(object):
     @property
     def subcatchments(self):
         """
-        collect all useful and available data related subcatchments and organize
-        in one dataframe.
+        Retrieve and organize data related to subcatchments into ModelSection object 
+        which provides pandas.DataFrame and GeoPandas.GeoDataFrame accessors.
+
+        Returns
+        -------
+        swmmio.elements.ModelSection
+
+        Examples
+        --------
+        >>> from swmmio.examples import jersey
+        >>> jersey.subcatchments.dataframe # doctest: +SKIP
         """
         if self._subcatchments_df is not None:
             return self._subcatchments_df
@@ -396,7 +421,8 @@ class Model(object):
         :param target_crs: coordinate reference system to reproject
         :return: True
 
-        >>> import swmmio
+        Examples
+        --------
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
@@ -468,7 +494,18 @@ class Model(object):
         spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
 
     @property
-    def summary(self):
+    def summary(self) -> dict:
+        """
+        Summary statistics of the SWMM model. 
+
+        Returns
+        -------
+        dict
+
+        See Also
+        --------
+        swmmio.utils.functions.summarize_model
+        """
         if self._summary is None:
             model_summary = functions.summarize_model(self)
             self._summary = model_summary
@@ -906,7 +943,7 @@ class inp(SWMMIOFile):
     @property
     def xsections(self):
         """
-        Get/set pumps section of the INP file.
+        Get/set xsections section of the INP file.
         """
         if self._xsections_df is None:
             self._xsections_df = dataframe_from_inp(self.path, "[XSECTIONS]")

@@ -1,6 +1,11 @@
 import warnings
 import pandas as pd
 import networkx as nx
+import os
+from urllib.parse import urlparse
+import tempfile
+
+import requests
 
 from swmmio.utils import error
 
@@ -121,7 +126,25 @@ def trim_section_to_nodes(inp, node_ids=None, node_type='junctions', drop=True):
 
 def rotate_model(m, rads=0.5, origin=None):
     """
-    rotate a model (its coordinates)
+    Rotate a model's coordinates by a specified angle around a given origin.
+
+    Parameters
+    ----------
+    m : swmmio.Model
+        The model whose coordinates are to be rotated.
+    rads : float, optional
+        The angle in radians by which to rotate the model. Default is 0.5 radians.
+    origin : tuple of float, optional
+        The (x, y) coordinates of the point around which to rotate the model. 
+        If not provided, the origin defaults to (0, 0).
+
+    Returns
+    -------
+    swmmio.Model
+        The model with its coordinates rotated.
+
+    Examples
+    --------
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY_B
     >>> import swmmio
     >>> mb = swmmio.Model(MODEL_FULL_FEATURES_XY_B)
@@ -276,7 +299,30 @@ def find_network_trace(model, start_node, end_node,
 
     return path_selection
 
-def summarize_model(model):
+def summarize_model(model) -> dict:
+    """
+    Summarize a SWMM model by calculating various statistics and counts of elements.
+    
+    Parameters
+    ----------
+    model : swmmio.core.Model
+        An instance of a SWMM model containing input data (inp) and nodes.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing the summary of the model with the following keys:
+
+        - 'num_subcatchments': int, number of subcatchments in the model.
+        - 'num_conduits': int, number of conduits in the model.
+        - 'num_junctions': int, number of junctions in the model.
+        - 'num_outfalls': int, number of outfalls in the model.
+        - 'num_raingages': int, number of raingages in the model.
+        - 'catchment_area': float, total area of subcatchments (if subcatchments exist).
+        - 'mean_subcatchment_slope': float, mean slope of subcatchments weighted by area (if subcatchments exist).
+        - 'total_conduit_length': float, total length of conduits (if conduits exist).
+        - 'invert_range': float, range of invert elevations of nodes (if nodes exist).
+    """
     model_summary = dict()
 
     # numbers of elements
@@ -297,3 +343,38 @@ def summarize_model(model):
     if len(model.nodes.dataframe) != 0:
         model_summary['invert_range'] = model.nodes().InvertElev.max() - model.nodes().InvertElev.min()
     return model_summary
+
+
+def check_if_url_and_download(url):
+    """
+    Check if a given string is a URL and download the 
+    file to a temporary directory if it is.
+
+    Parameters
+    ----------
+    url : str
+        string that may be a URL
+
+    Returns
+    -------
+    str
+        path to the downloaded file in the temporary directory or 
+        the original string if it is not a URL
+    """
+
+    if url.startswith(('http://', 'https://')):
+        r = requests.get(url)
+
+        # get the filename from the url
+        parsed_url = urlparse(url)
+        filename = parsed_url.path.split('/')[-1]
+
+        temp_path = os.path.join(tempfile.gettempdir(), filename)
+        with open(temp_path, 'wb') as f:
+            if r.status_code == 200:
+                f.write(r.content)
+            else:
+                raise Exception(f"Failed to download file: {r.status_code}")
+        return temp_path
+    else:
+        return url

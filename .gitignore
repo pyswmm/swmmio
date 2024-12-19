@@ -1,6 +1,5 @@
 *.pyc
 private.py
-*.ipynb*
 private/
 # Setuptools distribution folder.
 /dist/
