@@ -209,7 +209,6 @@ class Model(object):
             warnings = 'RPT file is not valid'
         return warnings
 
-    @property
     def conduits(self):
         """
         collect all useful and available data related model conduits and
