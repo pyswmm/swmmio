@@ -213,3 +213,9 @@ epub_exclude_files = ['search.html']
 
 
 numpydoc_class_members_toctree = False
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    "pyswmm": ("https://pyswmm.github.io/pyswmm/", None),
+}
