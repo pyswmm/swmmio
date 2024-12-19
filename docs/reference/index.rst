@@ -5,16 +5,17 @@ Reference
 .. only:: html
 
    :Release: |release|
-   :Date: |today|
 
 
 .. toctree::
    :maxdepth: 2
 
-   core
+   swmmio_model
+   swmmio_inp
+   swmmio_rpt
    elements
-   utils
-   graphics
-   version_control
+   utils/index
+   graphics/index
+   version_control/index
 
 .. only:: html

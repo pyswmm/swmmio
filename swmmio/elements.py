@@ -84,6 +84,7 @@ class ModelSection(object):
         # concat inp sections with unique element IDs
         headers = get_inp_sections_details(self.inp.path)
         dfs = [dataframe_from_inp(self.inp.path, sect) for sect in self.inp_sections if sect.upper() in headers]
+        dfs = list(filter(lambda x: not x.empty, dfs))  # remove empty dfs
 
         # return empty df if no inp sections found
         if len(dfs) == 0:

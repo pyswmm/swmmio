@@ -74,7 +74,20 @@ class BuildInstructions(object):
 
     def save(self, dir, filename):
         """
-        save the current BuildInstructions instance to file (human readable)
+        Save the current BuildInstructions instance to a file in a human-readable format.
+
+        Parameters
+        ----------
+        dir : str
+            The directory where the file will be saved. If the directory does not exist, it will be created.
+        filename : str
+            The name of the file to save the BuildInstructions instance to.
+
+        Notes
+        -----
+        This method writes metadata and instructions to the specified file. The instructions are written
+        by concatenating the removed, altered, and added changes for each section and then writing them
+        to the file.
         """
         if not os.path.exists(dir):
             os.makedirs(dir)

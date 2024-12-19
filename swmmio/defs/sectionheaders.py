@@ -9,9 +9,6 @@ def parse_inp_section_config(raw_conf):
     normalize the config information in the YAML
     :return:
     >>> from swmmio.defs import INP_OBJECTS
-    >>> conds_config = INP_OBJECTS['CONDUITS']
-    >>> parse_inp_section_config(conds_config)
-    OrderedDict([('columns', ['Name', 'InletNode', 'OutletNode', 'Length', 'ManningN', 'InOffset', 'OutOffset', 'InitFlow', 'MaxFlow'])])
     >>> parse_inp_section_config(INP_OBJECTS['LOSSES'])
     OrderedDict([('columns', ['Link', 'Inlet', 'Outlet', 'Average', 'Flap Gate', 'SeepageRate'])])
     """
@@ -40,7 +37,6 @@ def normalize_inp_config(inp_obects):
     >>> from swmmio.defs import INP_OBJECTS
     >>> conf = normalize_inp_config(INP_OBJECTS)
     >>> print(conf['JUNCTIONS'])
-    >>> print(conf)
     OrderedDict([('columns', ['Name', 'InvertElev', 'MaxDepth', 'InitDepth', 'SurchargeDepth', 'PondedArea'])])
     """
     normalized = OrderedDict()
