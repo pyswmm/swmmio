@@ -31,7 +31,7 @@ class Model(object):
     Class representing a complete SWMM model incorporating its INP and RPT
     files and data
 
-    initialize a swmmio.Model object by pointing it to a directory containing
+    Initialize a swmmio.Model object by pointing it to a directory containing
     a single INP (and optionally an RPT file with matching filename) or by
     pointing it directly to an .inp file.
 
@@ -209,7 +209,7 @@ class Model(object):
             warnings = 'RPT file is not valid'
         return warnings
 
-
+    @property
     def conduits(self):
         """
         collect all useful and available data related model conduits and
@@ -380,8 +380,17 @@ class Model(object):
     @property
     def subcatchments(self):
         """
-        collect all useful and available data related subcatchments and organize
-        in one dataframe.
+        Retrieve and organize data related to subcatchments into ModelSection object 
+        which provides pandas.DataFrame and GeoPandas.GeoDataFrame accessors.
+
+        Returns
+        -------
+        swmmio.elements.ModelSection
+
+        Examples
+        --------
+        >>> from swmmio.examples import jersey
+        >>> jersey.subcatchments.dataframe # doctest: +SKIP
         """
         if self._subcatchments_df is not None:
             return self._subcatchments_df
@@ -413,7 +422,8 @@ class Model(object):
         :param target_crs: coordinate reference system to reproject
         :return: True
 
-        >>> import swmmio
+        Examples
+        --------
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
@@ -485,7 +495,18 @@ class Model(object):
         spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
 
     @property
-    def summary(self):
+    def summary(self) -> dict:
+        """
+        Summary statistics of the SWMM model. 
+
+        Returns
+        -------
+        dict
+
+        See Also
+        --------
+        swmmio.utils.functions.summarize_model
+        """
         if self._summary is None:
             model_summary = functions.summarize_model(self)
             self._summary = model_summary

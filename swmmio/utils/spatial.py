@@ -26,12 +26,10 @@ def change_crs(series, in_crs, to_crs):
 
     Examples
     --------
-    >>> import swmmio
-    >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY)
+    >>> from swmmio.examples import jersey
     >>> proj4_str = '+proj=tmerc +lat_0=36.16666666666666 +lon_0=-94.5 +k=0.9999411764705882 +x_0=850000 +y_0=0 +datum=NAD83 +units=us-ft +no_defs'
-    >>> m.crs = proj4_str
-    >>> nodes = m.nodes()
-    >>> change_crs(nodes['coords'], proj4_str, "EPSG:4326")
+    >>> jersey.crs = proj4_str
+    >>> change_crs(jersey.nodes.dataframe['coords'], proj4_str, "EPSG:4326")
     Name
     J3    [(39.236286854940964, -94.64346373821752)]
     1      [(39.23851590020802, -94.64756446847099)]
@@ -109,7 +107,7 @@ def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
     --------
     >>> import swmmio
     >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
-    >>> nodes = model.nodes()
+    >>> nodes = model.nodes.dataframe
     >>> geoms = coords_series_to_geometry(nodes['coords'], geomtype='point')
     >>> geoms.iloc[0]
     {"coordinates": [2748073.3060000003, 1117746.087], "type": "Point"}
