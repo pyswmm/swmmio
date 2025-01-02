@@ -8,7 +8,7 @@ _Programmatic pre and post processing for EPA Stormwater Management Model (SWMM)
 [![Documentation Status](https://readthedocs.org/projects/swmmio/badge/?version=latest)](https://swmmio.readthedocs.io/en/latest/?badge=latest)
 
 
-![weird-abstract-image](docs/_static/img/swmm-zoom-graphic.png)
+![image](_static/img/flooded_anno_example.png)
 
 
 ## Introduction
