@@ -42,6 +42,7 @@ install_requires = [
     'pyyaml>=3.12',
     'pyproj>=3.0.0',
     'requests>=2.32.3',
+    'typing_extensions>=4.12.2',
 ]
 
 tests_require = [

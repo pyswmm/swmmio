@@ -8,6 +8,7 @@ geojson==2.5.0
 networkx>=2.3
 pyyaml>=3.12
 requests==2.32.3
+typing_extensions==4.12.2
 
 # Run dependencies
 pyproj>=3.0.0
