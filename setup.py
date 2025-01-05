@@ -35,12 +35,14 @@ install_requires = [
     'Pillow>=6.2.0',
     'numpy>=1.16.4',
     'pandas>=0.24.2',
-    'pyshp==2.1.0',
+    'pyshp>=2.1.0',
     'geojson>=2.4.1',
     "networkx>=2.3,<2.8.1;python_version<'3.8'",
     "networkx>=2.3;python_version>='3.8'",
     'pyyaml>=3.12',
-    'pyproj>=3.0.0'
+    'pyproj>=3.0.0',
+    'requests>=2.32.3',
+    'typing_extensions>=4.12.2',
 ]
 
 tests_require = [

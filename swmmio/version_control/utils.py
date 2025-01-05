@@ -6,19 +6,31 @@ import shutil
 from swmmio.utils.functions import format_inp_section_header
 
 
-def copy_rpts_hsf(from_dir, to_dir, search_dir):
+def copy_rpts_hsf(from_dir: str, to_dir: str, search_dir: str):
+    
     """
-    walk through a directory and find all rpts and hot start files and copy to
-    another location based on the relative path from the to_dir.
+    Walk through a directory and find all .rpt and hot start (.hsf) files and copy them to
+    another location based on the relative path from the `to_dir`.
 
-    ex:
-        to_directory = r'P:\02_Projects\SouthPhila\SE_SFR\MasterModels'
-        from_dir = r'F:\models\SPhila\MasterModels_170104'
-        search_dir = r'F:\models\SPhila\MasterModels_170104\Combinations'
-        copy_rpts_hsf(from_dir, to_dir, search_dir)
+    Parameters
+    ----------
+    from_dir : str
+        The source directory from which the relative path is derived.
+    to_dir : str
+        The destination directory where the files will be copied.
+    search_dir : str
+        The directory to search for .rpt and .hsf files.
 
+    Examples
+    --------
+    >>> to_directory = r'P:\\02_Projects\\SouthPhila\\SE_SFR\\MasterModels'
+    >>> from_dir = r'F:\\models\\SPhila\\MasterModels_170104'
+    >>> search_dir = r'F:\\models\\SPhila\\MasterModels_170104\\Combinations'
+    >>> copy_rpts_hsf(from_dir, to_dir, search_dir)
 
-    Good for model results written on a local drive to a network drive
+    Notes
+    -----
+    This function is useful for copying model results written on a local drive to a network drive.
     """
 
     # chain.from_iterable(os.walk(path) for path in paths):

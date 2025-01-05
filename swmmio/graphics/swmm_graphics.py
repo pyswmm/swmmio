@@ -38,35 +38,42 @@ def _draw_basemap(draw, img, bbox, px_width, shift_ratio):
 
 def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
                annotation=None, file_path=None, bbox=None, px_width=2048.0):
-    """create a png rendering of the model and model results.
+    """
+    Create a PNG rendering of the model and model results.
 
-    A swmmio.Model object can be passed in independently, or Pandas Dataframes
-    for the nodes and conduits of a model may be passed in. A dataframe containing
-    parcel data can optionally be passed in.
+    Notes
+    -----
+    A swmmio.Model object can be passed in independently, or Pandas Dataframes 
+    for the nodes and conduits of a model may be passed in. 
+    A dataframe containing parcel data can optionally be passed in.
 
-    model -> swmmio.Model object
+    Parameters
+    ----------
+    model : swmmio.Model, optional
+        A swmmio.Model object.
+    nodes : pandas.DataFrame, optional
+        DataFrame for the nodes of a model. Required if model is not provided.
+    conduits : pandas.DataFrame, optional
+        DataFrame for the conduits of a model. Required if model is not provided.
+    parcels : pandas.DataFrame, optional
+        DataFrame containing parcel data.
+    title : str, optional
+        String to be written in the top left of the PNG.
+    annotation : str, optional
+        String to be written in the bottom left of the PNG.
+    file_path : str, optional
+        File path where PNG should be saved. If not specified, a PIL Image object is returned.
+    bbox : tuple of tuple of float, optional
+        Coordinates representing the bottom left and top right corner of a bounding box.
+        The rendering will be clipped to this box. If not provided, the rendering will clip
+        tightly to the model extents. Example: ((2691647, 221073), (2702592, 227171)).
+    px_width : float, optional
+        Width of the image in pixels. Default is 2048.0.
 
-    nodes -> Pandas Dataframe (optional, if model not provided)
-
-    conduits -> Pandas Dataframe (optional, if model not provided)
-
-    parcels - > Pandas Dataframe (optional)
-
-    title -> string, to be written in top left of PNG
-
-    annotation -> string, to be written in bottom left of PNG
-
-    file_path -> stirng, file path where png should be drawn. if not specified,
-        a PIL Image object is return (nice for IPython notebooks)
-
-    bbox -> tuple of coordinates representing bottom left and top right corner
-        of a bounding box. the rendering will be clipped to this box. If not
-        provided, the rendering will clip tightly to the model extents
-        e.g. bbox = ((2691647, 221073),    (2702592, 227171))
-
-        Note: this hasn't been tested with anything other than PA StatePlane coords
-
-    px_width -> float, width of image in pixels
+    Returns
+    -------
+    PIL.Image.Image
+        The rendered image.
     """
 
     # gather the nodes and conduits data if a swmmio Model object was passed in
@@ -116,7 +123,33 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
 
 def create_map(model=None, filename=None, basemap=None, auto_open=False):
     """
-    export model as a geojson object
+    Export model as a geojson object and create an HTML map.
+
+    Parameters
+    ----------
+    model : object, optional
+        The model object to be exported. Must have a valid CRS (Coordinate Reference System).
+    filename : str, optional
+        The filename for the output HTML file. If None, a temporary file will be created.
+    basemap : str, optional
+        The path to the basemap file. If None, a default basemap path will be used.
+    auto_open : bool, optional
+        If True, the generated HTML file will be automatically opened in a web browser.
+
+    Returns
+    -------
+    str
+        The content of the generated HTML file if `filename` is None, otherwise returns an empty string.
+
+    Raises
+    ------
+    ValueError
+        If the model object does not have a valid CRS.
+
+    Notes
+    -----
+    The function reads a basemap file and inserts geojson data of the model's links and nodes into it.
+    It also sets the map's center and bounding box based on the model's coordinates.
     """
 
     import geojson

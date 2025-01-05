@@ -225,13 +225,26 @@ def find_byte_range_of_section(path, start_string):
 
 def get_inp_sections_details(inp_path, include_brackets=False):
     """
-    creates a dictionary with all the headers found in an INP file
+    Creates a dictionary with all the headers found in an INP file
     (which varies based on what the user has defined in a given model)
     and updates them based on the definitions in inp_header_dict
-    this ensures the list is comprehensive
-    :param inp_path:
-    :param include_brackets: whether to parse sections including the []
-    :return: OrderedDict
+    to ensure the list is comprehensive.
+
+    Parameters
+    ----------
+    inp_path : str
+        Path to the INP file.
+    include_brackets : bool, optional
+        Whether to parse sections including the brackets ([]). Default is False.
+
+    Returns
+    -------
+    OrderedDict
+        An ordered dictionary with section headers as keys and their 
+        corresponding details.
+
+    Examples
+    --------
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> headers = get_inp_sections_details(MODEL_FULL_FEATURES_XY)
     >>> [header for header, cols in headers.items()][:4]
@@ -283,14 +296,20 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     return found_sects
 
 
-def get_rpt_sections_details(rpt_path):
+def get_rpt_sections_details(rpt_path: str):
     """
+    Extracts and returns the details of sections from a SWMM report file.
 
-    :param rpt_path:
-    :param include_brackets:
-    :return:
-    # >>> MODEL_FULL_FEATURES__NET_PATH
+    Parameters
+    ----------
+    rpt_path : str
+        The file path to the SWMM report file.
 
+    Returns
+    -------
+    OrderedDict
+        An ordered dictionary where the keys are section headers found in the report file
+        and the values are the corresponding details as defined in the RPT_OBJECTS.
     """
     from swmmio.defs import RPT_OBJECTS
     found_sects = OrderedDict()

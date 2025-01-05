@@ -19,6 +19,7 @@ import os
 import sys
 import swmmio
 
+
 sys.path.insert(0, os.path.abspath('../../swmmio'))
 
 # -- Project information -----------------------------------------------------
@@ -43,13 +44,26 @@ release = swmmio.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.autosummary',
-    'myst_parser',
+    "sphinx.ext.autosummary",
+    "sphinx.ext.autodoc",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.todo",
+    "sphinx.ext.coverage",
+    "sphinx.ext.viewcode",
+    "sphinx_copybutton",
+    "myst_nb",
+    "numpydoc",
 ]
+
+myst_enable_extensions = ["colon_fence"]
+myst_heading_anchors = 3
+
+# sphinx-copybutton configurations
+copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -59,7 +73,9 @@ templates_path = ['_templates']
 #
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    '.md': 'myst-nb',
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
 }
 
 # The master toctree document.
@@ -75,7 +91,12 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = [
+    # 'usage/visualizing_models.ipynb', 
+    # 'usage/making_art_with_swmm.ipynb'
+]
+
+# nb_execution_mode = "cache"
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -93,7 +114,12 @@ html_theme = "pydata_sphinx_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "github_url": "https://github.com/pyswmm/swmmio",
+    "navbar_align": "content",
+    "navigation_depth": 4,
+    "collapse_navigation": True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -185,3 +211,11 @@ epub_title = project
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
 
+
+numpydoc_class_members_toctree = False
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    "pyswmm": ("https://pyswmm.github.io/pyswmm/", None),
+}

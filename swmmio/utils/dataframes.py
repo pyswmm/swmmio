@@ -209,8 +209,10 @@ def get_link_coords(row, nodexys, verticies):
 def get_inp_options_df(inp_path):
     """
     Parse ONLY the OPTIONS section of the inp file into a dataframe
+    
     :param inp_path: path to inp file
     :return: pandas.DataFrame
+
     >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
     >>> ops = get_inp_options_df(MODEL_FULL_FEATURES_XY)
     >>> ops[:3]

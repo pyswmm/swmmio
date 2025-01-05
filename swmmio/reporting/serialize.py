@@ -1,7 +1,7 @@
 # READ/WRITE REPORTS AS JSON
 import json
 import pandas as pd
-from pandas.io.json import json_normalize
+from pandas import json_normalize
 from swmmio.utils import spatial
 from swmmio.graphics import swmm_graphics as sg
 
