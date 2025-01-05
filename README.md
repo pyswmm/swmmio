@@ -1,5 +1,5 @@
 # swmmio
-*v0.7.3 (2024/12/02)*
+*v0.8.0 (2025/01/05)*
 
 _Programmatic pre and post processing for EPA Stormwater Management Model (SWMM)_
 
@@ -8,7 +8,7 @@ _Programmatic pre and post processing for EPA Stormwater Management Model (SWMM)
 [![Documentation Status](https://readthedocs.org/projects/swmmio/badge/?version=latest)](https://swmmio.readthedocs.io/en/latest/?badge=latest)
 
 
-![image](_static/img/flooded_anno_example.png)
+![image](docs/_static/img/flooded_anno_example.png)
 
 
 ## Introduction

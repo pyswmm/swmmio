@@ -1,3 +1,10 @@
+## Version 0.8.0 (2025/01/05)
+
+### What's Changed
+* Overhaul of the documentation that better organizes the API reference documentation, adds a User Guide with examples (including some silly examples), and provides a more concise introduction [PR235](https://github.com/pyswmm/swmmio/pull/235)
+* Added ability to instantiate a swmmio.Model object with a url to a INP file somewhere on the network
+* Upgrades and loosens the pyshp dependency in requiements.txt and setup.py, respectively. [PR236](https://github.com/pyswmm/swmmio/pull/236)
+
 ## Version 0.7.3 (2024/12/02)
 
 ### What's Changed
