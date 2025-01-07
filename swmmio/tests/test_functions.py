@@ -6,7 +6,8 @@ import swmmio
 from swmmio.tests.data import (MODEL_FULL_FEATURES__NET_PATH,
                                OWA_RPT_EXAMPLE, RPT_FULL_FEATURES,
                                MODEL_EX_1_PARALLEL_LOOP, MODEL_EX_1)
-from swmmio.utils.functions import format_inp_section_header, find_network_trace, check_if_url_and_download
+from swmmio.utils.functions import (format_inp_section_header, find_network_trace, 
+                                    check_if_url_and_download, model_to_networkx)
 from swmmio.utils import error
 from swmmio.utils.text import get_rpt_metadata
 
@@ -51,6 +52,12 @@ def test_model_to_networkx():
     links = m.links.dataframe
     assert(len(links) == len(G.edges()))
 
+def test_model_to_networkx_crs():
+    m = swmmio.Model(MODEL_FULL_FEATURES__NET_PATH, crs="EPSG:4326")
+    G = model_to_networkx(m)
+
+    assert 'crs' in G.graph
+    assert G.graph['crs'] == m.crs
 
 def test_network_trace_loop():
     m = swmmio.Model(MODEL_EX_1_PARALLEL_LOOP)

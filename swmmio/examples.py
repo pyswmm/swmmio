@@ -5,7 +5,7 @@ from swmmio.tests.data import (MODEL_A_PATH, MODEL_EX_1, MODEL_FULL_FEATURES_XY,
                                MODEL_PUMP_CONTROL)
 
 # example models
-philly = Model(MODEL_A_PATH, crs="+init=EPSG:2817")
+philly = Model(MODEL_A_PATH, crs="EPSG:2817")
 jersey = Model(MODEL_FULL_FEATURES_XY)
 jerzey = Model(MODEL_FULL_FEATURES_XY_B)
 spruce = Model(MODEL_FULL_FEATURES__NET_PATH)
