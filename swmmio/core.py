@@ -651,6 +651,7 @@ class inp(SWMMIOFile):
         self._inlet_usage_df = None
         self._patterns_df = None
         self._controls_df = None
+        self._symbols_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -698,6 +699,7 @@ class inp(SWMMIOFile):
             '[INLET_USAGE]',
             '[PATTERNS]',
             '[CONTROLS]',
+            '[SYMBOLS]',
         ]
 
     def save(self, target_path=None):
@@ -1787,12 +1789,37 @@ class inp(SWMMIOFile):
         if self._inlet_usage_df is None:
             self._inlet_usage_df = dataframe_from_inp(self.path, "[INLET_USAGE]")
         return self._inlet_usage_df
-
+    
     @inlet_usage.setter
     def inlet_usage(self, df):
         """Set inp.inlet_usage DataFrame."""
         self._inlet_usage_df = df
 
+    @property
+    def symbols(self):
+        """
+        Get/set symbols section of INP file.
+
+        Section: [SYMBOLS]
+        Purpose: Assigns X, Y coordinates to rain gage symbols.
+        Columns: 
+            - Name: name of rain gage.
+            - X: horizontal coordinate relative to origin in lower left of map.
+            - Y: vertical coordinate relative to origin in lower left of map
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
+        if self._symbols_df is not None:
+            return self._symbols_df
+        self._symbols_df = dataframe_from_inp(self.path, "[SYMBOLS]")
+        return self._symbols_df
+
+    @symbols.setter
+    def symbols(self, df):
+        """Set inp.symbols DataFrame."""
+        self._symbols_df = df
 
 def drop_invalid_model_elements(inp):
     """

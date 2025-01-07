@@ -263,6 +263,20 @@ def test_polygons(test_model_02):
 
     # print()
 
+def test_symbols():
+    data = {
+        "Name": ["GAGE1"],
+        "X": [361.632],
+        "Y": [267.406]
+    }
+    symbols1 = pd.DataFrame(data)
+    symbols1.set_index('Name', inplace=True)
+
+    m = swmmio.Model(MODEL_GREEN_AMPT)
+    symbols2 = m.inp.symbols
+
+    assert symbols1.equals(symbols2)
+
 def test_inp_sections():
     
     # Additional models could be added to this test, or additional features 
