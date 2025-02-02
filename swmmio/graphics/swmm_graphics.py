@@ -121,7 +121,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     return img
 
 
-def create_map(model=None, filename=None, basemap=None, auto_open=False):
+def create_map(model=None, filename=None, basemap=None, auto_open=False, links_geojson=False, nodes_geojson=False):
     """
     Export model as a geojson object and create an HTML map.
 
@@ -135,6 +135,10 @@ def create_map(model=None, filename=None, basemap=None, auto_open=False):
         The path to the basemap file. If None, a default basemap path will be used.
     auto_open : bool, optional
         If True, the generated HTML file will be automatically opened in a web browser.
+    links_geojson : str, optional
+        A custon links GeoJSON string for writing to the HTML file.  If none the default {geojson.dumps(model.links.geojson)} is used
+    nodes_geojson : str, optional
+        A custon nodes GeoJSON string for writing to the HTML file.  If none the default {geojson.dumps(model.nodes.geojson)} is used
 
     Returns
     -------
@@ -167,20 +171,24 @@ def create_map(model=None, filename=None, basemap=None, auto_open=False):
     # get map centroid and bbox
     c, bbox = centroid_and_bbox_from_coords(model.inp.coordinates)
 
-    # start writing that thing
     with open(basemap, 'r') as bm:
         with open(filename, 'w') as newmap:
             for line in bm:
                 if 'INSERT GEOJSON HERE' in line:
-                    newmap.write(f'conduits = {geojson.dumps(model.links.geojson)}\n')
-                    newmap.write(f'nodes = {geojson.dumps(model.nodes.geojson)}\n')
+                    if links_geojson is None:
+                        newmap.write(f'conduits = {geojson.dumps(model.links.geojson)}\n')
+                    else:
+                        newmap.write(f'conduits = {links_geojson}\n')
+                    if nodes_geojson is None:
+                        newmap.write(f'nodes = {geojson.dumps(model.nodes.geojson)}\n')
+                    else:
+                        newmap.write(f'nodes = {nodes_geojson}\n')
                 elif '// INSERT MAP CENTER HERE' in line:
                     newmap.write('\tcenter:[{}, {}],\n'.format(c[0], c[1]))
                 elif '// INSERT BBOX HERE' in line and bbox is not None:
                     newmap.write(f'\tmap.fitBounds([[{bbox[0]}, {bbox[1]}], [{bbox[2]}, {bbox[3]}]]);\n')
                 else:
                     newmap.write(line)
-
     if return_html:
         with open(filename, 'r') as f:
             return f.read()
