@@ -640,6 +640,7 @@ class inp(SWMMIOFile):
         self._inlet_usage_df = None
         self._patterns_df = None
         self._controls_df = None
+        self._labels_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -687,6 +688,7 @@ class inp(SWMMIOFile):
             '[INLET_USAGE]',
             '[PATTERNS]',
             '[CONTROLS]',
+            '[LABELS]',
         ]
 
     def save(self, target_path=None):
@@ -1781,6 +1783,43 @@ class inp(SWMMIOFile):
     def inlet_usage(self, df):
         """Set inp.inlet_usage DataFrame."""
         self._inlet_usage_df = df
+
+    @property   
+    def labels(self):
+        """
+        Get/set labels section of the INP file.
+
+        Returns
+        -------
+        pandas.DataFrame
+
+        Examples
+        --------
+        Access the labels section of the inp file
+
+        >>> from swmmio.examples import streets
+        >>> streets.inp.labels #doctest: +NORMALIZE_WHITESPACE
+                    Ycoord    Label  ... Size  Bold
+        Xcoord                       ...           
+        145.274   1129.896       S1  ...    0     0
+        758.404    969.723       S2  ...    0     0
+        247.369    666.226       S3  ...    0     0
+        628.971    458.688       S4  ...    0     0
+        952.552    257.845       S5  ...    0     0
+        827.947     56.930       S6  ...    0     0
+        1073.058   780.037       S7  ...    0     0
+        1385.481   454.225  Outfall  ...    1     0
+        <BLANKLINE>
+        [8 rows x 6 columns]
+        """
+        if self._labels_df is None:
+            self._labels_df = dataframe_from_inp(self.path, "[LABELS]")
+        return self._labels_df
+    
+    @labels.setter
+    def labels(self, df):
+        """Set inp.labels DataFrame."""
+        self._labels_df = df
 
 
 def drop_invalid_model_elements(inp):
