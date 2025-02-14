@@ -121,7 +121,7 @@ def draw_model(model=None, nodes=None, conduits=None, parcels=None, title=None,
     return img
 
 
-def create_map(model=None, filename=None, basemap=None, auto_open=False, links_geojson=False, nodes_geojson=False):
+def create_map(model=None, filename=None, basemap=None, auto_open=False, links_geojson=None, nodes_geojson=None):
     """
     Export model as a geojson object and create an HTML map.
 
