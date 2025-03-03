@@ -7,7 +7,8 @@ from swmmio.tests.data import (MODEL_FULL_FEATURES_PATH, MODEL_FULL_FEATURES__NE
                                MODEL_FULL_FEATURES_XY, DATA_PATH, MODEL_XSECTION_ALT_03,
                                MODEL_CURVE_NUMBER, MODEL_MOD_HORTON, MODEL_GREEN_AMPT, MODEL_MOD_GREEN_AMPT,
                                MODEL_INFILTRAION_PARSE_FAILURE, OWA_RPT_EXAMPLE,
-                               MODEL_TEST_INLET_DRAINS, MODEL_PUMP_CONTROL)
+                               MODEL_TEST_INLET_DRAINS, MODEL_PUMP_CONTROL,
+                               MODEL_NODES_INTEGER_NAMES)
 from swmmio.utils.dataframes import (dataframe_from_rpt, dataframe_from_inp, dataframe_from_bi)
 from swmmio.utils.text import get_inp_sections_details
 from swmmio.run_models.run import run_simple
@@ -85,6 +86,12 @@ def test_conduits_dataframe(test_model_01):
     conduits = m.conduits()
     assert (list(conduits.index) == ['C1:C2'])
 
+    #Inlet/Outlet node ID not transformed to real when they are exclusively integers
+    m = swmmio.Model(MODEL_NODES_INTEGER_NAMES)
+    conduits = m.conduits()
+    assert(conduits.loc["1"].InletNode == "1")
+    assert(conduits.loc["1"].OutletNode == "2")
+
 
 @pytest.mark.uses_geopandas
 def test_pumps_composite(test_model_01):
@@ -123,6 +130,11 @@ def test_nodes_dataframe():
     assert (nodes.loc['dummy_node3', 'coords'] == [(-4205.457, 9695.024)])
     assert (nodes.loc['dummy_node4', 'MaxDepth'] == 12.59314)
     assert (nodes.loc['dummy_node5', 'PondedArea'] == 73511)
+
+    #ID not changed to real when names are exclusively integers
+    m = swmmio.Model(MODEL_NODES_INTEGER_NAMES)
+    nodes = m.nodes()
+    assert (list(nodes.index) == ["1", "2", "3"])
 
 
 def test_infiltration_section():
