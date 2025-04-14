@@ -80,6 +80,7 @@ inp_file_objects:
   INLET_USAGE: [Link, Inlet, Node, Number, "%Clogged", Qmax, aLocal, wLocal, Placement]
   PATTERNS: [Name, Type, Factors]
   CONTROLS: [blob]
+  SYMBOLS: [Name, X, Y]
 
 inp_section_tags:
   ['[TITLE', '[OPTION', '[FILE', '[RAINGAGES', '[TEMPERATURE', '[EVAP',

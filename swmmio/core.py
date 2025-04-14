@@ -4,6 +4,7 @@
 from time import ctime
 import os
 import glob
+from pyproj import CRS
 
 import pandas as pd
 import numpy as np
@@ -104,13 +105,15 @@ class Model(object):
         ----------
         in_file_path : str
             Path to local INP file or URL to remote INP file
-        crs : str, optional
-            String representation of a coordinate reference system, by default None
+        crs : pyproj.CRS, optional
+            Coordinate Reference System of the geometry objects. Can be anything accepted by
+            :meth:`pyproj.CRS.from_user_input() <pyproj.crs.CRS.from_user_input>`,
+            such as an authority string (eg "EPSG:4326") or a WKT string.
         include_rpt : bool, optional
             whether to include data from an RPT (if an RPT exists), by default True
         """
 
-        self.crs = None
+        self._crs = None
         inp_path = None
 
         # if the input is a URL, download it to a temp location
@@ -135,7 +138,7 @@ class Model(object):
             self.rpt = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
             self.scenario = ''  # self._get_scenario()
-            self.crs = crs  # coordinate reference system
+            self._crs = CRS.from_user_input(crs) if crs else None # coordinate reference system
 
             # try to initialize a companion RPT object
             rpt_path = os.path.join(wd, name + '.rpt')
@@ -257,6 +260,14 @@ class Model(object):
         self._conduits_df = df
 
         return df
+
+    @property
+    def crs(self):
+        return self._crs
+
+    @crs.setter
+    def crs(self, value):
+        self._crs = CRS.from_user_input(value) if value else None
 
     @property
     def orifices(self):
@@ -640,6 +651,7 @@ class inp(SWMMIOFile):
         self._inlet_usage_df = None
         self._patterns_df = None
         self._controls_df = None
+        self._symbols_df = None
 
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
@@ -687,6 +699,7 @@ class inp(SWMMIOFile):
             '[INLET_USAGE]',
             '[PATTERNS]',
             '[CONTROLS]',
+            '[SYMBOLS]',
         ]
 
     def save(self, target_path=None):
@@ -1776,12 +1789,37 @@ class inp(SWMMIOFile):
         if self._inlet_usage_df is None:
             self._inlet_usage_df = dataframe_from_inp(self.path, "[INLET_USAGE]")
         return self._inlet_usage_df
-
+    
     @inlet_usage.setter
     def inlet_usage(self, df):
         """Set inp.inlet_usage DataFrame."""
         self._inlet_usage_df = df
 
+    @property
+    def symbols(self):
+        """
+        Get/set symbols section of INP file.
+
+        Section: [SYMBOLS]
+        Purpose: Assigns X, Y coordinates to rain gage symbols.
+        Columns: 
+            - Name: name of rain gage.
+            - X: horizontal coordinate relative to origin in lower left of map.
+            - Y: vertical coordinate relative to origin in lower left of map
+
+        Returns
+        -------
+        pandas.DataFrame
+        """
+        if self._symbols_df is not None:
+            return self._symbols_df
+        self._symbols_df = dataframe_from_inp(self.path, "[SYMBOLS]")
+        return self._symbols_df
+
+    @symbols.setter
+    def symbols(self, df):
+        """Set inp.symbols DataFrame."""
+        self._symbols_df = df
 
 def drop_invalid_model_elements(inp):
     """
