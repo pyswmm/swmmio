@@ -1,3 +1,10 @@
+## Version 0.8.1 (2025/05/29)
+
+### What's Changed
+* swmmio now allows custom GeoJSON files for nodes and links in the create_map function. Uses snake_case and hints for parameter types [PR247](https://github.com/pyswmm/swmmio/pull/247)
+* Fixed GitHub actions config for uploading docs [PR252](https://github.com/pyswmm/swmmio/pull/252)
+
+
 ## Version 0.8.0 (2025/01/05)
 
 ### What's Changed
