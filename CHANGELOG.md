@@ -1,3 +1,8 @@
+## Version 0.8.2 (2025/06/11)
+
+### What's Changed
+* updated url to the 10070_H_Elements.inp model for the user guide PR252](https://github.com/pyswmm/swmmio/pull/259)
+
 ## Version 0.8.1 (2025/05/29)
 
 ### What's Changed
