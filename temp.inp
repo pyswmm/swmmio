@@ -1,0 +1,278 @@
+[TITLE]
+;;Project Title/Notes
+A pump control model.
+From SWMM 5.2 examples
+
+[OPTIONS]
+;;                    Value        
+FLOW_UNITS             CFS       
+INFILTRATION           HORTON    
+FLOW_ROUTING           DYNWAVE   
+LINK_OFFSETS           DEPTH     
+MIN_SLOPE              0         
+ALLOW_PONDING          NO        
+SKIP_STEADY_STATE      NO        
+START_DATE             01/01/2001
+START_TIME             00:00:00  
+REPORT_START_DATE      01/01/2001
+REPORT_START_TIME      00:00:00  
+END_DATE               01/02/2001
+END_TIME               00:00:00  
+SWEEP_START            01/01     
+SWEEP_END              12/31     
+DRY_DAYS               0         
+REPORT_STEP            00:00:20  
+WET_STEP               00:15:00  
+DRY_STEP               01:00:00  
+ROUTING_STEP           0:00:20   
+RULE_STEP              00:00:00  
+INERTIAL_DAMPING       PARTIAL   
+NORMAL_FLOW_LIMITED    BOTH      
+FORCE_MAIN_EQUATION    H-W       
+VARIABLE_STEP          0.00      
+LENGTHENING_STEP       0         
+MIN_SURFAREA           12.566    
+MAX_TRIALS             8         
+HEAD_TOLERANCE         0.005     
+SYS_FLOW_TOL           5         
+LAT_FLOW_TOL           5         
+MINIMUM_STEP           0.5       
+THREADS                1         
+
+[EVAPORATION]
+;;         Value 
+CONSTANT    0.0
+DRY_ONLY    NO 
+
+[JUNCTIONS]
+;;        InvertElev MaxDepth InitDepth SurchargeDepth PondedArea
+KRO3001   556.19     10       0         0              0       
+KRO6015   585.98     8        0         0              0       
+KRO6016   584.14     9        0         0              0       
+KRO6017   582.01     14       0         0              0       
+KRO1002   594.89     3        0         0              0       
+KRO1003   594.73     5        0         0              0       
+KRO1004   588.09     8        0         0              0       
+KRO1005   579.4      16       0         0              0       
+KRO1006   602.48     7        0         0              0       
+KRO1007   596.76     15       0         0              0       
+KRO1008   593.58     12       0         0              0       
+KRO1009   590.56     15       0         0              0       
+KRO1010   584.82     11       0         0              0       
+KRO1012   584.25     10       0         0              0       
+KRO1013   591.58     14       0         0              0       
+KRO1014   592.41     6        0         0              0       
+KRO1015   586.69     10       0         0              0       
+KRO2001   576.29     8        0         0              0       
+KRO4004   587.39     11       0         0              0       
+KRO4008   583.48     10       0         0              0       
+KRO4009   581.68     8        0         0              0       
+KRO4010   579.88     12       0         0              0       
+KRO4011   578.43     10       0         0              0       
+KRO4012   564.71     10       0         0              0       
+KRO4013   567.88     12       0         0              0       
+KRO4014   573.18     14       0         0              0       
+KRO4015   563.71     10       0         0              0       
+KRO4016   563.24     10       0         0              0       
+KRO4017   558.36     10       0         0              0       
+KRO4018   556.02     9        0         0              0       
+KRO4019   552.42     10       0         0              0       
+
+[OUTFALLS]
+;;        InvertElev OutfallType StageOrTimeseries
+KRO2005   574.32      FREE        NO            
+PSO       548.36      FREE        NO            
+
+[STORAGE]
+;;    InvertElev MaxD InitDepth StorageCurve   Coefficient Exponent Constant PondedArea EvapFrac
+SU1   544.74     17   0          CYLINDRICAL   6           6        0        0          0     
+
+[CONDUITS]
+;;                InletNode  OutletNode Length        Roughness InOffset OutOffset InitFlow MaxFlow
+KRO3001-KRO3002    KRO3001    SU1       176.7171053   0.013     0        5.0       0        0    
+SU1-PSO            SU1        PSO       65.78947368   0.013     6        0.0       0        0    
+KRO1002-KRO1003    KRO1002    KRO1003   27.23684211   0.013     0        0.0       0        0    
+KRO1003-KRO1008    KRO1003    KRO1008   197.7236842   0.013     0        0.0       0        0    
+KRO1004-KRO6016    KRO1004    KRO6016   197.4144737   0.013     0        0.0       0        0    
+KRO1005-KRO2001    KRO1005    KRO2001   134.3092105   0.013     0        0.0       0        0    
+KRO1006-KRO1007    KRO1006    KRO1007   162.5921053   0.013     0        0.0       0        0    
+KRO1007-KRO1008    KRO1007    KRO1008   165.8881579   0.013     0        0.0       0        0    
+KRO1008-KRO1009    KRO1008    KRO1009   157.3223684   0.013     0        0.0       0        0    
+KRO1009-KRO1010    KRO1009    KRO1010   210.9539474   0.013     0        0.0       0        0    
+KRO1010-KRO2001    KRO1010    KRO2001   190.1842105   0.013     0        0.0       0        0    
+KRO1012-KRO4009    KRO1012    KRO4009   128.2631579   0.013     0        0.0       0        0    
+KRO1013-KRO1009    KRO1013    KRO1009   170.1052632   0.013     0        0.0       0        0    
+KRO1014-KRO1013    KRO1014    KRO1013   500.0         0.013     0        0.0       0        0    
+KRO1015-KRO4014    KRO1015    KRO4014   151.4342105   0.013     0        0.0       0        0    
+KRO2001-KRO2005    KRO2001    KRO2005   243.7631579   0.013     0        0.0       0        0    
+KRO4004-KRO4008    KRO4004    KRO4008   140.0         0.013     0        0.0       0        0    
+KRO4008-KRO4011    KRO4008    KRO4011   78.72368421   0.013     0        0.0       0        0    
+KRO4009-KRO4010    KRO4009    KRO4010   180.0526316   0.013     0        0.0       0        0    
+KRO4010-KRO4011    KRO4010    KRO4011   144.5328947   0.013     0        0.0       0        0    
+KRO4011-KRO4012    KRO4011    KRO4012   198.0723684   0.013     0        0.0       0        0    
+KRO4012-KRO3001    KRO4012    KRO3001   129.0526316   0.013     0        0.5       0        0    
+KRO4013-KRO4017    KRO4013    KRO4017   176.5394737   0.013     0        0.0       0        0    
+KRO4014-KRO4015    KRO4014    KRO4015   138.7039474   0.013     0        0.0       0        0    
+KRO4015-KRO4016    KRO4015    KRO4016   16.95394737   0.013     0        0.0       0        0    
+KRO4016-KRO4017    KRO4016    KRO4017   108.7697368   0.013     0        0.0       0        0    
+KRO4017-KRO4018    KRO4017    KRO4018   101.5592105   0.013     0        0.0       0        0    
+KRO4018-KRO4019    KRO4018    KRO4019   159.8486842   0.013     0        0.0       0        0    
+KRO4019-KRO3002    KRO4019    SU1       87.57894737   0.013     0        5.0       0        0    
+KRO6015-KRO6016    KRO6015    KRO6016   91.85526316   0.013     0        0.0       0        0    
+KRO6016-KRO6017    KRO6016    KRO6017   211.9736842   0.013     0        0.0       0        0    
+KRO6017-KRO1005    KRO6017    KRO1005   178.8092105   0.013     0        0.0       0        0    
+
+[PUMPS]
+;;      InletNode OutletNode PumpCurve      InitStatus Depth ShutoffDepth
+PUMP1    SU1       KRO1014    PUMP_CURVE1    ON        0     0         
+
+[XSECTIONS]
+;;                Shape       Geom1 Geom2 Geom3 Geom4 Barrels
+KRO3001-KRO3002    CIRCULAR   1     0     0     0     1    
+SU1-PSO            CIRCULAR   1     0     0     0     1    
+KRO1002-KRO1003    CIRCULAR   1     0     0     0     1    
+KRO1003-KRO1008    CIRCULAR   1     0     0     0     1    
+KRO1004-KRO6016    CIRCULAR   1     0     0     0     1    
+KRO1005-KRO2001    CIRCULAR   1     0     0     0     1    
+KRO1006-KRO1007    CIRCULAR   1     0     0     0     1    
+KRO1007-KRO1008    CIRCULAR   1     0     0     0     1    
+KRO1008-KRO1009    CIRCULAR   1     0     0     0     1    
+KRO1009-KRO1010    CIRCULAR   1     0     0     0     1    
+KRO1010-KRO2001    CIRCULAR   1     0     0     0     1    
+KRO1012-KRO4009    CIRCULAR   1     0     0     0     1    
+KRO1013-KRO1009    CIRCULAR   1     0     0     0     1    
+KRO1014-KRO1013    CIRCULAR   1     0     0     0     1    
+KRO1015-KRO4014    CIRCULAR   1     0     0     0     1    
+KRO2001-KRO2005    CIRCULAR   1     0     0     0     1    
+KRO4004-KRO4008    CIRCULAR   1     0     0     0     1    
+KRO4008-KRO4011    CIRCULAR   1     0     0     0     1    
+KRO4009-KRO4010    CIRCULAR   1     0     0     0     1    
+KRO4010-KRO4011    CIRCULAR   1     0     0     0     1    
+KRO4011-KRO4012    CIRCULAR   1     0     0     0     1    
+KRO4012-KRO3001    CIRCULAR   1     0     0     0     1    
+KRO4013-KRO4017    CIRCULAR   1     0     0     0     1    
+KRO4014-KRO4015    CIRCULAR   1     0     0     0     1    
+KRO4015-KRO4016    CIRCULAR   1     0     0     0     1    
+KRO4016-KRO4017    CIRCULAR   1     0     0     0     1    
+KRO4017-KRO4018    CIRCULAR   1     0     0     0     1    
+KRO4018-KRO4019    CIRCULAR   1     0     0     0     1    
+KRO4019-KRO3002    CIRCULAR   1     0     0     0     1    
+KRO6015-KRO6016    CIRCULAR   1     0     0     0     1    
+KRO6016-KRO6017    CIRCULAR   1     0     0     0     1    
+KRO6017-KRO1005    CIRCULAR   1     0     0     0     1    
+
+[CONTROLS]
+;;            Control                                                          
+RULE PUMP1A   
+ IF NODE SU1 DEPTH >= 4
+ THEN PUMP PUMP1 status = ON
+ PRIORITY 1 
+RULE PUMP1B   
+ IF NODE SU1 DEPTH < 1
+ THEN PUMP PUMP1 status = OFF
+ PRIORITY 1 
+
+[DWF]
+;;        Parameter AverageValue TimePatterns
+KRO3001    FLOW     1             DWF      
+KRO6015    FLOW     1             DWF      
+KRO6016    FLOW     1             DWF      
+KRO6017    FLOW     1             DWF      
+KRO1002    FLOW     1             DWF      
+KRO1003    FLOW     1             DWF      
+KRO1004    FLOW     1             DWF      
+KRO1005    FLOW     1             DWF      
+KRO1006    FLOW     1             DWF      
+KRO1007    FLOW     1             DWF      
+KRO1008    FLOW     1             DWF      
+KRO1009    FLOW     1             DWF      
+KRO1010    FLOW     1             DWF      
+KRO1012    FLOW     1             DWF      
+KRO1013    FLOW     1             DWF      
+KRO1015    FLOW     1             DWF      
+KRO2001    FLOW     1             DWF      
+KRO4004    FLOW     1             DWF      
+KRO4008    FLOW     1             DWF      
+KRO4009    FLOW     1             DWF      
+KRO4010    FLOW     1             DWF      
+KRO4011    FLOW     1             DWF      
+KRO4012    FLOW     1             DWF      
+KRO4013    FLOW     1             DWF      
+KRO4014    FLOW     1             DWF      
+KRO4015    FLOW     1             DWF      
+KRO4017    FLOW     1             DWF      
+KRO4018    FLOW     1             DWF      
+KRO4019    FLOW     1             DWF      
+SU1        FLOW     1             DWF      
+
+[CURVES]
+;;            Type     X-Value Y-Value
+PUMP_CURVE1    Pump4    0       0   
+PUMP_CURVE1             1       0.2 
+PUMP_CURVE1             2       0.4 
+PUMP_CURVE1             3       0.6 
+PUMP_CURVE1             4       0.9 
+PUMP_CURVE1             17      0.9 
+
+[PATTERNS]
+;;    Type      Factor1  Factor2   Factor3   Factor4   Factor5   Factor6   Factor7   Factor8   Factor9   Factor10  Factor11  Factor12  Factor13  Factor14  Factor15 Factor16  Factor17  Factor18  Factor19  Factor20 Factor21  Factor22  Factor23  Factor24 
+DWF    HOURLY   0.0151   0.01373   0.01812   0.01098   0.01098   0.01922   0.02773   0.03789   0.03515   0.03982   0.02059   0.02471   0.03021   0.03789   0.0335   0.03158   0.03954   0.02114   0.02801   0.0368   0.02911   0.02334   0.02499   0.02718
+
+[REPORT]
+;;              Status
+CONTROLS         YES
+SUBCATCHMENTS    ALL
+NODES            ALL
+LINKS            ALL
+
+[MAP]
+DIMENSIONS 1361856.362 428552.651 1363638.769 431248.506
+Units      None
+
+[COORDINATES]
+;;        X             Y           
+KRO3001   1362408.25    431113.81 
+KRO6015   1362748.63    428675.19 
+KRO6016   1362767.0     428813.59 
+KRO6017   1363087.25    428778.19 
+KRO1002   1362361.78    429189.37 
+KRO1003   1362367.0     429230.44 
+KRO1004   1362860.25    429098.81 
+KRO1005   1363142.0     429044.41 
+KRO1006   1361937.38    429699.81 
+KRO1007   1362171.0     429619.19 
+KRO1008   1362406.25    429528.41 
+KRO1009   1362629.0     429441.41 
+KRO1010   1362927.63    429324.59 
+KRO1012   1362287.63    429934.41 
+KRO1013   1362657.38    429698.41 
+KRO1014   1362656.752   430800.636
+KRO1015   1362725.75    429953.81 
+KRO2001   1363203.75    429239.0  
+KRO4004   1362024.63    430653.19 
+KRO4008   1362236.38    430632.0  
+KRO4009   1362307.0     430128.41 
+KRO4010   1362333.38    430400.81 
+KRO4011   1362355.38    430619.41 
+KRO4012   1362385.25    430919.0  
+KRO4013   1362511.75    430605.81 
+KRO4014   1362751.19    430182.59 
+KRO4015   1362774.0     430392.19 
+KRO4016   1362761.25    430414.59 
+KRO4017   1362778.75    430579.0  
+KRO4018   1362796.0     430732.41 
+KRO4019   1362704.75    430957.59 
+KRO2005   1363557.75    429129.59 
+PSO       1362683.696   431125.967
+SU1       1362652.04    431078.91 
+
+[LABELS]
+;;X-Coord          Y-Coord            Label           
+1362744.750        431134.090         "Regulator Point" PSO "Arial" 10 0 0
+
+
+
+[Polygons]
+;;    X            Y          
+SU1   1362652.04   431078.91
+
