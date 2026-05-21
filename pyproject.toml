@@ -1,0 +1,103 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "swmmio"
+dynamic = ["version"]
+description = "Tools for interacting with, editing, and visualizing EPA SWMM5 models"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT License"}
+authors = [
+    {name = "Adam Erispaha", email = "aerispaha@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["swmm", "stormwater", "modeling", "epa"]
+
+dependencies = [
+    "Pillow>=6.2.0,<10.3.0; python_version<'3.10'",
+    "Pillow>=12.2.0; python_version>='3.10'",
+    "numpy>=1.16.4,<2.0",
+    "pandas>=0.24.2",
+    "pyshp>=2.1.0",
+    "geojson>=2.4.1",
+    "networkx>=2.3,<2.8.1; python_version<'3.8'",
+    "networkx>=2.3; python_version>='3.8'",
+    "pyyaml>=3.12",
+    "pyproj>=3.0.0",
+    "requests>=2.32.3",
+    "typing_extensions>=4.12.2",
+    "pyswmm>=1.2,<2.0",
+]
+
+[project.optional-dependencies]
+graphics = [
+    "geopandas",
+    "matplotlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/pyswmm/swmmio"
+Repository = "https://github.com/pyswmm/swmmio"
+"Bug Tracker" = "https://github.com/pyswmm/swmmio/issues"
+
+[project.scripts]
+swmmio_run = "swmmio.run_models.run:run_simple"
+
+[tool.hatch.version]
+path = "swmmio/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["swmmio"]
+
+[tool.hatch.build]
+include = [
+    "swmmio/**/*.py",
+    "swmmio/run_models/inp_settings/*.txt",
+    "swmmio/reporting/basemaps/*.html",
+    "swmmio/graphics/fonts/*.ttf",
+    "swmmio/defs/*.json",
+    "swmmio/defs/*.yml",
+    "swmmio/tests/data/*.inp",
+    "swmmio/tests/data/*.rpt",
+    "swmmio/tests/data/*.csv",
+    "swmmio/tests/data/*.txt",
+]
+exclude = [
+    "tests",
+    "tests.*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["swmmio/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "geopandas",
+    "matplotlib",
+    "pyswmm>=1.2,<2.0",
+    "flake8>=7.3.0",
+]
+docs = [
+    "sphinx>=7.2.6",
+    "sphinx_design>=0.5.0",
+    "pydata-sphinx-theme>=0.15.2",
+    "sphinx_copybutton>=0.5.2",
+    "ipython>=8.18.1",
+    "myst-parser>=3.0.1",
+    "myst-nb>=1.1.2",
+    "numpydoc>=1.8.0",
+]

@@ -759,9 +759,9 @@ class inp(SWMMIOFile):
         >>> import swmmio
         >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> model = swmmio.Model(MODEL_FULL_FEATURES_XY)
-        >>> model.inp.options.loc['INFILTRATION']
+        >>> model.inp.options.loc['INFILTRATION']  # doctest: +ELLIPSIS
         Value    HORTON
-        Name: INFILTRATION, dtype: object
+        Name: INFILTRATION, dtype: ...
         >>> model.inp.headers['[INFILTRATION]']
         ['Subcatchment', 'MaxRate', 'MinRate', 'Decay', 'DryTime', 'MaxInfil']
         >>> model.inp.options.loc['INFILTRATION', 'Value'] = 'GREEN_AMPT'

@@ -124,7 +124,7 @@ class BuildInstructions(object):
                     changes = self.instructions[section]
 
                     # remove elements that have alterations and or tagged for removal
-                    remove_ids = changes.removed.index | changes.altered.index
+                    remove_ids = changes.removed.index.union(changes.altered.index)
                     new_section = basedf.drop(remove_ids)
 
                     # add elements
