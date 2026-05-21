@@ -1,7 +1,18 @@
+## Version 0.8.3 (2025/05/21)
+
+### What's Changed
+* modernize with pyproject.toml and uv, handle invalid escape sequence [PR266](https://github.com/pyswmm/swmmio/pull/266)
+  
+  * modernized the build system and dependency management to use pyproject.toml and uv Instead of setuptools and pip
+  * refined dependencies to handle vulnerabilities in some versions of Pillow
+  * added CI test coverage for Python 3.12
+  * dropped Ci test coverage for Python 3.8
+  * added support for Pandas 3.x
+
 ## Version 0.8.2 (2025/06/11)
 
 ### What's Changed
-* updated url to the 10070_H_Elements.inp model for the user guide PR252](https://github.com/pyswmm/swmmio/pull/259)
+* updated url to the 10070_H_Elements.inp model for the user guide [PR252](https://github.com/pyswmm/swmmio/pull/259)
 
 ## Version 0.8.1 (2025/05/29)
 
