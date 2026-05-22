@@ -420,6 +420,7 @@ class Model(object):
 
         Examples
         --------
+        >>> from swmmio.tests.data import MODEL_FULL_FEATURES_XY
         >>> m = swmmio.Model(MODEL_FULL_FEATURES_XY, crs="EPSG:2272")
         >>> m.to_crs("EPSG:4326") # convert to WGS84 web mercator
         >>> m.inp.coordinates.round(5)  #doctest: +NORMALIZE_WHITESPACE
