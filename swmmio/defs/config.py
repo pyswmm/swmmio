@@ -1,10 +1,11 @@
 import os
+import sys
 
 # This is the swmmio project root
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # path to the Python executable used to run your version of Python
-PYTHON_EXE_PATH = "python"#os.path.join(os.__file__.split("lib/")[0],"bin","python")
+PYTHON_EXE_PATH = sys.executable
 
 # feature class name of parcels in geodatabase
 PARCEL_FEATURES = r'PWD_PARCELS_SHEDS_PPORT'
