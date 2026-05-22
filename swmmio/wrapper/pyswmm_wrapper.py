@@ -62,5 +62,5 @@ def run_model():
 
     return 0
 
-if __name__ in "__main__":
+if __name__ == "__main__":
     run_model()

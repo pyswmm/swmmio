@@ -73,8 +73,7 @@ include = [
     "swmmio/tests/data/*.txt",
 ]
 exclude = [
-    "tests",
-    "tests.*",
+
 ]
 
 [tool.pytest.ini_options]
@@ -82,6 +81,13 @@ testpaths = ["swmmio/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "uses_geopandas: marks tests that use Geopandas (deselect with '-m \"not uses_geopandas\"')",
+    "serial",
+]
+filterwarnings = [
+    "ignore:.*section not found in.*:UserWarning",
+]
 
 [dependency-groups]
 dev = [

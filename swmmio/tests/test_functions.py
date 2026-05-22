@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
@@ -117,7 +119,7 @@ class TestCheckIfUrlAndDownload(unittest.TestCase):
         mock_gettempdir.return_value = '/tmp'
 
         url = 'https://example.com/path/to/file.txt'
-        expected_path = '/tmp/file.txt'
+        expected_path = os.path.join('/tmp', 'file.txt')
 
         result = check_if_url_and_download(url)
 
