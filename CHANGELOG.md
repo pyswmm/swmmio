@@ -1,6 +1,7 @@
-## Version 0.8.4 (2025/05/22)
+## Version 0.8.5 (2025/05/22)
 
 ### What's Changed
+* Fix broken documentation build process [PR268](https://github.com/pyswmm/swmmio/pull/268)
 * dont exclude tests from build, fix windows path refs [PR267](https://github.com/pyswmm/swmmio/pull/267)
 
   * properly catch failing tests in Windows environments in GitHub Actions
