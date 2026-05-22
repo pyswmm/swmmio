@@ -1,3 +1,12 @@
+## Version 0.8.4 (2025/05/22)
+
+### What's Changed
+* dont exclude tests from build, fix windows path refs [PR267](https://github.com/pyswmm/swmmio/pull/267)
+
+  * properly catch failing tests in Windows environments in GitHub Actions
+  * refactored a few path references to be OS-dynamic
+  * configured matplotlib properly for headless environments in test_graphics
+
 ## Version 0.8.3 (2025/05/21)
 
 ### What's Changed

@@ -11,7 +11,7 @@ from swmmio.graphics.profiler import (build_profile_plot, add_hgl_plot,
 '''Python SWMM Input/Output Tools'''
 
     
-__version__ = "0.8.4.dev0"
+__version__ = "0.8.4"
 __author__ = 'Adam Erispaha'
 __copyright__ = 'Copyright (c) 2026'
 __license__ = 'MIT License'
