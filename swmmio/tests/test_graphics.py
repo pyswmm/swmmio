@@ -2,11 +2,14 @@ import os
 import tempfile
 from io import StringIO
 
+import matplotlib
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 from collections.abc import Mapping
 from _pytest.python_api import ApproxMapping
+import pyswmm
 
 from swmmio.tests.data import (DATA_PATH, MODEL_FULL_FEATURES_XY,
                                MODEL_FULL_FEATURES__NET_PATH, MODEL_A_PATH,
@@ -17,7 +20,9 @@ from swmmio.graphics import swmm_graphics as sg
 from swmmio.utils.spatial import centroid_and_bbox_from_coords, change_crs
 from swmmio import (find_network_trace, build_profile_plot,
                     add_hgl_plot, add_node_labels_plot, add_link_labels_plot)
-import pyswmm
+
+# Use non-interactive backend for headless environments e.g. Windows steps in GitHub Actions.
+matplotlib.use('Agg')  
 
 
 def test_draw_model():
