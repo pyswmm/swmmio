@@ -73,8 +73,7 @@ include = [
     "swmmio/tests/data/*.txt",
 ]
 exclude = [
-    "tests",
-    "tests.*",
+
 ]
 
 [tool.pytest.ini_options]
