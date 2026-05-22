@@ -43,9 +43,9 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         # uv run flake8 swmmio --exclude=swmmio/vendor --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
-      run: |
-        uv run pytest -m "not uses_geopandas"
-        uv run python -m doctest swmmio/core.py 
+      run: uv run pytest -v -m "not uses_geopandas"
+    - name: Test doctests
+      run: uv run python -m doctest swmmio/core.py
 
   release:
     name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
