@@ -81,6 +81,9 @@ testpaths = ["swmmio/tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+filterwarnings = [
+    "ignore:.*section not found in.*:UserWarning",
+]
 
 [dependency-groups]
 dev = [
