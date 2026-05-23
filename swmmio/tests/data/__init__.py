@@ -33,6 +33,7 @@ MODEL_INFILTRAION_PARSE_FAILURE = os.path.join(DATA_PATH, 'model-with-infiltrati
 MODEL_EXTCNTRLMODEL = os.path.join(DATA_PATH, 'SWMMExtCntrlModel.inp')
 MODEL_TEST_INLET_DRAINS = os.path.join(DATA_PATH, 'test_inlet_drains.inp')
 MODEL_GROUNDWATER = os.path.join(DATA_PATH, 'groundwater_model.inp')
+MODEL_NODES_INTEGER_NAMES = os.path.join(DATA_PATH, 'nodes_integer_names.inp')
 
 # test rpt paths
 RPT_FULL_FEATURES = os.path.join(DATA_PATH, 'model_full_features_network.rpt')
