@@ -7,7 +7,7 @@ name = "swmmio"
 dynamic = ["version"]
 description = "Tools for interacting with, editing, and visualizing EPA SWMM5 models"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "MIT License"}
 authors = [
     {name = "Adam Erispaha", email = "aerispaha@gmail.com"}
@@ -16,22 +16,21 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 keywords = ["swmm", "stormwater", "modeling", "epa"]
 
 dependencies = [
-    "Pillow>=6.2.0,<10.3.0; python_version<'3.10'",
-    "Pillow>=12.2.0; python_version>='3.10'",
-    "numpy>=1.16.4,<2.0",
+    "Pillow>=12.2.0",
+    "numpy>=1.26",
     "pandas>=0.24.2",
     "pyshp>=2.1.0",
     "geojson>=2.4.1",
-    "networkx>=2.3,<2.8.1; python_version<'3.8'",
-    "networkx>=2.3; python_version>='3.8'",
+    "networkx>=2.3",
     "pyyaml>=3.12",
     "pyproj>=3.0.0",
     "requests>=2.32.3",
