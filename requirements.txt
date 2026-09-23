@@ -4,39 +4,37 @@ aenum==3.1.17
     # via
     #   pyswmm
     #   swmm-toolkit
-certifi==2026.5.20
+certifi==2026.7.22
     # via
     #   pyproj
     #   requests
-charset-normalizer==3.4.7
+charset-normalizer==3.5.1
     # via requests
-geojson==3.2.0
+geojson==3.3.0
     # via swmmio (pyproject.toml)
-idna==3.15
+idna==3.20
     # via requests
 julian==0.14
     # via pyswmm
-networkx==3.6.1
+networkx==3.7
     # via swmmio (pyproject.toml)
-numpy==1.26.4
+numpy==2.5.3
     # via
     #   swmmio (pyproject.toml)
     #   pandas
-packaging==26.2
+packaging==26.3
     # via pyswmm
-pandas==2.3.3
+pandas==3.0.6
     # via swmmio (pyproject.toml)
-pillow==12.2.0
+pillow==12.3.0
     # via swmmio (pyproject.toml)
-pyproj==3.7.2
+pyproj==3.8.0
     # via swmmio (pyproject.toml)
-pyshp==3.0.8
+pyshp==3.1.6
     # via swmmio (pyproject.toml)
 pyswmm==1.5.1
     # via swmmio (pyproject.toml)
 python-dateutil==2.9.0.post0
-    # via pandas
-pytz==2026.2
     # via pandas
 pyyaml==6.0.3
     # via swmmio (pyproject.toml)
@@ -46,9 +44,7 @@ six==1.17.0
     # via python-dateutil
 swmm-toolkit==0.17.0
     # via pyswmm
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via swmmio (pyproject.toml)
-tzdata==2026.2
-    # via pandas
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
