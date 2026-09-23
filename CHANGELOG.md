@@ -1,4 +1,13 @@
-## Version 0.8.5 (2025/05/22)
+## Version 0.8.6 (2026/09/22)
+
+### What's Changed
+* Upgrade dependencies and resolve vulnerabilities [PR274](https://github.com/pyswmm/swmmio/pull/274)
+
+  * provide support for Numpy 2.x, Pandas 3.x
+  * drop support for Python 3.9
+  * add support (test coverage) for Python 3.14
+
+## Version 0.8.5 (2026/05/22)
 
 ### What's Changed
 * Fix broken documentation build process [PR268](https://github.com/pyswmm/swmmio/pull/268)
@@ -8,7 +17,7 @@
   * refactored a few path references to be OS-dynamic
   * configured matplotlib properly for headless environments in test_graphics
 
-## Version 0.8.3 (2025/05/21)
+## Version 0.8.3 (2026/05/21)
 
 ### What's Changed
 * modernize with pyproject.toml and uv, handle invalid escape sequence [PR266](https://github.com/pyswmm/swmmio/pull/266)
