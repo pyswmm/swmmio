@@ -158,21 +158,28 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     if n_tokens > len(cols):
         cols = cols + ["col"+str(len(cols)+i) for i in range(n_tokens-len(cols))]
     cols = cols + additional_cols
-    
+
+    input_types = get_pandas_input_dtype(section = section)
+    input_types = {k:v for k,v in input_types.items() if k in range(len(cols))}
+
     if headers[sect]['columns'][0] == 'blob':
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s))
     else:
         try:
             df = pd.read_csv(StringIO(s), header=None, sep=r'\s+',
-                             skiprows=[0], index_col=0, names=cols)
+                             skiprows=[0], index_col=0, names=cols, dtype = input_types)
         except:
             raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
-
+    
     # confirm index name is string
     df = df.rename(index=str)
     return df
 
+def get_pandas_input_dtype(section : str) -> dict[int, ]:
+    """Column dtypes for each section so that pandas doesn't guess them."""
+    if section == "CONDUITS": return {0:str, 1:str, 2:str} #prevent numerical node IDS from turning into floats
+    return {}
 
 def get_link_coords(row, nodexys, verticies):
     """for use in an df.apply, to get coordinates of a conduit/link """
