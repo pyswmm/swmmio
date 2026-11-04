@@ -4,7 +4,7 @@ aenum==3.1.17
     # via
     #   pyswmm
     #   swmm-toolkit
-certifi==2026.7.22
+certifi==2026.10.18
     # via
     #   pyproj
     #   requests
