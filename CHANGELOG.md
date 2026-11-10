@@ -1,3 +1,13 @@
+## Version 0.8.7 (2026/11/10)
+
+### What's Changed
+* support pyswmm 2.0, upgrade pillow, add support for Python 3.15 [PR279](https://github.com/pyswmm/swmmio/pull/279)
+
+  * upgrade Pillow to 13.0.0 to address security vulnerabilities
+  * upgrade shapely for compatibility with Python 3.15
+  * drop support / tests for Python 3.10
+  * add support / tests for Python 3.15
+
 ## Version 0.8.6 (2026/09/22)
 
 ### What's Changed
