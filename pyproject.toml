@@ -90,10 +90,8 @@ filterwarnings = [
 
 [dependency-groups]
 dev = [
+    "swmmio[graphics]",
     "pytest>=8.0",
-    "geopandas",
-    "matplotlib",
-    "pyswmm>=1.2,<2.0",
     "flake8>=7.3.0",
 ]
 docs = [
