@@ -26,7 +26,7 @@ packaging==26.3
     # via pyswmm
 pandas==3.0.6
     # via swmmio (pyproject.toml)
-pillow==12.3.0
+pillow==13.0.0
     # via swmmio (pyproject.toml)
 pyproj==3.8.0
     # via swmmio (pyproject.toml)
