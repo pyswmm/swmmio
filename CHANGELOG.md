@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### What's Changed
+* remove unecessary images2gif and vendor module [#164](https://github.com/pyswmm/swmmio/issues/164)
+
+
 ## Version 0.8.7 (2026/11/10)
 
 ### What's Changed
