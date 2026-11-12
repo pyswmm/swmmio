@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2022 Bryant E. McDonnell
 #
@@ -16,6 +15,7 @@ python <path>/pyswmm_wrapper.py <path>/*.inp <path>/*.rpt <path>/*.out # optiona
 
 import argparse
 import pathlib
+
 import pyswmm
 
 
@@ -23,18 +23,18 @@ def run_model():
     """Run Model."""
     # Argument Resolution
     parser = argparse.ArgumentParser()
-    parser.add_argument('inp_file', type=pathlib.Path,
-                        help='Input File Path')
-    parser.add_argument('rpt_file', type=pathlib.Path, nargs='?',
-                        help='Report File Path (Optional).')
-    parser.add_argument('out_file', type=pathlib.Path, nargs='?',
-                        help='Output File Path (Optional).')
+    parser.add_argument("inp_file", type=pathlib.Path,
+                        help="Input File Path")
+    parser.add_argument("rpt_file", type=pathlib.Path, nargs="?",
+                        help="Report File Path (Optional).")
+    parser.add_argument("out_file", type=pathlib.Path, nargs="?",
+                        help="Output File Path (Optional).")
 
     report_prog_help = "--report-progress can be useful for longer model runs. The drawback "\
                        +"is that it slows the simulation down.  Use an integer to specify how "\
                        +"frequent to interrup the simulation. This depends of the number of time "\
                        +"steps"
-    parser.add_argument('--report_progress', default=False, type=int,
+    parser.add_argument("--report_progress", default=False, type=int,
                         help=report_prog_help)
     args = parser.parse_args()
 

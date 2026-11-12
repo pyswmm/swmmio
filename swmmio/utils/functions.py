@@ -1,10 +1,10 @@
-import warnings
-import pandas as pd
-import networkx as nx
 import os
-from urllib.parse import urlparse
 import tempfile
+import warnings
+from urllib.parse import urlparse
 
+import networkx as nx
+import pandas as pd
 import requests
 
 from swmmio.utils import error
@@ -12,26 +12,26 @@ from swmmio.utils import error
 
 def random_alphanumeric(n=6):
     import random
-    chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-    return ''.join(random.choice(chars) for i in range(n))
+    chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    return "".join(random.choice(chars) for i in range(n))
 
 
 def model_to_networkx(model, drop_cycles=True):
-    '''
+    """
     Networkx MultiDiGraph representation of the model
-    '''
-    from geojson import Point, LineString
+    """
+    from geojson import LineString, Point
 
     def multidigraph_from_edges(edges, source, target):
-        '''
+        """
         create a MultiDiGraph from a dataframe of edges, using the row index
         as the key in the MultiDiGraph
-        '''
+        """
         us = edges[source]
         vs = edges[target]
         keys = edges.index
         data = edges.drop([source, target], axis=1)
-        d_dicts = data.to_dict(orient='records')
+        d_dicts = data.to_dict(orient="records")
 
         G = nx.MultiDiGraph()
 
@@ -42,32 +42,32 @@ def model_to_networkx(model, drop_cycles=True):
     # parse swmm model results with swmmio, concat all links into one dataframe
     nodes = model.nodes()
     links = model.links()
-    links['facilityid'] = links.index
+    links["facilityid"] = links.index
 
     # create a nx.MultiDiGraph from the combined model links, add node data, set CRS
-    G = multidigraph_from_edges(links, 'InletNode', target='OutletNode')
-    G.add_nodes_from(zip(nodes.index, nodes.to_dict(orient='records')))
+    G = multidigraph_from_edges(links, "InletNode", target="OutletNode")
+    G.add_nodes_from(zip(nodes.index, nodes.to_dict(orient="records")))
 
     # create geojson geometry objects for each graph element
-    for u, v, k, coords in G.edges(data='coords', keys=True):
+    for u, v, k, coords in G.edges(data="coords", keys=True):
         if coords:
-            G[u][v][k]['geometry'] = LineString(coords)
-    for n, coords in G.nodes(data='coords'):
+            G[u][v][k]["geometry"] = LineString(coords)
+    for n, coords in G.nodes(data="coords"):
         if coords:
-            G.nodes[n]['geometry'] = Point(coords[0])
+            G.nodes[n]["geometry"] = Point(coords[0])
 
     if drop_cycles:
         # remove cycles
         cycles = list(nx.simple_cycles(G))
         if len(cycles) > 0:
-            warnings.warn(f'cycles detected and removed: {cycles}')
+            warnings.warn(f"cycles detected and removed: {cycles}")
             G.remove_edges_from(cycles)
 
-    G.graph['crs'] = model.crs
+    G.graph["crs"] = model.crs
     return G
 
 
-def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
+def find_invalid_links(inp, node_ids=None, link_type="conduits", drop=False):
     elems = getattr(inp, link_type)
     invalids = elems.index[~(elems.InletNode.isin(node_ids) & elems.OutletNode.isin(node_ids))]
     if drop:
@@ -76,7 +76,7 @@ def find_invalid_links(inp, node_ids=None, link_type='conduits', drop=False):
     return invalids.tolist()
 
 
-def trim_section_to_nodes(inp, node_ids=None, node_type='junctions', drop=True):
+def trim_section_to_nodes(inp, node_ids=None, node_type="junctions", drop=True):
     elems = getattr(inp, node_type)
     invalids = elems.index[~(elems.index.isin(node_ids))]
     if drop:
@@ -174,7 +174,7 @@ def rotate_model(m, rads=0.5, origin=None):
 
 
 def remove_braces(string):
-    return string.replace('[', '').replace(']', '')
+    return string.replace("[", "").replace("]", "")
 
 
 def format_inp_section_header(string):
@@ -184,22 +184,22 @@ def format_inp_section_header(string):
     :param string:
     :return: string
     """
-    if string == '[Polygons]':
+    if string == "[Polygons]":
         return string
     s = string.strip().upper()
-    if s[0] != '[':
-        s = f'[{s}'
-    if s[-1] != ']':
-        s = f'{s}]'
+    if s[0] != "[":
+        s = f"[{s}"
+    if s[-1] != "]":
+        s = f"{s}]"
 
     return s
 
 
 def merge_dicts(*dict_args):
-    '''
+    """
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
-    '''
+    """
     result = {}
     for dictionary in dict_args:
         if dictionary:
@@ -207,7 +207,7 @@ def merge_dicts(*dict_args):
     return result
 
 
-def trace_from_node(conduits, startnode, mode='up', stopnode=None):
+def trace_from_node(conduits, startnode, mode="up", stopnode=None):
     """
     trace up and down a SWMM model given a start node and optionally a
     stop node.
@@ -218,7 +218,7 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
 
     def trace(node_id):
         for conduit, data in conduits.iterrows():
-            if mode == 'up' and data.OutletNode == node_id and conduit not in traced_conduits:
+            if mode == "up" and data.OutletNode == node_id and conduit not in traced_conduits:
 
                 traced_nodes.append(data.InletNode)
                 traced_conduits.append(conduit)
@@ -227,7 +227,7 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
                     break
                 trace(data.InletNode)
 
-            if mode == 'down' and data.InletNode == node_id and conduit not in traced_conduits:
+            if mode == "down" and data.InletNode == node_id and conduit not in traced_conduits:
                 traced_nodes.append(data.OutletNode)
                 traced_conduits.append(conduit)
 
@@ -236,10 +236,10 @@ def trace_from_node(conduits, startnode, mode='up', stopnode=None):
                 trace(data.OutletNode)
 
     # kickoff the trace
-    print("Starting trace {} from {}".format(mode, startnode))
+    print(f"Starting trace {mode} from {startnode}")
     trace(startnode)
-    print("Traced {0} nodes from {1}".format(len(traced_nodes), startnode))
-    return {'nodes': traced_nodes, 'conduits': traced_conduits}
+    print(f"Traced {len(traced_nodes)} nodes from {startnode}")
+    return {"nodes": traced_nodes, "conduits": traced_conduits}
 
 
 def find_network_trace(model, start_node, end_node,
@@ -282,17 +282,16 @@ def find_network_trace(model, start_node, end_node,
         included_links = {name: False for name in include_links}
         for selection in path_info:
             us, ds, link = selection
-            if us in included_nodes.keys():
+            if us in included_nodes:
                 included_nodes[us] = True
-            if ds in included_nodes.keys():
+            if ds in included_nodes:
                 included_nodes[ds] = True
-            if link in included_links.keys():
+            if link in included_links:
                 included_links[link] = True
 
-        if False not in [included_nodes[key] for key in included_nodes.keys()]:
-            if False not in [included_links[key] for key in included_links.keys()]:
-                path_selection = path_info
-                break
+        if all(included_nodes.values()) and all(included_links.values()):
+            path_selection = path_info
+            break
 
     if path_selection is None:
         raise error.NoTraceFound
@@ -323,25 +322,25 @@ def summarize_model(model) -> dict:
         - 'total_conduit_length': float, total length of conduits (if conduits exist).
         - 'invert_range': float, range of invert elevations of nodes (if nodes exist).
     """
-    model_summary = dict()
+    model_summary = {}
 
     # numbers of elements
-    model_summary['num_subcatchments'] = len(model.inp.subcatchments)
-    model_summary['num_conduits'] = len(model.inp.conduits)
-    model_summary['num_junctions'] = len(model.inp.junctions)
-    model_summary['num_outfalls'] = len(model.inp.outfalls)
-    model_summary['num_raingages'] = len(model.inp.raingages)
+    model_summary["num_subcatchments"] = len(model.inp.subcatchments)
+    model_summary["num_conduits"] = len(model.inp.conduits)
+    model_summary["num_junctions"] = len(model.inp.junctions)
+    model_summary["num_outfalls"] = len(model.inp.outfalls)
+    model_summary["num_raingages"] = len(model.inp.raingages)
 
     # calculated values - only calculate if elements exist
     if len(model.inp.subcatchments) != 0:
-        model_summary['catchment_area'] = model.inp.subcatchments.Area.sum()
-        model_summary['mean_subcatchment_slope'] = ((model.inp.subcatchments.Area / model.inp.subcatchments.Area.sum()) * model.inp.subcatchments.PercSlope).sum()
+        model_summary["catchment_area"] = model.inp.subcatchments.Area.sum()
+        model_summary["mean_subcatchment_slope"] = ((model.inp.subcatchments.Area / model.inp.subcatchments.Area.sum()) * model.inp.subcatchments.PercSlope).sum()
     
     if len(model.inp.conduits) != 0:
-        model_summary['total_conduit_length'] = model.inp.conduits.Length.sum()
+        model_summary["total_conduit_length"] = model.inp.conduits.Length.sum()
     
     if len(model.nodes.dataframe) != 0:
-        model_summary['invert_range'] = model.nodes().InvertElev.max() - model.nodes().InvertElev.min()
+        model_summary["invert_range"] = model.nodes().InvertElev.max() - model.nodes().InvertElev.min()
     return model_summary
 
 
@@ -362,19 +361,19 @@ def check_if_url_and_download(url):
         the original string if it is not a URL
     """
 
-    if url.startswith(('http://', 'https://')):
+    if url.startswith(("http://", "https://")):
         r = requests.get(url)
 
         # get the filename from the url
         parsed_url = urlparse(url)
-        filename = parsed_url.path.split('/')[-1]
+        filename = parsed_url.path.split("/")[-1]
 
         temp_path = os.path.join(tempfile.gettempdir(), filename)
-        with open(temp_path, 'wb') as f:
+        with open(temp_path, "wb") as f:
             if r.status_code == 200:
                 f.write(r.content)
             else:
-                raise Exception(f"Failed to download file: {r.status_code}")
+                raise Exception(f"Failed to download file: {r.status_code}")  # noqa: TRY002 - preserve the existing public exception type
         return temp_path
     else:
         return url

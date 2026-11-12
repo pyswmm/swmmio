@@ -11,15 +11,15 @@ def conduits_cost_estimate(conduit_df, additional_costs=None):
         """calculate the cross-sectional area of a sewer segment. If the segment
         is multi-barrel, the area will reflect the total of all barrels"""
 
-        if row.Shape == 'CIRCULAR':
+        if row.Shape == "CIRCULAR":
             d = row.Geom1
             area = 3.1415 * (d * d) / 4
             return round((area * row.Barrels),2)
 
-        if 'RECT' in row.Shape:
+        if "RECT" in row.Shape:
             #assume triangular bottom sections (geom3) deepens the excavated box
             return (row.Geom1 + row.Geom3) * float(row.Geom2) * row.Barrels
-        if row.Shape =='EGG':
+        if row.Shape =="EGG":
             #assume geom1 is the span
             return row.Geom1*1.5 * row.Barrels
 
@@ -50,20 +50,20 @@ def conduits_cost_estimate(conduit_df, additional_costs=None):
 
         cleaned_geom = round_to_05(row.Geom1)
         RectBox_UnitCost = 80
-        if row.Shape == 'CIRCULAR':
+        if row.Shape == "CIRCULAR":
             try:
                 val = cost_dict[cleaned_geom]
-            except:
+            except KeyError:
                 val = 0
             return val
-        if 'RECT' in row.Shape:
+        if "RECT" in row.Shape:
             """
             assume any triangular bottom section adds to
             overall excavation box section
             """
             val = round(RectBox_UnitCost*row.XArea,2)
             return val
-        if row.Shape == 'EGG':
+        if row.Shape == "EGG":
             """
             We're going to treat this like a box"
             """
@@ -81,16 +81,16 @@ def conduits_cost_estimate(conduit_df, additional_costs=None):
         #add in any additional cost data (from crossing water mains, etc)
         return row.CostEstimate + row.AdditionalCost
 
-    conduit_df['XArea'] = conduit_df.apply (lambda r: calc_area (r), axis=1)
-    conduit_df['UnitCostLF'] = conduit_df.apply(lambda r: get_unit_cost(r), axis=1)
-    conduit_df['Volume'] = conduit_df.apply (lambda r:compute_volume (r), axis=1)
-    conduit_df['CostEstimate'] = conduit_df.apply (lambda r:compute_conduit_cost (r),axis=1)
+    conduit_df["XArea"] = conduit_df.apply (lambda r: calc_area (r), axis=1)
+    conduit_df["UnitCostLF"] = conduit_df.apply(lambda r: get_unit_cost(r), axis=1)
+    conduit_df["Volume"] = conduit_df.apply (lambda r:compute_volume (r), axis=1)
+    conduit_df["CostEstimate"] = conduit_df.apply (lambda r:compute_conduit_cost (r),axis=1)
 
     if additional_costs:
         #read in the supplemental cost data from the csv
         addcosts = pd.read_csv(additional_costs, index_col=0)
         conduit_df = conduit_df.join(addcosts).fillna(0)
-        conduit_df['TotalCostEstimate'] = conduit_df.apply (lambda r:
+        conduit_df["TotalCostEstimate"] = conduit_df.apply (lambda r:
                                                               added_cost(r),
                                                               axis=1)
     else:

@@ -88,11 +88,35 @@ filterwarnings = [
     "ignore:.*section not found in.*:UserWarning",
 ]
 
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = [
+  "COM812", # Missing trailing comma (covered by formatting)
+  "D205",   # 1 blank line required between summary line and description
+  "D301",   # Use r""" if any backslashes in a docstring
+  "D400",   # First docstring line should end with a period
+  "D202",   # No blank lines allowed after function docstring
+  "D401",   # First line of docstring should be in imperative mood
+  "F401",   # Unused import
+  "D101",   # Missing docstring in public class (typically we use __init__ to document class)
+  "D105",   # Missing docstring in magic method (these are private, don't enfoce docstrings)
+  "ANN002", # Missing type annotation for *args
+  "ANN003", # Missing type annotation for **kwargs
+  "ANN204", # Missing return type annotation for special method `__init__`
+  "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+]
+[tool.ruff.lint.per-file-ignores]
+"docs/**/*.ipynb" = [
+    "C408",    # Unnecessary `dict()` call
+]
+
 [dependency-groups]
 dev = [
     "swmmio[graphics]",
     "pytest>=8.0",
-    "flake8>=7.3.0",
+    "ruff",
 ]
 docs = [
     "sphinx>=7.2.6",

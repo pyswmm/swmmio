@@ -1,9 +1,11 @@
-from swmmio.defs.config import ROOT_DIR
 import json
-import pandas as pd
-from geojson import Point, LineString, Polygon, FeatureCollection, Feature
 import os
 import shutil
+
+import pandas as pd
+from geojson import Feature, FeatureCollection, LineString, Point, Polygon
+
+from swmmio.defs.config import ROOT_DIR
 
 
 def change_crs(series, in_crs, to_crs):
@@ -46,8 +48,8 @@ def change_crs(series, in_crs, to_crs):
         import pyproj
         from pyproj import Transformer
     except ImportError:
-        raise ImportError('pyproj module needed. get this package here: ',
-                          'https://pypi.python.org/pypi/pyproj')
+        raise ImportError("pyproj module needed. get this package here: ",
+                          "https://pypi.python.org/pypi/pyproj")
 
     # SET UP THE TO AND FROM COORDINATE PROJECTION
     transformer = Transformer.from_crs(in_crs, to_crs, always_xy=True)
@@ -85,7 +87,7 @@ def change_crs(series, in_crs, to_crs):
             return transformer.transform(*series)
 
 
-def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
+def coords_series_to_geometry(coords, geomtype="linestring", dtype="geojson"):
     """
     Convert a series of coordinates to a series of geometry objects.
 
@@ -115,26 +117,26 @@ def coords_series_to_geometry(coords, geomtype='linestring', dtype='geojson'):
 
     # detect whether LineString or Point should be used
     geomtype = geomtype.lower()
-    if geomtype == 'linestring':
+    if geomtype == "linestring":
         geoms = [LineString(latlngs) for latlngs in coords]
-    elif geomtype == 'point':
+    elif geomtype == "point":
         geoms = [Point(latlngs[0]) for latlngs in coords]
-    elif geomtype == 'polygon':
+    elif geomtype == "polygon":
         geoms = [Polygon([latlngs]) for latlngs in coords]
 
-    if dtype.lower() == 'shape':
+    if dtype.lower() == "shape":
         # convert to shapely objects
         try:
             from shapely.geometry import shape
         except ImportError:
-            raise ImportError('shapely module needed. Install it via GeoPandas with conda: ',
-                              'conda install geopandas')
+            raise ImportError("shapely module needed. Install it via GeoPandas with conda: ",
+                              "conda install geopandas")
         geoms = [shape(g) for g in geoms]
 
-    return pd.Series(index=coords.index, name='geometry', data=geoms)
+    return pd.Series(index=coords.index, name="geometry", data=geoms)
 
 
-def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
+def write_geojson(df, filename=None, geomtype="linestring", drop_na=True):
     """
     Convert dataframe with coords series to geojson format.
 
@@ -193,31 +195,31 @@ def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
     """
 
     # CONVERT THE DF INTO JSON
-    df['Name'] = df.index  # add a name column (we wont have the index)
-    records = json.loads(df.to_json(orient='records'))
+    df["Name"] = df.index  # add a name column (we wont have the index)
+    records = json.loads(df.to_json(orient="records"))
 
     # ITERATE THROUGH THE RECORDS AND CREATE GEOJSON OBJECTS
     features = []
     for rec in records:
 
-        coordinates = rec['coords']
-        del rec['coords']  # delete the coords so they aren't in the properties
+        coordinates = rec["coords"]
+        del rec["coords"]  # delete the coords so they aren't in the properties
         if drop_na:
             rec = {k: v for k, v in rec.items() if v is not None}
         latlngs = coordinates
 
-        if geomtype == 'linestring':
+        if geomtype == "linestring":
             geometry = LineString(latlngs)
-        elif geomtype == 'point':
+        elif geomtype == "point":
             geometry = Point(latlngs[0])
-        elif geomtype == 'polygon':
+        elif geomtype == "polygon":
             geometry = Polygon([latlngs])
 
         feature = Feature(geometry=geometry, properties=rec)
         features.append(feature)
 
     if filename is not None:
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             f.write(json.dumps(FeatureCollection(features)))
         return filename
 
@@ -225,21 +227,21 @@ def write_geojson(df, filename=None, geomtype='linestring', drop_na=True):
         return FeatureCollection(features)
 
 
-def write_shapefile(df, filename, geomtype='line', prj=None):
+def write_shapefile(df, filename, geomtype="line", prj=None):
     """
     create a shapefile given a pandas Dataframe that has coordinate data in a
     column called 'coords'.
     """
 
     import shapefile
-    df['Name'] = df.index
+    df["Name"] = df.index
 
     # create a shp file writer object of geom type 'point'
-    if geomtype == 'point':
+    if geomtype == "point":
         w = shapefile.Writer(filename, shapefile.POINT, autoBalance=True)
-    elif geomtype == 'line':
+    elif geomtype == "line":
         w = shapefile.Writer(filename, shapefile.POLYLINE, autoBalance=True)
-    elif geomtype == 'polygon':
+    elif geomtype == "polygon":
         w = shapefile.Writer(filename, shapefile.POLYGON, autoBalance=True)
 
     # add the fields
@@ -248,19 +250,19 @@ def write_shapefile(df, filename, geomtype='line', prj=None):
 
     for k, row in df.iterrows():
         w.record(*row.tolist())
-        if geomtype == 'line':
+        if geomtype == "line":
             w.line([row.coords])
-        if geomtype == 'point':
+        if geomtype == "point":
             w.point(*row.coords[0])
-        if geomtype == 'polygon':
+        if geomtype == "polygon":
             w.poly([row.coords])
     w.close()
 
     # add projection data to the shapefile,
     if prj is None:
         # if not sepcified, the default, projection is used (PA StatePlane)
-        prj = os.path.join(ROOT_DIR, 'swmmio/defs/default.prj')
-    prj_filepath = os.path.splitext(filename)[0] + '.prj'
+        prj = os.path.join(ROOT_DIR, "swmmio/defs/default.prj")
+    prj_filepath = os.path.splitext(filename)[0] + ".prj"
     shutil.copy(prj, prj_filepath)
 
 

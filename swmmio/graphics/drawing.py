@@ -1,22 +1,37 @@
-from swmmio.defs.constants import red, purple, lightblue, lightgreen, black, lightgrey, grey
-from swmmio.defs.config import FONT_PATH
-from swmmio.graphics.utils import circle_bbox, length_bw_coords, angle_bw_points, midpoint
-from PIL import Image, ImageDraw, ImageFont, ImageOps
-from time import strftime
 import math
 import os
+from time import strftime
+
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+
+from swmmio.defs.config import FONT_PATH
+from swmmio.defs.constants import (
+    black,
+    grey,
+    lightblue,
+    lightgreen,
+    lightgrey,
+    purple,
+    red,
+)
+from swmmio.graphics.utils import (
+    angle_bw_points,
+    circle_bbox,
+    length_bw_coords,
+    midpoint,
+)
 
 
 # FUNCTIONS FOR COMPUTING THE VISUAL CHARACTERISTICS OF MODEL ELEMENTS
 def node_draw_size(node):
     """given a row of a nodes() dataframe, return the size it should be drawn"""
 
-    if 'draw_size' in node.axes[0]:
+    if "draw_size" in node.axes[0]:
         # if this value has already been calculated
         return node.draw_size
 
     radius = 0  # aka don't show this node by default
-    if 'HoursFlooded' in node and node.HoursFlooded >= 0.083:
+    if "HoursFlooded" in node and node.HoursFlooded >= 0.083:
         radius = node.HoursFlooded * 3
     return radius
 
@@ -24,12 +39,12 @@ def node_draw_size(node):
 def node_draw_color(node):
     """given a row of a nodes() dataframe, return the color it should be drawn"""
 
-    if 'draw_color' in node.axes[0]:
+    if "draw_color" in node.axes[0]:
         # if this value has already been calculated
         return node.draw_color
 
-    color = '#d2d2e6'  # (210, 210, 230) #default color
-    if 'HoursFlooded' in node and node.HoursFlooded >= 0.083:
+    color = "#d2d2e6"  # (210, 210, 230) #default color
+    if "HoursFlooded" in node and node.HoursFlooded >= 0.083:
         color = red
     return color
 
@@ -37,18 +52,17 @@ def node_draw_color(node):
 def conduit_draw_size(conduit):
     """return the draw size of a conduit"""
 
-    if 'draw_size' in conduit.axes[0]:
+    if "draw_size" in conduit.axes[0]:
         # if this value has already been calculated
         return conduit.draw_size
 
     draw_size = 1
-    if 'MaxQPerc' in conduit and conduit.MaxQPerc >= 1:
+    if "MaxQPerc" in conduit and conduit.MaxQPerc >= 1:
         capacity = conduit.MaxQ / conduit.MaxQPerc
         stress = conduit.MaxQ / capacity
-        fill = gradient_grey_red(conduit.MaxQ * 100, 0, capacity * 300)
-        draw_size = int(round(math.pow(stress * 10, 0.8)))
+        draw_size = round(math.pow(stress * 10, 0.8))
 
-    elif 'Geom1' in conduit and not math.isnan(conduit.Geom1):
+    elif "Geom1" in conduit and not math.isnan(conduit.Geom1):
         draw_size = conduit.Geom1
 
     return draw_size
@@ -57,36 +71,35 @@ def conduit_draw_size(conduit):
 def conduit_draw_color(conduit):
     """return the draw color of a conduit"""
 
-    if 'draw_color' in conduit.axes[0]:
+    if "draw_color" in conduit.axes[0]:
         # if this value has already been calculated
         return conduit.draw_color
 
-    fill = '#787882'  # (120, 120, 130)
-    if 'MaxQPerc' in conduit and conduit.MaxQPerc >= 1:
+    fill = "#787882"  # (120, 120, 130)
+    if "MaxQPerc" in conduit and conduit.MaxQPerc >= 1:
         capacity = conduit.MaxQ / conduit.MaxQPerc
-        stress = conduit.MaxQ / capacity
         fill = gradient_grey_red(conduit.MaxQ * 100, 0, capacity * 300)
     return fill
 
 
-def parcel_draw_color(parcel, style='risk'):
-    if style == 'risk':
+def parcel_draw_color(parcel, style="risk"):
+    if style == "risk":
         fill = gradient_color_red(parcel.HoursFlooded + 0.5, 0, 3)
-    if style == 'delta':
+    if style == "delta":
         fill = lightgrey  # default
-        if parcel.Category == 'increased_flooding':
+        if parcel.Category == "increased_flooding":
             # parcel previously flooded, now floods more
             fill = red
 
-        if parcel.Category == 'new_flooding':
+        if parcel.Category == "new_flooding":
             # parcel previously did not flood, now floods in proposed conditions
             fill = purple
 
-        if parcel.Category == 'decreased_flooding':
+        if parcel.Category == "decreased_flooding":
             # parcel flooding problem decreased
             fill = lightblue  # du.lightgrey
 
-        if parcel.Category == 'eliminated_flooding':
+        if parcel.Category == "eliminated_flooding":
             # parcel flooding problem eliminated
             fill = lightgreen
 
@@ -122,19 +135,19 @@ def draw_parcel_risk(parcel, draw):
 
 
 def draw_parcel_risk_delta(parcel, draw):
-    if parcel.Category == 'increased_flooding':
+    if parcel.Category == "increased_flooding":
         # parcel previously flooded, now floods more
         fill = red
 
-    if parcel.Category == 'new_flooding':
+    if parcel.Category == "new_flooding":
         # parcel previously did not flood, now floods in proposed conditions
         fill = purple
 
-    if parcel.Category == 'decreased_flooding':
+    if parcel.Category == "decreased_flooding":
         # parcel flooding problem decreased
         fill = lightblue  # du.lightgrey
 
-    if parcel.Category == 'eliminated_flooding':
+    if parcel.Category == "eliminated_flooding":
         # parcel flooding problem eliminated
         fill = lightgreen
 
@@ -144,15 +157,15 @@ def draw_parcel_risk_delta(parcel, draw):
 def annotate_streets(df, img, text_col):
     # confirm font file location
     if not os.path.exists(FONT_PATH):
-        print('Error loading default font. Check your FONT_PATH')
-        return None
+        print("Error loading default font. Check your FONT_PATH")
+        return
 
     unique_sts = df[text_col].unique()
     for street in unique_sts:
-        draw_coords = df.loc[df.ST_NAME == street, 'draw_coords'].tolist()[0]
-        coords = df.loc[df.ST_NAME == street, 'coords'].tolist()[0]
-        font = ImageFont.truetype(FONT_PATH, int(25))
-        imgTxt = Image.new('L', font.getsize(street))
+        draw_coords = df.loc[df.ST_NAME == street, "draw_coords"].tolist()[0]
+        coords = df.loc[df.ST_NAME == street, "coords"].tolist()[0]
+        font = ImageFont.truetype(FONT_PATH, 25)
+        imgTxt = Image.new("L", font.getsize(street))
         drawTxt = ImageDraw.Draw(imgTxt)
         drawTxt.text((0, 0), street, font=font, fill=(10, 10, 12))
         angle = angle_bw_points(coords[0], coords[1])
@@ -172,15 +185,15 @@ def gradient_grey_red(x, xmin, xmax):
 
     # print "range = " + str(range)
     # print "scale = " + str(scale)
-    r = int(round(x * rScale + rMin))
-    g = int(round(bgMax - x * bgScale))
-    b = int(round(bgMax - x * bgScale))
+    r = round(x * rScale + rMin)
+    g = round(bgMax - x * bgScale)
+    b = round(bgMax - x * bgScale)
 
     return (r, g, b)
 
 
 def line_size(q, exp=1):
-    return int(round(math.pow(q, exp)))
+    return round(math.pow(q, exp))
 
 
 def gradient_color_red(x, xmin, xmax, startCol=lightgrey):
@@ -197,9 +210,9 @@ def gradient_color_red(x, xmin, xmax, startCol=lightgrey):
 
     # print "range = " + str(range)
     # print "scale = " + str(scale)
-    r = int(round(x * rScale + rMin))
-    g = int(round(gMax - x * gScale))
-    b = int(round(bMax - x * bScale))
+    r = round(x * rScale + rMin)
+    g = round(gMax - x * gScale)
+    b = round(bMax - x * bScale)
 
     return (r, g, b)
 

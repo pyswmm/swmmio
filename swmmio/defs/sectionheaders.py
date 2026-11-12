@@ -16,12 +16,12 @@ def parse_inp_section_config(raw_conf):
     conf = OrderedDict()
     if isinstance(raw_conf, list):
         # has a simple list, assumed to be columns
-        conf['columns'] = raw_conf
+        conf["columns"] = raw_conf
     elif isinstance(raw_conf, (dict, OrderedDict)):
-        if 'keys' in raw_conf:
+        if "keys" in raw_conf:
             # object is special case like OPTIONS
             conf.update(raw_conf)
-            conf['columns'] = ['Key', 'Value']
+            conf["columns"] = ["Key", "Value"]
         else:
             conf.update(raw_conf)
 

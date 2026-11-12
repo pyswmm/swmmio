@@ -3,12 +3,12 @@
 
 import os
 import re
-from io import StringIO
 from collections import OrderedDict, deque
+from io import StringIO
 
 from swmmio.defs import INFILTRATION_COLS, INP_SECTION_TAGS, SWMM5_VERSION
-from swmmio.utils.functions import format_inp_section_header
 from swmmio.defs.sectionheaders import normalize_inp_config
+from swmmio.utils.functions import format_inp_section_header
 
 
 def inline_comments_in_inp(filepath, overwrite=False):
@@ -17,37 +17,36 @@ def inline_comments_in_inp(filepath, overwrite=False):
     element (behavoir from saving in GUI) and place them to the right, inline with
     the element. To improve readability
     """
-    newfilename = os.path.splitext(os.path.basename(filepath))[0] + '_unGUI.inp'
+    newfilename = os.path.splitext(os.path.basename(filepath))[0] + "_unGUI.inp"
     newfilepath = os.path.join(os.path.dirname(filepath), newfilename)
     allheaders = get_inp_sections_details(filepath)
 
-    with open(filepath) as oldf:
-        with open(newfilepath, 'w') as new:
+    with open(filepath) as oldf, open(newfilepath, "w") as new:
 
             # to hold list of comments (handles multiline comments)
             comment_concat = []
-            current_section = list(allheaders.keys())[0]
+            current_section = list(allheaders.keys())[0]  # noqa: RUF015 - preserve IndexError for an empty INP
             for line in oldf:
 
                 # determine what section we are in by noting when we pass double brackets
-                if '[' and ']' in line:
+                if "[" and "]" in line:
                     current_section = line.strip()
 
                 if len(line.strip()) > 1:
-                    if line.strip()[0] == ';' and ''.join(line.strip()[:2]) != ';;':
+                    if line.strip()[0] == ";" and "".join(line.strip()[:2]) != ";;":
                         # this is a comment bc first char is ; and the
                         # second char is not (which would resemble the header section)
                         words = line.split()
-                        hdrs = allheaders[current_section]['columns']
+                        hdrs = allheaders[current_section]["columns"]
                         perc_match_to_header = float(len([x for x in words if x in hdrs])) / float(len(hdrs))
                         if perc_match_to_header <= 0.75:
                             comment_concat.append(line.strip())
                     else:
                         # this row has data, tack any comment to the line end
-                        comment_string = ''
+                        comment_string = ""
                         if len(comment_concat) > 0:
-                            comment_string = r' '.join(comment_concat)
-                        newlinestring = line.strip() + comment_string + '\n'
+                            comment_string = r" ".join(comment_concat)
+                        newlinestring = line.strip() + comment_string + "\n"
                         new.write(newlinestring)
                         comment_concat = []
                 else:
@@ -60,7 +59,7 @@ def inline_comments_in_inp(filepath, overwrite=False):
         os.rename(newfilepath, filepath)
 
 
-def extract_section_of_file(file_path, start_strings, end_strings, comment=';', **kwargs):
+def extract_section_of_file(file_path, start_strings, end_strings, comment=";", **kwargs):
     """
     Extract a portion of a file found between one or more start strings and the first encountered end string.
 
@@ -103,8 +102,8 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
     starts_ix = 0
     starts_len = len(start_strings)
     start_found = False
-    out_string = ''
-    with open(file_path, 'r') as f:
+    out_string = ""
+    with open(file_path, "r") as f:
 
         for line in f:
 
@@ -127,7 +126,7 @@ def extract_section_of_file(file_path, start_strings, end_strings, comment=';', 
                 if comment is not None:
                     # ignore anything after a comment
                     if comment in line:
-                        s = line.split(comment)[0] + '\n'
+                        s = line.split(comment)[0] + "\n"
                         out_string += s
                     else:
                         out_string += line
@@ -167,11 +166,11 @@ def get_rpt_metadata(file_path):
             if "STORM WATER MANAGEMENT MODEL - VERSION" in line:
                 version = re.search(r"\d+.\d+.\d+", line)
                 if version is not None:
-                    version = version.group(0).split('.')
+                    version = version.group(0).split(".")
                     swmm_version = {
-                        'major': int(version[0]),
-                        'minor': int(version[1]),
-                        'patch': int(version[2])
+                        "major": int(version[0]),
+                        "minor": int(version[1]),
+                        "patch": int(version[2])
                     }
             if "Report Time Step ........." in line:
                 time_step_min = int(line.split(":")[1].replace("\n", ""))
@@ -184,13 +183,13 @@ def get_rpt_metadata(file_path):
             if "Analysis begun on" in line:
                 analysis_date = line.split("Analysis begun on:  ")[1].replace("\n", "")
 
-    meta_data = dict(
-        swmm_version=swmm_version,
-        simulation_start=simulation_start,
-        simulation_end=simulation_end,
-        time_step_min=time_step_min,
-        analysis_date=analysis_date,
-    )
+    meta_data = {
+        "swmm_version": swmm_version,
+        "simulation_start": simulation_start,
+        "simulation_end": simulation_end,
+        "time_step_min": time_step_min,
+        "analysis_date": analysis_date,
+    }
     return meta_data
 
 
@@ -252,47 +251,48 @@ def get_inp_sections_details(inp_path, include_brackets=False):
     >>> headers['SUBCATCHMENTS']['columns']
     ['Name', 'Raingage', 'Outlet', 'Area', 'PercImperv', 'Width', 'PercSlope', 'CurbLength', 'SnowPack']
     """
-    from swmmio.defs import INP_OBJECTS
     import pandas as pd
+
+    from swmmio.defs import INP_OBJECTS
     found_sects = OrderedDict()
 
     with open(inp_path) as f:
         txt = f.read()
         section_dict = {
-            key: txt.find("[{}]".format(key)) for key in INP_OBJECTS.keys() 
-            if txt.find("[{}]".format(key)) >= 0
+            key: txt.find(f"[{key}]") for key in INP_OBJECTS
+            if txt.find(f"[{key}]") >= 0
         }
         section_dict = sorted(section_dict, key=section_dict.get)
         bracketed_words = re.findall(r"\[([A-Za-z0-9_]+)\]", txt)
 
         for sect in bracketed_words:
-            sect_id = f'[{sect.upper()}]' if include_brackets else sect.upper()
+            sect_id = f"[{sect.upper()}]" if include_brackets else sect.upper()
             if sect not in section_dict:
-                found_sects[sect_id] = OrderedDict(columns=['blob'])
+                found_sects[sect_id] = OrderedDict(columns=["blob"])
             else:
                 found_sects[sect_id] = INP_OBJECTS[sect]
 
     # make necessary adjustments to columns that change based on options
-    ops_cols = INP_OBJECTS['OPTIONS']['columns']
-    ops_string = extract_section_of_file(inp_path, '[OPTIONS]', INP_SECTION_TAGS, )
+    ops_cols = INP_OBJECTS["OPTIONS"]["columns"]
+    ops_string = extract_section_of_file(inp_path, "[OPTIONS]", INP_SECTION_TAGS, )
     options = pd.read_csv(StringIO(ops_string), header=None,
-                          sep=r'\s+', skiprows=[0], index_col=0,
+                          sep=r"\s+", skiprows=[0], index_col=0,
                           names=ops_cols)
 
-    if 'INFILTRATION' in found_sects:
+    if "INFILTRATION" in found_sects:
         # select the correct infiltration column names
         # fall back to HORTON if invalid/unset infil type
-        infil_type = options['Value'].get('INFILTRATION', None)
+        infil_type = options["Value"].get("INFILTRATION", None)
         if pd.isna(infil_type):
-            infil_type = 'HORTON'
+            infil_type = "HORTON"
         infil_cols = INFILTRATION_COLS[infil_type.upper()]
 
-        inf_id = 'INFILTRATION'
+        inf_id = "INFILTRATION"
         if include_brackets:
-            inf_id = '[{}]'.format('INFILTRATION')
+            inf_id = "[{}]".format("INFILTRATION")
 
         # overwrite the dynamic sections with proper header cols
-        found_sects[inf_id]['columns'] = list(infil_cols)
+        found_sects[inf_id]["columns"] = list(infil_cols)
     return found_sects
 
 
@@ -317,14 +317,14 @@ def get_rpt_sections_details(rpt_path: str):
 
     # get rpt file metadata
     meta_data = get_rpt_metadata(rpt_path)
-    swmm_version = meta_data['swmm_version']
+    swmm_version = meta_data["swmm_version"]
 
     # make necessary adjustments to columns that change based on swmm version
     for version in SWMM5_VERSION:
         version_value = float(version)
         rpt_version = float(f"{swmm_version['minor']}.{swmm_version['patch']}")
         if rpt_version >= version_value:
-            update_rpt = normalize_inp_config(SWMM5_VERSION[version]['rpt_sections'])
+            update_rpt = normalize_inp_config(SWMM5_VERSION[version]["rpt_sections"])
             rpt_headers.update(update_rpt)
 
     with open(rpt_path) as f:
@@ -338,8 +338,8 @@ def get_rpt_sections_details(rpt_path: str):
                 buff3line.popleft()
 
             # search for section header between two rows of *'s
-            if ('***********' in buff3line[0] and
-                    '***********' in buff3line[2] and
+            if ("***********" in buff3line[0] and
+                    "***********" in buff3line[2] and
                     len(buff3line[1].strip()) > 0):
                 header = buff3line[1].strip()
 
@@ -347,6 +347,6 @@ def get_rpt_sections_details(rpt_path: str):
                     found_sects[header] = rpt_headers[header]
                 else:
                     # unrecognized section
-                    found_sects[header] = OrderedDict(columns=['blob'])
+                    found_sects[header] = OrderedDict(columns=["blob"])
 
     return found_sects

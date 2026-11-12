@@ -2,16 +2,22 @@
 Objects encapsulating model elements
 """
 import pandas as pd
+
 import swmmio
-from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, dataframe_from_inp, nodexy
 from swmmio.tests.data import MODEL_FULL_FEATURES__NET_PATH
+from swmmio.utils.dataframes import (
+    dataframe_from_inp,
+    dataframe_from_rpt,
+    get_link_coords,
+    nodexy,
+)
 from swmmio.utils.spatial import coords_series_to_geometry, write_geojson
 from swmmio.utils.text import get_inp_sections_details
 
-__all__ = ['Links', 'Nodes', 'ModelSection']
+__all__ = ["Links", "ModelSection", "Nodes"]
 
 
-class ModelSection(object):
+class ModelSection:
     """
     Base class of a group of model elements.
 
@@ -23,7 +29,7 @@ class ModelSection(object):
     :param geomtype: type of geometry for section [point, linestring, polygon]
     """
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None,
-                 geomtype='point'):
+                 geomtype="point"):
         self.model = model
         self.inp = self.model.inp
         self.rpt = self.model.rpt
@@ -63,12 +69,12 @@ class ModelSection(object):
         try:
             import geopandas as gp
         except ImportError:
-            raise ImportError('geopandas module needed. Install GeoPandas with conda: ',
-                              'conda install geopandas')
+            raise ImportError("geopandas module needed. Install GeoPandas with conda: ",
+                              "conda install geopandas")
 
         df = self.__call__()
-        df['geometry'] = coords_series_to_geometry(df['coords'], geomtype=self.geomtype, dtype='shape')
-        df = df.drop(['coords'], axis=1)
+        df["geometry"] = coords_series_to_geometry(df["coords"], geomtype=self.geomtype, dtype="shape")
+        df = df.drop(["coords"], axis=1)
         return gp.GeoDataFrame(df, crs=self.model.crs)
 
     def __call__(self):
@@ -109,12 +115,12 @@ class ModelSection(object):
                 df = df.join(dataframe_from_rpt(self.rpt.path, rpt_sect))
 
         # add coordinates
-        if self.geomtype == 'point':
-            df = df.join(self.inp.coordinates[['X', 'Y']])
+        if self.geomtype == "point":
+            df = df.join(self.inp.coordinates[["X", "Y"]])
             xys = df.apply(lambda r: nodexy(r), axis=1)
             df = df.assign(coords=xys)
 
-        elif self.geomtype == 'linestring':
+        elif self.geomtype == "linestring":
             # add conduit coordinates
             xys = df.apply(lambda r: get_link_coords(r, self.inp.coordinates, self.inp.vertices), axis=1)
             df = df.assign(coords=xys.map(lambda x: x[0]))
@@ -122,11 +128,11 @@ class ModelSection(object):
             df.InletNode = df.InletNode.astype(str)
             df.OutletNode = df.OutletNode.astype(str)
 
-        elif self.geomtype == 'polygon':
+        elif self.geomtype == "polygon":
             p = self.inp.polygons
             p.index = p.index.map(str)
             # take stacked coordinates and orient in list of tuples,
-            xys = p.groupby(by=p.index).apply(lambda r: [(xy['X'], xy['Y']) for ix, xy in r.iterrows()])
+            xys = p.groupby(by=p.index).apply(lambda r: [(xy["X"], xy["Y"]) for ix, xy in r.iterrows()])
             # copy the first point to the last position
             xys = xys.apply(lambda r: r + [r[0]])
             df = df.assign(coords=xys)
@@ -175,7 +181,7 @@ class Nodes(ModelSection):
     """
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
         super().__init__(model, inp_sections, join_sections, rpt_sections, columns,
-                         geomtype='point')
+                         geomtype="point")
 
 
 class Links(ModelSection):
@@ -213,4 +219,4 @@ class Links(ModelSection):
     """
     def __init__(self, model, inp_sections, join_sections=None, rpt_sections=None, columns=None):
         super().__init__(model, inp_sections, join_sections, rpt_sections, columns,
-                         geomtype='linestring')
+                         geomtype="linestring")
