@@ -1,27 +1,26 @@
 import os
 
 
-def remove_comments_and_crlf(inp_path, comment_string=';', overwrite=False):
-    tmpfilename = os.path.splitext(os.path.basename(inp_path))[0] + '_mod.inp'
+def remove_comments_and_crlf(inp_path, comment_string=";", overwrite=False):
+    tmpfilename = os.path.splitext(os.path.basename(inp_path))[0] + "_mod.inp"
     tmpfilepath = os.path.join(os.path.dirname(inp_path), tmpfilename)
 
-    with open (inp_path) as oldf:
-        with open(tmpfilepath, 'w') as newf:
-            for line in oldf:
+    with open (inp_path) as oldf, open(tmpfilepath, "w") as newf:
+        for line in oldf:
 
-                if ';' in line:
-                    #remove the comments
-                    if line.strip()[0] == comment_string:
-                        #skip the whole line
-                        pass
-                    else:
-                        #write the line to the left of the comment
-                        non_comment_line = line.split(';')[0]
-                        newf.write(non_comment_line + '\n')
-                elif line == '\n':
+            if ";" in line:
+                #remove the comments
+                if line.strip()[0] == comment_string:
+                    #skip the whole line
                     pass
                 else:
-                    newf.write(line)
+                    #write the line to the left of the comment
+                    non_comment_line = line.split(";")[0]
+                    newf.write(non_comment_line + "\n")
+            elif line == "\n":
+                pass
+            else:
+                newf.write(line)
 
     if overwrite:
         os.remove(inp_path)
@@ -40,18 +39,16 @@ def line_by_line(path1, path2, outfile):
     """
 
     #outfile =r"P:\06_Tools\v_control\Testing\cleaned\linebyline.txt"
-    with open(outfile, 'w') as diff_file:
-        with open (path1) as f1:
-            with open(path2) as f2:
+    with open(outfile, "w") as diff_file, open (path1) as f1, open(path2) as f2:
 
-                line1 = next(f1)
-                line2 = next(f2)
+        line1 = next(f1)
+        line2 = next(f2)
 
-                while line1 and line2:
-                    #replace all white space to check only actual content
+        while line1 and line2:
+            #replace all white space to check only actual content
 
-                    if line1.replace(" ", "") != line2.replace(" ", ""):
-                        diff_file.write(line1)
+            if line1.replace(" ", "") != line2.replace(" ", ""):
+                diff_file.write(line1)
 
-                    line1 = next(f1)
-                    line2 = next(f2)
+            line1 = next(f1)
+            line2 = next(f2)

@@ -1,9 +1,10 @@
-from swmmio.version_control.utils import write_inp_section
+import os
+import shutil
+import tempfile
+
 import swmmio
 from swmmio.utils.text import get_inp_sections_details
-import os
-import tempfile
-import shutil
+from swmmio.version_control.utils import write_inp_section
 
 
 def replace_inp_section(inp_path, modified_section_header, new_data):
@@ -22,8 +23,8 @@ def replace_inp_section(inp_path, modified_section_header, new_data):
     m = swmmio.Model(inp_path)
     with tempfile.TemporaryDirectory() as tempdir:
         with open(inp_path) as oldf:
-            tmp_inp_path = os.path.join(tempdir, f'{m.inp.name}.inp')
-            with open(tmp_inp_path, 'w') as new:
+            tmp_inp_path = os.path.join(tempdir, f"{m.inp.name}.inp")
+            with open(tmp_inp_path, "w") as new:
 
                 # write each line as is from the original model until we find the
                 # header of the section we wish to overwrite
@@ -38,7 +39,7 @@ def replace_inp_section(inp_path, modified_section_header, new_data):
 
                         found_section = True
 
-                    if (found_section and any((f"[{es}]") in line for es in sections.keys()) and modified_section_header not in line):
+                    if (found_section and any((f"[{es}]") in line for es in sections) and modified_section_header not in line):
                         found_next_section = True
 
                     if found_next_section or not found_section:

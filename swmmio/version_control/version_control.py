@@ -1,23 +1,25 @@
-import pandas as pd
-import os
 import itertools
+import os
 from datetime import datetime
+
+import pandas as pd
+
 from swmmio import Model
-from swmmio.version_control import utils as vc_utils
 from swmmio.version_control import inp
+from swmmio.version_control import utils as vc_utils
 
 pd.options.display.max_colwidth = 200
 
 
 def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
-                                    version_id='', comments=''):
+                                    version_id="", comments=""):
     """
     if the baseline model has changes that need to be propagated to all models,
     iterate through each model and rebuild the INPs with the new baseline and
     existing build instructions. update the build instructions to reflect the
     revision date of the baseline.
     """
-    version_id += '_' + datetime.now().strftime("%y%m%d%H%M%S")
+    version_id += "_" + datetime.now().strftime("%y%m%d%H%M%S")
 
     # collect the directories of all models
     model_dirs = []
@@ -35,19 +37,19 @@ def propagate_changes_from_baseline(baseline_dir, alternatives_dir, combi_dir,
 
     for model_dir in model_dirs:
         model = Model(model_dir)
-        vc_directory = os.path.join(model_dir, 'vc')
+        vc_directory = os.path.join(model_dir, "vc")
         latest_bi = vc_utils.newest_file(vc_directory)
 
         # update build instructions metadata and build the new inp
         bi = inp.BuildInstructions(latest_bi)
-        bi.metadata['Parent Models']['Baseline'] = {base_inp_path: vc_utils.modification_date(base_inp_path)}
-        bi.metadata['Log'].update({version_id: comments})
-        bi.save(vc_directory, version_id + '.txt')
-        print('rebuilding {} with changes to baseline'.format(model.name))
+        bi.metadata["Parent Models"]["Baseline"] = {base_inp_path: vc_utils.modification_date(base_inp_path)}
+        bi.metadata["Log"].update({version_id: comments})
+        bi.save(vc_directory, version_id + ".txt")
+        print(f"rebuilding {model.name} with changes to baseline")
         bi.build(baseline_dir, model.inp.path)  # overwrite old inp
 
 
-def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comments=''):
+def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id="", comments=""):
     """
     Generate SWMM5 models of each logical combination of all implementation
     phases (IP) across all relief sewer networks (RSN).
@@ -73,7 +75,7 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comment
     """
 
     base_inp_path = Model(baseline_dir).inp.path
-    version_id += '_' + datetime.now().strftime("%y%m%d%H%M%S")
+    version_id += "_" + datetime.now().strftime("%y%m%d%H%M%S")
 
     # create a list of directories pointing to each IP in each RSN
     RSN_dirs = [os.path.join(rsn_dir, rsn) for rsn in os.listdir(rsn_dir)]
@@ -89,21 +91,19 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comment
     child_scenarios = [s for s in all_scenarios if len(s) > 1]
 
     # notify user of what was initially found
-    str_IPs = '\n'.join([', '.join([_f for _f in i if _f]) for i in IPs])
-    print(('Found {} implementation phases among {} networks:\n{}\n'
-           'This yields {} combined scenarios ({} total)'.format(len(IP_dirs),
-                                                                 len(RSN_dirs), str_IPs, len(child_scenarios),
-                                                                 len(all_scenarios) - 1)))
+    str_IPs = "\n".join([", ".join([_f for _f in i if _f]) for i in IPs])
+    print(f"Found {len(IP_dirs)} implementation phases among {len(RSN_dirs)} networks:\n{str_IPs}\n"
+           f"This yields {len(child_scenarios)} combined scenarios ({len(all_scenarios) - 1} total)")
 
     # ==========================================================================
     # UPDATE/CREATE THE PARENT MODEL BUILD INSTRUCTIONS
     # ==========================================================================
     for ip_dir in IP_dirs:
         ip_model = Model(ip_dir)
-        vc_dir = os.path.join(ip_dir, 'vc')
+        vc_dir = os.path.join(ip_dir, "vc")
 
         if not os.path.exists(vc_dir):
-            print('creating new build instructions for {}'.format(ip_model.name))
+            print(f"creating new build instructions for {ip_model.name}")
             inp.create_inp_build_instructions(base_inp_path, ip_model.inp.path,
                                               vc_dir,
                                               version_id, comments)
@@ -114,7 +114,7 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comment
             if not vc_utils.bi_is_current(latest_bi):
                 # revision date of the alt doesn't match the newest build
                 # instructions for this 'imp_level', so we should refresh it
-                print('updating build instructions for {}'.format(ip_model.name))
+                print(f"updating build instructions for {ip_model.name}")
                 inp.create_inp_build_instructions(base_inp_path, ip_model.inp.path,
                                                   vc_dir, version_id,
                                                   comments)
@@ -123,36 +123,36 @@ def create_combinations(baseline_dir, rsn_dir, combi_dir, version_id='', comment
     # UPDATE/CREATE THE CHILD MODELS AND CHILD BUILD INSTRUCTIONS
     # ==========================================================================
     for scen in child_scenarios:
-        newcombi = '_'.join(sorted(scen))
+        newcombi = "_".join(sorted(scen))
         new_dir = os.path.join(combi_dir, newcombi)
-        vc_dir = os.path.join(combi_dir, newcombi, 'vc')
+        vc_dir = os.path.join(combi_dir, newcombi, "vc")
 
         # parent model build instr files
         # BUG (this breaks with model IDs with more than 1 char)
-        parent_vc_dirs = [os.path.join(rsn_dir, f[0], f, 'vc') for f in scen]
+        parent_vc_dirs = [os.path.join(rsn_dir, f[0], f, "vc") for f in scen]
         latest_parent_bis = [vc_utils.newest_file(d) for d in parent_vc_dirs]
         build_instrcts = [inp.BuildInstructions(bi) for bi in latest_parent_bis]
 
         if not os.path.exists(new_dir):
 
             os.mkdir(new_dir)
-            newinppath = os.path.join(new_dir, newcombi + '.inp')
+            newinppath = os.path.join(new_dir, newcombi + ".inp")
 
-            print('creating new child model: {}'.format(newcombi))
+            print(f"creating new child model: {newcombi}")
             new_build_instructions = sum(build_instrcts)
-            new_build_instructions.save(vc_dir, version_id + '.txt')
+            new_build_instructions.save(vc_dir, version_id + ".txt")
             new_build_instructions.build(baseline_dir, newinppath)
 
         else:
             # check if the alternative model was changed since last run
             # of this tool --> compare the modification date to the BI's
             # modification date meta data
-            latest_bi = vc_utils.newest_file(os.path.join(new_dir, 'vc'))
+            latest_bi = vc_utils.newest_file(os.path.join(new_dir, "vc"))
             if not vc_utils.bi_is_current(latest_bi):
                 # revision date of the alt doesn't match the newest build
                 # instructions for this 'imp_level', so we should refresh it
-                print('updating child build instructions for {}'.format(newcombi))
-                newinppath = os.path.join(new_dir, newcombi + '.inp')
+                print(f"updating child build instructions for {newcombi}")
+                newinppath = os.path.join(new_dir, newcombi + ".inp")
                 new_build_instructions = sum(build_instrcts)
-                new_build_instructions.save(vc_dir, version_id + '.txt')
+                new_build_instructions.save(vc_dir, version_id + ".txt")
                 new_build_instructions.build(baseline_dir, newinppath)

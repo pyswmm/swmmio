@@ -1,18 +1,20 @@
+import os
 from collections import OrderedDict
+from copy import deepcopy
 
+import pandas as pd
+
+import swmmio
+from swmmio.utils.dataframes import dataframe_from_bi, dataframe_from_inp
 from swmmio.utils.text import get_inp_sections_details
 from swmmio.version_control import utils as vc_utils
-from swmmio.utils.dataframes import dataframe_from_bi, dataframe_from_inp
-import swmmio
-import pandas as pd
-import os
-from copy import deepcopy
+
 pd.options.display.max_colwidth = 200
 
-problem_sections = ['[CURVES]', '[TIMESERIES]', '[RDII]', '[HYDROGRAPHS]']
+problem_sections = ["[CURVES]", "[TIMESERIES]", "[RDII]", "[HYDROGRAPHS]"]
 
 
-class BuildInstructions(object):
+class BuildInstructions:
     """
     similar to the INPSectionDiff object, this object contains information used to
     generate an inp based on 'serialized' (though human readable, inp-esque)
@@ -31,7 +33,7 @@ class BuildInstructions(object):
             # read the instructions and create a dictionary of Change objects
             allheaders = get_inp_sections_details(build_instr_file)
             instructions = {}
-            for section, _ in allheaders.items():
+            for section in allheaders:
                 change = INPSectionDiff(build_instr_file=build_instr_file, section=section)
                 instructions.update({section: change})
 
@@ -57,11 +59,11 @@ class BuildInstructions(object):
         # combine the metadata
         # deepcopy so child structures aren't linked to original
         bi.metadata = deepcopy(self.metadata)
-        otherbaseline = other.metadata['Parent Models']['Baseline']
-        otheralternatives = other.metadata['Parent Models']['Alternatives']
-        bi.metadata['Parent Models']['Baseline'].update(otherbaseline)
-        bi.metadata['Parent Models']['Alternatives'].update(otheralternatives)
-        bi.metadata['Log'].update(other.metadata['Log'])
+        otherbaseline = other.metadata["Parent Models"]["Baseline"]
+        otheralternatives = other.metadata["Parent Models"]["Alternatives"]
+        bi.metadata["Parent Models"]["Baseline"].update(otherbaseline)
+        bi.metadata["Parent Models"]["Alternatives"].update(otheralternatives)
+        bi.metadata["Log"].update(other.metadata["Log"])
 
         return bi
 
@@ -92,12 +94,12 @@ class BuildInstructions(object):
         if not os.path.exists(dir):
             os.makedirs(dir)
         filepath = os.path.join(dir, filename)
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             vc_utils.write_meta_data(f, self.metadata)
             for section, change_obj in self.instructions.items():
                 section_df = pd.concat([change_obj.removed, change_obj.altered, change_obj.added])
                 vc_utils.write_inp_section(f, allheaders=None, sectionheader=section,
-                                           section_data=section_df, pad_top=False, na_fill='NaN')
+                                           section_data=section_df, pad_top=False, na_fill="NaN")
 
     def build(self, baseline_dir, target_path):
         """
@@ -107,18 +109,18 @@ class BuildInstructions(object):
         basemodel = swmmio.Model(baseline_dir)
         allheaders = get_inp_sections_details(basemodel.inp.path)
         # new_inp = os.path.join(target_dir, 'model.inp')
-        with open(target_path, 'w') as f:
-            for section, _ in allheaders.items():
+        with open(target_path, "w") as f:
+            for section in allheaders:
 
                 # check if the section is not in problem_sections and there are changes
                 # in self.instructions and commit changes to it from baseline accordingly
                 if (section not in problem_sections
-                        and allheaders[section]['columns'] != ['blob']
+                        and allheaders[section]["columns"] != ["blob"]
                         and section in self.instructions):
 
                     # df of baseline model section
                     basedf = dataframe_from_bi(basemodel.inp.path, section)
-                    basedf[';'] = ';'
+                    basedf[";"] = ";"
 
                     # grab the changes to
                     changes = self.instructions[section]
@@ -136,11 +138,11 @@ class BuildInstructions(object):
                 else:
                     # section is not well understood or is problematic, just blindly copy
                     new_section = dataframe_from_bi(basemodel.inp.path, section=section)
-                    new_section[';'] = ';'
+                    new_section[";"] = ";"
                     vc_utils.write_inp_section(f, allheaders, section, new_section)
 
 
-class INPSectionDiff(object):
+class INPSectionDiff:
     """
     This object represents the 'changes' of a given section of a INP file
     with respect to another INP. Three main dataframes are attributes:
@@ -166,18 +168,16 @@ class INPSectionDiff(object):
     5           15.0         0          0               0           0  ;  Removed  model_full_features_b.inp
     """
 
-    def __init__(self, model1=None, model2=None, section='JUNCTIONS', build_instr_file=None):
+    def __init__(self, model1=None, model2=None, section="JUNCTIONS", build_instr_file=None):
         self.model1 = model1 if model1 else ""
         self.model2 = model2 if model2 else ""
 
         if model1 and model2:
             df1 = dataframe_from_inp(model1.inp.path, section)
             df2 = dataframe_from_inp(model2.inp.path, section)
-            df1[';'] = ';'
-            df2[';'] = ';'
-            col_order = list(df2.columns) + ['Comment', 'Origin']
-            m2_origin_string = os.path.basename(model2.inp.path).replace(' ', '-')
-
+            df1[";"] = ";"
+            df2[";"] = ";"
+            m2_origin_string = os.path.basename(model2.inp.path).replace(" ", "-")
             # BUG -> this fails if a df1 or df2 is None i.e. if a section doesn't exist in one model
             added_ids = df2.index.difference(df1.index)
             removed_ids = df1.index.difference(df2.index)
@@ -195,16 +195,16 @@ class INPSectionDiff(object):
             changed_ids = changes_with_dupes.index[changes_with_dupes.index.duplicated()].unique()  # .get_duplicates()
             added = df2.loc[added_ids].copy()
 
-            added['Comment'] = 'Added'  # from model {}'.format(model2.inp.path)
-            added['Origin'] = m2_origin_string
+            added["Comment"] = "Added"  # from model {}'.format(model2.inp.path)
+            added["Origin"] = m2_origin_string
 
             altered = df2.loc[changed_ids].copy()
-            altered['Comment'] = 'Altered'  # in model {}'.format(model2.inp.path)
-            altered['Origin'] = m2_origin_string
+            altered["Comment"] = "Altered"  # in model {}'.format(model2.inp.path)
+            altered["Origin"] = m2_origin_string
 
             removed = df1.loc[removed_ids].copy()
-            removed['Comment'] = 'Removed'  # in model {}'.format(model2.inp.path)
-            removed['Origin'] = m2_origin_string
+            removed["Comment"] = "Removed"  # in model {}'.format(model2.inp.path)
+            removed["Origin"] = m2_origin_string
             # removed = removed[col_order]
 
             self.old = df1
@@ -216,9 +216,9 @@ class INPSectionDiff(object):
         if build_instr_file:
             # if generating from a build instructions file, do this (more efficient)
             df = dataframe_from_bi(build_instr_file, section=section)
-            self.added = df.loc[df['Comment'] == 'Added']
-            self.removed = df.loc[df['Comment'] == 'Removed']
-            self.altered = df.loc[df['Comment'] == 'Altered']
+            self.added = df.loc[df["Comment"] == "Added"]
+            self.removed = df.loc[df["Comment"] == "Removed"]
+            self.altered = df.loc[df["Comment"] == "Altered"]
 
     def __add__(self, other):
 
@@ -231,13 +231,13 @@ class INPSectionDiff(object):
         return change
 
     def __str__(self):
-        s = ''
+        s = ""
         diff = pd.concat([self.removed, self.added, self.altered])
-        diffs = '\n{}'.format(diff.head().to_string())
+        diffs = f"\n{diff.head().to_string()}"
         return s+diffs
 
 
-class INPDiff(object):
+class INPDiff:
     """
     Diff of all INP sections between two models
 
@@ -284,12 +284,12 @@ class INPDiff(object):
                 self.diffs[section] = changes
 
     def __str__(self):
-        s = '--- {}\n+++ {}\n\n'.format(self.m1.inp.path, self.m2.inp.path)
-        diffs = '\n\n'.join(['{}\n{}'.format(sect, d.__str__()) for sect, d in self.diffs.items()])
+        s = f"--- {self.m1.inp.path}\n+++ {self.m2.inp.path}\n\n"
+        diffs = "\n\n".join([f"{sect}\n{d.__str__()}" for sect, d in self.diffs.items()])
         return s+diffs
 
 
-def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
+def create_inp_build_instructions(inpA, inpB, path, filename, comments=""):
     """
     pass in two inp file paths and produce a spreadsheet showing the differences
     found in each of the INP sections. These differences should then be used
@@ -307,24 +307,24 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
     # create build insructions folder
     if not os.path.exists(path):
         os.makedirs(path)
-    filepath = os.path.join(path, filename) + '.txt'
+    filepath = os.path.join(path, filename) + ".txt"
 
-    problem_sections = ['TITLE', 'CURVES', 'TIMESERIES', 'RDII', 'HYDROGRAPHS']
-    with open(filepath, 'w') as newf:
+    problem_sections = ["TITLE", "CURVES", "TIMESERIES", "RDII", "HYDROGRAPHS"]
+    with open(filepath, "w") as newf:
 
         # write meta data
         metadata = {
             # 'Baseline Model':modela.inp.path,
             # 'ID':filename,
-            'Parent Models': {
-                'Baseline': {inpA: vc_utils.modification_date(inpA)},
-                'Alternatives': {inpB: vc_utils.modification_date(inpB)}
+            "Parent Models": {
+                "Baseline": {inpA: vc_utils.modification_date(inpA)},
+                "Alternatives": {inpB: vc_utils.modification_date(inpB)}
             },
-            'Log': {filename: comments}
+            "Log": {filename: comments}
         }
         # print metadata
         vc_utils.write_meta_data(newf, metadata)
-        for section, _ in allsections_a.items():
+        for section in allsections_a:
             if section not in problem_sections:
                 # calculate the changes in the current section
                 changes = INPSectionDiff(modela, modelb, section)
@@ -336,12 +336,12 @@ def create_inp_build_instructions(inpA, inpB, path, filename, comments=''):
                 if len(changes_dfs) > 0:
                     data = pd.concat(changes_dfs, axis=0, sort=False)
                     vc_utils.write_inp_section(newf, allsections_a, section, data, pad_top=False,
-                                            na_fill='NaN')  # na fill fixes SNOWPACK blanks spaces issue
+                                            na_fill="NaN")  # na fill fixes SNOWPACK blanks spaces issue
 
     return BuildInstructions(filepath)
 
 
-def merge_models(inp1, inp2, target='merged_model.inp'):
+def merge_models(inp1, inp2, target="merged_model.inp"):
     """
     Merge two separate swmm models into one model. This creates a diff, ignores
     removed sections, and uses inp1 settings where conflicts exist (altered sections in diff)
@@ -354,20 +354,20 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
     m3 = swmmio.Model(inp1)
 
     inp_diff = INPDiff(inp1, inp2)
-    with open(target, 'w') as newf:
-        for section, _ in inp_diff.all_inp_objects.items():
+    with open(target, "w") as newf:
+        for section in inp_diff.all_inp_objects:
             # don't consider the "removed" parts of the diff
             # print('{}: {}'.format(section,inp_diff.all_inp_objects[section]['columns']))
             # check if the section is not in problem_sections and there are changes
             # in self.instructions and commit changes to it from baseline accordingly
             col_order = []
             if (section not in problem_sections
-                    and inp_diff.all_inp_objects[section]['columns'] != ['blob']
+                    and inp_diff.all_inp_objects[section]["columns"] != ["blob"]
                     and section in inp_diff.diffs):
 
                 # df of baseline model section
                 basedf = dataframe_from_inp(m3.inp.path, section)
-                basedf[';'] = ';'
+                basedf[";"] = ";"
                 col_order = basedf.columns
                 # grab the changes to
                 changes = inp_diff.diffs[section]
@@ -382,13 +382,13 @@ def merge_models(inp1, inp2, target='merged_model.inp'):
             else:
                 # section is not well understood or is problematic, just blindly copy
                 new_section = dataframe_from_inp(m3.inp.path, section)
-                new_section[';'] = ';'
+                new_section[";"] = ";"
                 # print ('dealing with confusing section: {}\n{}'.format(section, new_section))
 
             # print(new_section.head())
             # write the section
             new_section = new_section[col_order]
-            new_section[';'] = ';'
+            new_section[";"] = ";"
             vc_utils.write_inp_section(newf, inp_diff.all_inp_objects, section, new_section, pad_top=True)
 
     return target

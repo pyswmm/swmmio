@@ -1,8 +1,15 @@
 from swmmio import Model
-from swmmio.tests.data import (MODEL_A_PATH, MODEL_EX_1, MODEL_FULL_FEATURES_XY,
-                               MODEL_FULL_FEATURES__NET_PATH, MODEL_FULL_FEATURES_XY_B,
-                               MODEL_GREEN_AMPT, MODEL_TEST_INLET_DRAINS, MODEL_GROUNDWATER,
-                               MODEL_PUMP_CONTROL)
+from swmmio.tests.data import (
+                               MODEL_A_PATH,
+                               MODEL_EX_1,
+                               MODEL_FULL_FEATURES__NET_PATH,
+                               MODEL_FULL_FEATURES_XY,
+                               MODEL_FULL_FEATURES_XY_B,
+                               MODEL_GREEN_AMPT,
+                               MODEL_GROUNDWATER,
+                               MODEL_PUMP_CONTROL,
+                               MODEL_TEST_INLET_DRAINS,
+)
 
 # example models
 philly = Model(MODEL_A_PATH, crs="+init=EPSG:2817")

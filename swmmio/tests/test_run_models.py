@@ -5,8 +5,8 @@ import unittest
 from unittest import mock
 
 import swmmio
-from swmmio.examples import philly, jerzey
-from swmmio.run_models.run import run_simple, run_hot_start_sequence
+from swmmio.examples import jerzey, philly
+from swmmio.run_models.run import run_hot_start_sequence, run_simple
 
 
 class TestRunModels(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestRunModels(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
             # create copy of model in temp dir
-            inp_path = os.path.join(tmp_dir, 'philly-example.inp')
+            inp_path = os.path.join(tmp_dir, "philly-example.inp")
             philly.inp.save(inp_path)
 
             # run the model
@@ -31,7 +31,7 @@ class TestRunModels(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
 
             # create copy of model in temp dir
-            inp_path = os.path.join(tmp_dir, 'philly-example.inp')
+            inp_path = os.path.join(tmp_dir, "philly-example.inp")
             philly.inp.save(inp_path)
 
             # run the model
@@ -41,7 +41,7 @@ class TestRunModels(unittest.TestCase):
             m = swmmio.Model(inp_path)
             self.assertTrue(m.rpt_is_valid())
 
-    @mock.patch('argparse.ArgumentParser.parse_args',
+    @mock.patch("argparse.ArgumentParser.parse_args",
                 return_value=argparse.Namespace(
                     model_to_run=[jerzey.inp.path]
                 ))

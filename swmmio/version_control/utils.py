@@ -1,7 +1,7 @@
-from datetime import datetime
-import os
 import json
+import os
 import shutil
+from datetime import datetime
 
 from swmmio.utils.functions import format_inp_section_header
 
@@ -36,20 +36,20 @@ def copy_rpts_hsf(from_dir: str, to_dir: str, search_dir: str):
     # chain.from_iterable(os.walk(path) for path in paths):
     for path, dirs, files in os.walk(search_dir):
         for f in files:
-            if '.rpt' in f:
+            if ".rpt" in f:
                 rpt_path = os.path.join(path, f)
                 to_dir = path.replace(from_dir, to_dir)
                 dest = os.path.join(to_dir, f)
                 shutil.copyfile(src=rpt_path, dst=dest)
 
-            if '.hsf' in f:
+            if ".hsf" in f:
                 hsf_path = os.path.join(path, f)
                 to_dir = path.replace(from_dir, to_dir)
                 dest = os.path.join(to_dir, f)
                 shutil.copyfile(src=hsf_path, dst=dest)
 
 
-def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True, na_fill=''):
+def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_top=True, na_fill=""):
     """
     given an open file object, list of header sections, the current
     section header, and the section data in a Pandas Dataframe format, this function writes
@@ -57,61 +57,61 @@ def write_inp_section(file_object, allheaders, sectionheader, section_data, pad_
     """
 
     f = file_object
-    add_str = ''
+    add_str = ""
     sectionheader = format_inp_section_header(sectionheader)
     if not section_data.empty:
         if pad_top:
-            f.write('\n\n' + sectionheader + '\n')  # add SWMM-friendly header e.g. [DWF]
+            f.write("\n\n" + sectionheader + "\n")  # add SWMM-friendly header e.g. [DWF]
         else:
-            f.write(sectionheader + '\n')
-        if allheaders and (sectionheader in allheaders) and allheaders[sectionheader]['columns'] == ['blob']:
+            f.write(sectionheader + "\n")
+        if allheaders and (sectionheader in allheaders) and allheaders[sectionheader]["columns"] == ["blob"]:
             # to left justify based on the longest string in the blob column
-            formatter = '{{:<{}s}}'.format(section_data[sectionheader].str.len().max()).format
-            add_str = section_data.fillna('').to_string(
+            formatter = f"{{:<{section_data[sectionheader].str.len().max()}s}}".format
+            add_str = section_data.fillna("").to_string(
                 index_names=False,
                 header=False,
                 index=False,
-                justify='left',
+                justify="left",
                 formatters={sectionheader: formatter}
             )
 
         else:
             # naming the columns to the index name so the it prints in-line with col headers
-            f.write(';;')
+            f.write(";;")
             # to left justify on longest string in the Comment column
             # this is overly annoying, to deal with 'Objects' vs numbers to remove
             # two bytes added from the double semicolon header thing (to keep things lined up)
-            objectformatter = {hedr: ' {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+            objectformatter = {hedr: f" {{:<{section_data[hedr].apply(str).str.len().max()}}}".format
                                for hedr in section_data.columns}
-            numformatter = {hedr: '  {{:<{}}}'.format(section_data[hedr].apply(str).str.len().max()).format
+            numformatter = {hedr: f"  {{:<{section_data[hedr].apply(str).str.len().max()}}}".format
                             for hedr in section_data.columns if section_data[hedr].dtype != "O"}
             objectformatter.update(numformatter)
             add_str = section_data.infer_objects().fillna(na_fill).to_string(
                 index_names=False,
                 header=True,
-                justify='left',
+                justify="left",
                 formatters=objectformatter  # {'Comment':formatter}
             )
 
         # Deliminate control string using keywords
-        if sectionheader == '[CONTROLS]':
-            for sep in [' IF ', ' THEN ', ' PRIORITY ', ' AND ',  ' OR ', ' ELSE ']:
-                add_str = add_str.replace(sep, '\n'+sep)
+        if sectionheader == "[CONTROLS]":
+            for sep in [" IF ", " THEN ", " PRIORITY ", " AND ",  " OR ", " ELSE "]:
+                add_str = add_str.replace(sep, "\n"+sep)
 
         # write the dataframe as a string
-        f.write(add_str + '\n\n')
+        f.write(add_str + "\n\n")
 
 
 def write_meta_data(file_object, metadicts):
     file_object.write(json.dumps(metadicts, indent=4))
-    file_object.write('\n' + '=' * 100 + '\n\n')
+    file_object.write("\n" + "=" * 100 + "\n\n")
 
 
 def read_meta_data(filepath):
-    s = ''
+    s = ""
     with open(filepath) as file_object:
         for line in file_object:
-            if '================' in line:
+            if "================" in line:
                 break
             s += line.strip()
 
@@ -125,8 +125,8 @@ def bi_is_current(build_instr_file):
     """
 
     meta = read_meta_data(build_instr_file)
-    baseline = meta['Parent Models']['Baseline']
-    alternatives = meta['Parent Models']['Alternatives']
+    baseline = meta["Parent Models"]["Baseline"]
+    alternatives = meta["Parent Models"]["Alternatives"]
     # parents = baseline.update(alternatives)
     # print meta['Parent Models']['Baseline']
     # print alternatives
@@ -150,7 +150,7 @@ def bi_latest_parent_date_modified(vc_dir, parentname):
     meta = read_meta_data(newest_bi)
     # with open (newest_bi) as f:
 
-    return meta['Parent Models'][parentname]
+    return meta["Parent Models"][parentname]
 
 
 def newest_file(directory):

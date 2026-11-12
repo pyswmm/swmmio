@@ -1,29 +1,34 @@
-#!/usr/bin/env python
-# coding:utf-8
-
-from time import ctime
-import os
 import glob
+import os
+from time import ctime
 
 import pandas as pd
 
-from swmmio.utils import spatial, functions
-from swmmio.utils.dataframes import dataframe_from_rpt, get_link_coords, \
-    create_dataframe_multi_index, get_inp_options_df, dataframe_from_inp
 import swmmio
-from swmmio.elements import ModelSection, Links, Nodes
-from swmmio.defs import INP_OBJECTS, INFILTRATION_COLS, RPT_OBJECTS, COMPOSITE_OBJECTS
-
-from swmmio.utils.functions import trim_section_to_nodes
-from swmmio.utils.text import get_inp_sections_details, get_rpt_sections_details, get_rpt_metadata
 import swmmio.utils.text
+from swmmio.defs import COMPOSITE_OBJECTS, INFILTRATION_COLS, INP_OBJECTS, RPT_OBJECTS
+from swmmio.elements import Links, ModelSection, Nodes
+from swmmio.utils import functions, spatial
+from swmmio.utils.dataframes import (
+    create_dataframe_multi_index,
+    dataframe_from_inp,
+    dataframe_from_rpt,
+    get_inp_options_df,
+    get_link_coords,
+)
+from swmmio.utils.functions import trim_section_to_nodes
+from swmmio.utils.text import (
+    get_inp_sections_details,
+    get_rpt_metadata,
+    get_rpt_sections_details,
+)
 
-pd.set_option('display.max_columns', 5)
+pd.set_option("display.max_columns", 5)
 
-__all__ = ['Model', 'inp', 'rpt']
+__all__ = ["Model", "inp", "rpt"]
 
 
-class Model(object):
+class Model:
     """
     Class representing a complete SWMM model incorporating its INP and RPT
     files and data
@@ -120,7 +125,7 @@ class Model(object):
                 # there is only one INP in this directory -> good.
                 inp_path = os.path.join(in_file_path, inps_in_dir[0])
 
-        elif os.path.splitext(in_file_path)[1] == '.inp':
+        elif os.path.splitext(in_file_path)[1] == ".inp":
             # an inp was passed in
             inp_path = in_file_path
 
@@ -131,16 +136,16 @@ class Model(object):
             self.inp = inp(inp_path)  # inp object
             self.rpt = None  # until we can confirm it initializes properly
             self.bbox = None  # to remember how the model data was clipped
-            self.scenario = ''  # self._get_scenario()
+            self.scenario = ""  # self._get_scenario()
             self.crs = crs  # coordinate reference system
 
             # try to initialize a companion RPT object
-            rpt_path = os.path.join(wd, name + '.rpt')
+            rpt_path = os.path.join(wd, name + ".rpt")
             if os.path.exists(rpt_path) and include_rpt:
                 try:
                     self.rpt = rpt(rpt_path)
-                except Exception as e:
-                    print('{}.rpt failed to initialize\n{}'.format(name, e))
+                except Exception as e:  # noqa: BLE001 - malformed reports must not prevent model loading
+                    print(f"{name}.rpt failed to initialize\n{e}")
 
             self._nodes_df = None
             self._conduits_df = None
@@ -161,7 +166,7 @@ class Model(object):
 
         if self.rpt is None:
             if verbose:
-                print('{} does not have an rpt file'.format(self.name))
+                print(f"{self.name} does not have an rpt file")
             return False
 
         # check if the rpt has ERRORS output from SWMM
@@ -170,7 +175,7 @@ class Model(object):
             f.seek(self.rpt.file_size - 500)
             for line in f:
                 spl = line.split()
-                if len(spl) > 0 and spl[0] == 'ERROR':
+                if len(spl) > 0 and spl[0] == "ERROR":
                     # return false at first "ERROR" occurence
                     return False
 
@@ -178,14 +183,11 @@ class Model(object):
         inp_mod_time = os.path.getmtime(self.inp.path)
 
         if verbose:
-            print("{}.rpt: modified {}".format(self.name, ctime(rpt_mod_time)))
-            print("{}.inp: modified {}".format(self.name, ctime(inp_mod_time)))
+            print(f"{self.name}.rpt: modified {ctime(rpt_mod_time)}")
+            print(f"{self.name}.inp: modified {ctime(inp_mod_time)}")
 
-        if inp_mod_time > rpt_mod_time:
-            # inp datetime modified greater than rpt datetime modified
-            return False
-        else:
-            return True
+        # False if inp was edited after the rpt was generated, True otherwise
+        return inp_mod_time <= rpt_mod_time
         
     def rpt_warnings(self, verbose=False):
         """
@@ -194,16 +196,16 @@ class Model(object):
         # first, make sure the rpt is valid
         if self.rpt_is_valid(verbose=verbose):
             # check if the rpt has WARNINGS output from SWMM
-            warnings = list()
+            warnings = []
             with open(self.rpt.path) as f:
                 for line in f:
                     spl = line.split()
-                    if len(spl) > 0 and spl[0] == 'WARNING':
+                    if len(spl) > 0 and spl[0] == "WARNING":
                         warnings.append(line[:-1])
-                    elif '****************' in line:
+                    elif "****************" in line:
                         break
         else:
-            warnings = 'RPT file is not valid'
+            warnings = "RPT file is not valid"
         return warnings
 
     def conduits(self):
@@ -223,7 +225,6 @@ class Model(object):
         # create dataframes of relevant sections from the INP
         conduits_df = dataframe_from_inp(inp.path, "CONDUITS")
         xsections_df = dataframe_from_inp(inp.path, "XSECTIONS")
-        tags = dataframe_from_inp(inp.path, "TAGS")
         conduits_df = conduits_df.join(xsections_df)
 
         if rpt:
@@ -236,14 +237,14 @@ class Model(object):
         df = conduits_df.assign(coords=xys.map(lambda x: x[0]))
 
         # add conduit up/down inverts and calculate slope
-        elevs = self.nodes()[['InvertElev']]
-        df = pd.merge(df, elevs, left_on='InletNode', right_index=True, how='left')
+        elevs = self.nodes()[["InvertElev"]]
+        df = pd.merge(df, elevs, left_on="InletNode", right_index=True, how="left")
         df = df.rename(index=str, columns={"InvertElev": "InletNodeInvert"})
-        df = pd.merge(df, elevs, left_on='OutletNode', right_index=True, how='left')
+        df = pd.merge(df, elevs, left_on="OutletNode", right_index=True, how="left")
         df = df.rename(index=str, columns={"InvertElev": "OutletNodeInvert"})
-        df['UpstreamInvert'] = df.InletNodeInvert + df.InOffset
-        df['DownstreamInvert'] = df.OutletNodeInvert + df.OutOffset
-        df['SlopeFtPerFt'] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
+        df["UpstreamInvert"] = df.InletNodeInvert + df.InOffset
+        df["DownstreamInvert"] = df.OutletNodeInvert + df.OutOffset
+        df["SlopeFtPerFt"] = (df.UpstreamInvert - df.DownstreamInvert) / df.Length
 
         df.InletNode = df.InletNode.astype(str)
         df.OutletNode = df.OutletNode.astype(str)
@@ -262,7 +263,7 @@ class Model(object):
         organize in one dataframe.
         """
 
-        df = ModelSection(self, 'orifices')
+        df = ModelSection(self, "orifices")
         self._orifices_df = df
 
         return df
@@ -278,8 +279,8 @@ class Model(object):
         if self._weirs_df is not None:
             return self._weirs_df
 
-        self._weirs_df = Links(model=self, inp_sections=['weirs'],
-                               rpt_sections=['Link Flow Summary'])
+        self._weirs_df = Links(model=self, inp_sections=["weirs"],
+                               rpt_sections=["Link Flow Summary"])
         return self._weirs_df
 
     @property
@@ -302,7 +303,7 @@ class Model(object):
         C2    P1_Curve         ON
         """
 
-        self._pumps_df = Links(model=self, **COMPOSITE_OBJECTS['pumps'])
+        self._pumps_df = Links(model=self, **COMPOSITE_OBJECTS["pumps"])
         return self._pumps_df
 
     @property
@@ -337,12 +338,12 @@ class Model(object):
         """
         if self._links_df is not None:
             return self._links_df
-        df = Links(model=self, **COMPOSITE_OBJECTS['links'])
+        df = Links(model=self, **COMPOSITE_OBJECTS["links"])
         self._links_df = df
         return df
 
     @property
-    def nodes(self, bbox=None):
+    def nodes(self):
         """
         Collect all useful and available data related model nodes and organize
         in one dataframe.
@@ -366,10 +367,10 @@ class Model(object):
         """
 
         # check if this has been done already and return that data accordingly
-        if self._nodes_df is not None and bbox == self.bbox:
+        if self._nodes_df is not None:
             return self._nodes_df
 
-        df = Nodes(model=self, **COMPOSITE_OBJECTS['nodes'])
+        df = Nodes(model=self, **COMPOSITE_OBJECTS["nodes"])
         self._nodes_df = df
         return df
 
@@ -391,7 +392,7 @@ class Model(object):
         if self._subcatchments_df is not None:
             return self._subcatchments_df
 
-        df = ModelSection(model=self, **COMPOSITE_OBJECTS['subcatchments'])
+        df = ModelSection(model=self, **COMPOSITE_OBJECTS["subcatchments"])
 
         self._subcatchments_df = df
         return df
@@ -445,11 +446,11 @@ class Model(object):
         try:
             import pyproj
         except ImportError:
-            raise ImportError('pyproj module needed. get this package here: ',
-                              'https://pypi.python.org/pypi/pyproj')
+            raise ImportError("pyproj module needed. get this package here: ",
+                              "https://pypi.python.org/pypi/pyproj")
 
         if self.crs is None:
-            raise AttributeError('CRS of model object not set')
+            raise AttributeError("CRS of model object not set")
 
         if not self.inp.coordinates.empty:
             self.inp.coordinates = spatial.change_crs(self.inp.coordinates, self.crs, *args, **kwargs)
@@ -483,13 +484,13 @@ class Model(object):
 
         # CREATE THE CONDUIT shp
         conds = self.conduits()
-        conds_path = os.path.join(shpdir, self.inp.name + '_conduits.shp')
+        conds_path = os.path.join(shpdir, self.inp.name + "_conduits.shp")
         spatial.write_shapefile(conds, conds_path, prj=prj)
 
         # CREATE THE NODE shp
         nodes = self.nodes()
-        nodes_path = os.path.join(shpdir, self.inp.name + '_nodes.shp')
-        spatial.write_shapefile(nodes, nodes_path, geomtype='point', prj=prj)
+        nodes_path = os.path.join(shpdir, self.inp.name + "_nodes.shp")
+        spatial.write_shapefile(nodes, nodes_path, geomtype="point", prj=prj)
 
     @property
     def summary(self) -> dict:
@@ -509,7 +510,7 @@ class Model(object):
             self._summary = model_summary
         return self._summary
 
-class SWMMIOFile(object):
+class SWMMIOFile:
     defaultSection = "Link Flow Summary"
 
     def __init__(self, file_path):
@@ -543,11 +544,11 @@ class rpt(SWMMIOFile):
 
         meta_data = get_rpt_metadata(filePath)
 
-        self.swmm_version = meta_data['swmm_version']
-        self.simulationStart = meta_data['simulation_start']
-        self.simulationEnd = meta_data['simulation_end']
-        self.timeStepMin = meta_data['time_step_min']
-        self.dateOfAnalysis = meta_data['analysis_date']
+        self.swmm_version = meta_data["swmm_version"]
+        self.simulationStart = meta_data["simulation_start"]
+        self.simulationEnd = meta_data["simulation_end"]
+        self.timeStepMin = meta_data["time_step_min"]
+        self.dateOfAnalysis = meta_data["analysis_date"]
         self.elementByteLocations = {"Link Results": {}, "Node Results": {}}
         self._rpt_section_details = None
 
@@ -642,49 +643,49 @@ class inp(SWMMIOFile):
         SWMMIOFile.__init__(self, file_path)  # run the superclass init
 
         self._sections = [
-            '[OPTIONS]',
-            '[FILES]',
-            '[RAINGAGES]',
-            '[EVAPORATION]',
-            '[LOSSES]',
-            '[REPORT]',
-            '[CONDUITS]',
-            '[XSECTIONS]',
-            '[POLLUTANTS]',
-            '[LANDUSES]',
-            '[BUILDUP]',
-            '[WASHOFF]',
-            '[COVERAGES]',
-            '[LOADINGS]',
-            '[PUMPS]',
-            '[ORIFICES]',
-            '[WEIRS]',
-            '[JUNCTIONS]',
-            '[STORAGE]',
-            '[DIVIDERS]',
-            '[OUTFALLS]',
-            '[VERTICES]',
-            '[SUBCATCHMENTS]',
-            '[SUBAREAS]',
-            '[INFILTRATION]',
-            '[AQUIFERS]',
-            '[GROUNDWATER]',
-            '[CURVES]',
-            '[COORDINATES]',
-            '[DWF]',
-            '[RDII]',
-            '[HYDROGRAPHS]',
-            '[INFLOWS]',
-            '[Polygons]',
-            '[TIMESERIES]',
-            '[LID_USAGE]',
-            '[TAGS]',
-            '[STREETS]',
-            '[INLETS]',
-            '[OUTLETS]',
-            '[INLET_USAGE]',
-            '[PATTERNS]',
-            '[CONTROLS]',
+            "[OPTIONS]",
+            "[FILES]",
+            "[RAINGAGES]",
+            "[EVAPORATION]",
+            "[LOSSES]",
+            "[REPORT]",
+            "[CONDUITS]",
+            "[XSECTIONS]",
+            "[POLLUTANTS]",
+            "[LANDUSES]",
+            "[BUILDUP]",
+            "[WASHOFF]",
+            "[COVERAGES]",
+            "[LOADINGS]",
+            "[PUMPS]",
+            "[ORIFICES]",
+            "[WEIRS]",
+            "[JUNCTIONS]",
+            "[STORAGE]",
+            "[DIVIDERS]",
+            "[OUTFALLS]",
+            "[VERTICES]",
+            "[SUBCATCHMENTS]",
+            "[SUBAREAS]",
+            "[INFILTRATION]",
+            "[AQUIFERS]",
+            "[GROUNDWATER]",
+            "[CURVES]",
+            "[COORDINATES]",
+            "[DWF]",
+            "[RDII]",
+            "[HYDROGRAPHS]",
+            "[INFLOWS]",
+            "[Polygons]",
+            "[TIMESERIES]",
+            "[LID_USAGE]",
+            "[TAGS]",
+            "[STREETS]",
+            "[INLETS]",
+            "[OUTLETS]",
+            "[INLET_USAGE]",
+            "[PATTERNS]",
+            "[CONTROLS]",
         ]
 
     def save(self, target_path=None):
@@ -698,8 +699,9 @@ class inp(SWMMIOFile):
         >>> from swmmio.examples import philly
         >>> philly.inp.save('copy-of-philly.inp')
         """
-        from swmmio.utils.modify_model import replace_inp_section
         import shutil
+
+        from swmmio.utils.modify_model import replace_inp_section
 
         if target_path is not None:
             shutil.copyfile(self.path, target_path)
@@ -708,8 +710,8 @@ class inp(SWMMIOFile):
 
         for section in self._sections:
             # reformate the [SECTION] to section (and _section_df)
-            sect_id = section.translate({ord(i): None for i in '[]'}).lower()
-            sect_id_private = '_{}_df'.format(sect_id)
+            sect_id = section.translate({ord(i): None for i in "[]"}).lower()
+            sect_id_private = f"_{sect_id}_df"
             data = getattr(self, sect_id_private)
             if data is not None:
                 replace_inp_section(target_path, section, data)
@@ -724,7 +726,7 @@ class inp(SWMMIOFile):
 
     def trim_to_nodes(self, node_ids):
 
-        for section in ['junctions', 'storage', 'outfalls', 'coordinates']:
+        for section in ["junctions", "storage", "outfalls", "coordinates"]:
             trim_section_to_nodes(self, node_ids, node_type=section)
 
     @property
@@ -738,11 +740,11 @@ class inp(SWMMIOFile):
                                                                  )
 
         # select the correct infiltration column names
-        infil_type = self.options.loc['INFILTRATION', 'Value']
+        infil_type = self.options.loc["INFILTRATION", "Value"]
         infil_cols = INFILTRATION_COLS[infil_type]
 
         # overwrite the dynamic sections with proper header cols
-        self._inp_section_details['[INFILTRATION]'] = list(infil_cols)
+        self._inp_section_details["[INFILTRATION]"] = list(infil_cols)
 
         return self._inp_section_details
 
@@ -776,12 +778,12 @@ class inp(SWMMIOFile):
         self._options_df = df
 
         # update the headers
-        infil_type = df.loc['INFILTRATION', 'Value']
+        infil_type = df.loc["INFILTRATION", "Value"]
         infil_cols = INFILTRATION_COLS[infil_type]
 
         # overwrite the dynamic sections with proper header cols
         h = dict(INP_OBJECTS)
-        h['[INFILTRATION]'] = list(infil_cols)
+        h["[INFILTRATION]"] = list(infil_cols)
         self._inp_section_details = h
         self._infiltration_df = None
 
@@ -820,7 +822,7 @@ class inp(SWMMIOFile):
         """
         if self._raingages_df is not None:
             return self._raingages_df
-        self._raingages_df = dataframe_from_inp(self.path, 'raingages')
+        self._raingages_df = dataframe_from_inp(self.path, "raingages")
         return self._raingages_df
 
     @raingages.setter
@@ -846,7 +848,7 @@ class inp(SWMMIOFile):
         """
         if self._evaporation_df is not None:
             return self._evaporation_df
-        self._evaporation_df = dataframe_from_inp(self.path, 'evaporation')
+        self._evaporation_df = dataframe_from_inp(self.path, "evaporation")
         return self._evaporation_df
 
     @evaporation.setter
@@ -870,7 +872,7 @@ class inp(SWMMIOFile):
         """
         if self._losses_df is not None:
             return self._losses_df
-        self._losses_df = dataframe_from_inp(self.path, 'losses')
+        self._losses_df = dataframe_from_inp(self.path, "losses")
         return self._losses_df
 
     @losses.setter
@@ -994,7 +996,7 @@ class inp(SWMMIOFile):
         """
         if self._pollutants_df is not None:
             return self._pollutants_df
-        self._pollutants_df = dataframe_from_inp(self.path, 'pollutants')
+        self._pollutants_df = dataframe_from_inp(self.path, "pollutants")
         return self._pollutants_df
 
     @pollutants.setter
@@ -1466,7 +1468,7 @@ class inp(SWMMIOFile):
         """
         if self._vertices_df is not None:
             return self._vertices_df
-        self._vertices_df = dataframe_from_inp(self.path, 'VERTICES')
+        self._vertices_df = dataframe_from_inp(self.path, "VERTICES")
         return self._vertices_df
 
     @vertices.setter
@@ -1492,8 +1494,8 @@ class inp(SWMMIOFile):
         """
         if self._inflows_df is not None:
             return self._inflows_df
-        inf = dataframe_from_inp(self.path, 'INFLOWS', quote_replace='_!!!!_')
-        self._inflows_df = inf.replace('_!!!!_', '""') # revert quote replace
+        inf = dataframe_from_inp(self.path, "INFLOWS", quote_replace="_!!!!_")
+        self._inflows_df = inf.replace("_!!!!_", '""') # revert quote replace
         return self._inflows_df
 
     @inflows.setter
@@ -1509,7 +1511,7 @@ class inp(SWMMIOFile):
         """
         if self._polygons_df is not None:
             return self._polygons_df
-        self._polygons_df = dataframe_from_inp(self.path, '[Polygons]')
+        self._polygons_df = dataframe_from_inp(self.path, "[Polygons]")
         return self._polygons_df
 
     @polygons.setter
@@ -1525,7 +1527,7 @@ class inp(SWMMIOFile):
         """
         if self._curves_df is not None:
             return self._curves_df
-        self._curves_df = create_dataframe_multi_index(self.path, '[CURVES]')
+        self._curves_df = create_dataframe_multi_index(self.path, "[CURVES]")
         return self._curves_df
 
     @curves.setter
@@ -1541,7 +1543,7 @@ class inp(SWMMIOFile):
         """
         if self._timeseries_df is not None:
             return self._timeseries_df
-        self._timeseries_df = create_dataframe_multi_index(self.path, '[TIMESERIES]')
+        self._timeseries_df = create_dataframe_multi_index(self.path, "[TIMESERIES]")
         return self._timeseries_df
 
     @timeseries.setter
@@ -1566,26 +1568,26 @@ class inp(SWMMIOFile):
         
         if self._patterns_df is not None:
             return self._patterns_df
-        self._patterns_df = dataframe_from_inp(self.path, '[PATTERNS]')
+        self._patterns_df = dataframe_from_inp(self.path, "[PATTERNS]")
 
         if self._patterns_df.shape[0] > 0:
             # reformat, 1 row per pattern
             pattern_entry_list = []
-            for name, pattern in self._patterns_df.groupby('Name'):
+            for name, pattern in self._patterns_df.groupby("Name"):
                 pattern_entry = {}
-                pattern_entry['Name'] = name
-                pattern_entry['Type'] = pattern['Type'].iloc[0]
+                pattern_entry["Name"] = name
+                pattern_entry["Type"] = pattern["Type"].iloc[0]
                 if pattern.shape[0] > 1:
                     # shift pattern values to the right
                     pattern.iloc[1::, 1::] = pattern.iloc[1::, 0:-1].values.astype(float)
-                    pattern['Factors'] = pattern['Factors'].astype(float)
+                    pattern["Factors"] = pattern["Factors"].astype(float)
                 values = pattern.iloc[:, 1:].values.flatten()
                 for i in range(len(values)):
-                    pattern_entry['Factor'+str(i+1)] = values[i]
+                    pattern_entry["Factor"+str(i+1)] = values[i]
                 pattern_entry_list.append(pattern_entry)
 
             self._patterns_df = pd.DataFrame(pattern_entry_list)
-            self._patterns_df.set_index('Name', inplace=True)
+            self._patterns_df.set_index("Name", inplace=True)
 
         return self._patterns_df
 
@@ -1616,23 +1618,23 @@ class inp(SWMMIOFile):
             # reformat, 1 row per control
             control_entry_list = []
             control_entry = {}
-            controls = self._controls_df['[CONTROLS]']
+            controls = self._controls_df["[CONTROLS]"]
             # make sure the first entry starts with RULE
             assert controls[0][0:5] == "RULE "
             for row in controls:
-                if row[0:5] == 'RULE ': # new control
+                if row[0:5] == "RULE ": # new control
                     if len(control_entry) > 0: # add control to the list
                         control_entry_list.append(control_entry)
                     control_entry = {}
-                    control_entry['Name'] = row.rstrip() # remove white space
-                    control_entry['Control'] = ''
+                    control_entry["Name"] = row.rstrip() # remove white space
+                    control_entry["Control"] = ""
                 else:
-                    control_entry['Control'] = control_entry['Control'] + row + ' '
+                    control_entry["Control"] = control_entry["Control"] + row + " "
             if len(control_entry) > 0: # add last control to the list
                 control_entry_list.append(control_entry)
             
             self._controls_df = pd.DataFrame(control_entry_list)
-            self._controls_df.set_index('Name', inplace=True)
+            self._controls_df.set_index("Name", inplace=True)
                 
         return self._controls_df
 
@@ -1803,17 +1805,17 @@ def drop_invalid_model_elements(inp):
 
     # drop links with bad refs to inlet/outlet nodes
     from swmmio.utils.functions import find_invalid_links
-    inv_conds = find_invalid_links(inp, nids, 'conduits', drop=True)
-    inv_pumps = find_invalid_links(inp, nids, 'pumps', drop=True)
-    inv_orifs = find_invalid_links(inp, nids, 'orifices', drop=True)
-    inv_weirs = find_invalid_links(inp, nids, 'weirs', drop=True)
+    inv_conds = find_invalid_links(inp, nids, "conduits", drop=True)
+    inv_pumps = find_invalid_links(inp, nids, "pumps", drop=True)
+    inv_orifs = find_invalid_links(inp, nids, "orifices", drop=True)
+    inv_weirs = find_invalid_links(inp, nids, "weirs", drop=True)
 
     # drop other parts of bad links
     invalid_links = inv_conds + inv_pumps + inv_orifs + inv_weirs
     inp.xsections = inp.xsections.loc[~inp.xsections.index.isin(invalid_links)]
 
     # drop invalid subcats and their related components
-    invalid_subcats = inp.subcatchments.index[~inp.subcatchments['Outlet'].isin(nids)]
+    invalid_subcats = inp.subcatchments.index[~inp.subcatchments["Outlet"].isin(nids)]
     inp.subcatchments = inp.subcatchments.loc[~inp.subcatchments.index.isin(invalid_subcats)]
     inp.subareas = inp.subareas.loc[~inp.subareas.index.isin(invalid_subcats)]
     inp.infiltration = inp.infiltration.loc[~inp.infiltration.index.isin(invalid_subcats)]
@@ -1823,8 +1825,8 @@ def drop_invalid_model_elements(inp):
 
 # dynamically add read properties to rpt object
 def add_rpt_dataframe_properties(rpt_section):
-    fn_name = rpt_section.replace(' ', '_').lower()
-    private_df_name = f'_{fn_name}'
+    fn_name = rpt_section.replace(" ", "_").lower()
+    private_df_name = f"_{fn_name}"
 
     def fn(self):
         if private_df_name not in self.__dict__:
@@ -1832,7 +1834,7 @@ def add_rpt_dataframe_properties(rpt_section):
         return self.__dict__[private_df_name]
 
     fn.__name__ = fn_name
-    fn.__doc__ = "Return values for the {0} description".format(rpt_section)
+    fn.__doc__ = f"Return values for the {rpt_section} description"
     setattr(rpt, fn_name, property(fn))
 
 

@@ -1,7 +1,8 @@
 # UTILITY/HELPER FUNCTIONS FOR DRAWING
-import pandas as pd
 import math
 import os
+
+import pandas as pd
 from PIL import Image
 
 
@@ -74,7 +75,7 @@ def clip_to_box(df, bbox):
 
     def any_xy_in_box(row, bbox):
         # because im confused with list comprehensions rn
-        return any([point_in_box(bbox, pt) for pt in row])
+        return any(point_in_box(bbox, pt) for pt in row)
 
     coords = df.coords.tolist()
     result = [any_xy_in_box(p, bbox) for p in coords]
@@ -109,12 +110,7 @@ def point_in_box(bbox, point):
     x = point[0]
     y = point[1]
 
-    if x < LB[0] or x > RU[0]:
-        return False
-    elif y < LB[1] or y > RU[1]:
-        return False
-    else:
-        return True
+    return x >= LB[0] and x <= RU[0] and y >= LB[1] and y <= RU[1]
 
 
 def length_bw_coords(upstreamXY, downstreamXY):

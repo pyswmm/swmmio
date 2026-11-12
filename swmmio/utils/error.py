@@ -28,7 +28,7 @@ class NodeNotInInputFile(Exception):
     Exception raised for incomplete simulation.
     """
     def __init__(self, node):
-        self.message = "Node {} is not present in INP file.".format(node)
+        self.message = f"Node {node} is not present in INP file."
         print(self.message)
         super().__init__(self.message)
 
@@ -37,6 +37,6 @@ class LinkNotInInputFile(Exception):
     Exception raised for incomplete simulation.
     """
     def __init__(self, link):
-        self.message = "Link {} is not present in INP file.".format(link)
+        self.message = f"Link {link} is not present in INP file."
         print(self.message)
         super().__init__(self.message)

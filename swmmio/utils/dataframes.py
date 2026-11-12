@@ -1,27 +1,31 @@
 import math
+import re
+import warnings
+from io import StringIO
+
+import pandas as pd
 
 from swmmio.utils.functions import format_inp_section_header, remove_braces
-from swmmio.utils.text import (extract_section_of_file, get_inp_sections_details,
-                               get_rpt_sections_details)
-from io import StringIO
-import warnings
-import pandas as pd
-import re
+from swmmio.utils.text import (
+    extract_section_of_file,
+    get_inp_sections_details,
+    get_rpt_sections_details,
+)
 
 
-def dataframe_from_bi(bi_path, section='[CONDUITS]'):
+def dataframe_from_bi(bi_path, section="[CONDUITS]"):
     """
     given a path to a build instructions file, create a dataframe of data in a
     given section
     """
 
     df = dataframe_from_inp(bi_path, section,
-                            additional_cols=[';', 'Comment', 'Origin'],
-                            comment=';;')
+                            additional_cols=[";", "Comment", "Origin"],
+                            comment=";;")
     return df
 
 
-def create_dataframe_multi_index(inp_path, section='CURVES'):
+def create_dataframe_multi_index(inp_path, section="CURVES"):
 
     # format the section header for look up in headers OrderedDict
     sect = remove_braces(section).upper()
@@ -30,14 +34,14 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
     headers = get_inp_sections_details(inp_path, include_brackets=False)
 
     if sect not in headers:
-        warnings.warn(f'{sect} section not found in {inp_path}')
+        warnings.warn(f"{sect} section not found in {inp_path}")
         return pd.DataFrame()
 
     # extract the string and read into a dataframe
     start_string = format_inp_section_header(section)
-    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    end_strings = [format_inp_section_header(h) for h in headers]
     s = extract_section_of_file(inp_path, start_string, end_strings)
-    cols = headers[sect]['columns']
+    cols = headers[sect]["columns"]
 
     f = StringIO(s)
     data = []
@@ -45,7 +49,7 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
         if "FILE" in line:
             filename = re.findall(r'"([^"]*)"', line)[0]
             items = line.strip().split()[:2]
-            items = [items[0], items[1], None, '"{}"'.format(filename)]
+            items = [items[0], items[1], None, f'"{filename}"']
         else:
             items = line.strip().split()
             if len(items) == 3:
@@ -55,10 +59,10 @@ def create_dataframe_multi_index(inp_path, section='CURVES'):
 
 
     df = pd.DataFrame(data=data, columns=cols)
-    if sect == 'CURVES':
-        df = df.set_index(['Name']) #, 'Type']) # changed index to Name to correct INP write
-    elif sect == 'TIMESERIES':
-        df = df.set_index(['Name'])
+    if sect == "CURVES":
+        df = df.set_index(["Name"]) #, 'Type']) # changed index to Name to correct INP write
+    elif sect == "TIMESERIES":
+        df = df.set_index(["Name"])
 
     return df
 
@@ -77,34 +81,34 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
     headers = get_rpt_sections_details(rpt_path)
 
     if section not in headers:
-        warnings.warn(f'{section} section not found in {rpt_path}')
+        warnings.warn(f"{section} section not found in {rpt_path}")
         return pd.DataFrame()
 
     # handle case for extracting timeseries results
     if element_id is not None:
-        end_strings = ['<<< ']
+        end_strings = ["<<< "]
         start_strings = [
             section,
             f"<<< {section.replace(' Results', '')} {element_id} >>>",
-            '-' * 20, '-' * 20
+            "-" * 20, "-" * 20
         ]
     else:
         # and get the list of columns to use for parsing this section
         end_strings = list(headers.keys())
-        end_strings.append('***********')
-        end_strings.append('Analysis begun on')
-        start_strings = [section, '-'*20, '-'*20]
-    cols = headers[section]['columns']
+        end_strings.append("***********")
+        end_strings.append("Analysis begun on")
+        start_strings = [section, "-"*20, "-"*20]
+    cols = headers[section]["columns"]
 
     # check for no Node Flooding Summary Edge case "No nodes were flooded."
-    if section == 'Node Flooding Summary':
-        s = extract_section_of_file(rpt_path, [section, 'No nodes were flooded.'], end_strings)
-        if 'No nodes were flooded' in s:
+    if section == "Node Flooding Summary":
+        s = extract_section_of_file(rpt_path, [section, "No nodes were flooded."], end_strings)
+        if "No nodes were flooded" in s:
             return pd.DataFrame(columns=cols)
 
     # extract the string and read into a dataframe
     s = extract_section_of_file(rpt_path, start_strings, end_strings)
-    df = pd.read_csv(StringIO(s), header=None, sep=r'\s+', skiprows=[0],
+    df = pd.read_csv(StringIO(s), header=None, sep=r"\s+", skiprows=[0],
                      index_col=0, names=cols)
 
     # confirm index name is string
@@ -113,7 +117,7 @@ def dataframe_from_rpt(rpt_path, section, element_id=None):
     return df
 
 
-def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' ', **kwargs):
+def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=" ", **kwargs):
 
     """
     create a dataframe from a section of an INP file
@@ -132,12 +136,12 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     headers = get_inp_sections_details(inp_path, include_brackets=False)
 
     if sect not in headers:
-        warnings.warn(f'{sect} section not found in {inp_path}')
+        warnings.warn(f"{sect} section not found in {inp_path}")
         return pd.DataFrame()
 
     # extract the string and read into a dataframe
     start_string = format_inp_section_header(section)
-    end_strings = [format_inp_section_header(h) for h in headers.keys()]
+    end_strings = [format_inp_section_header(h) for h in headers]
     s = extract_section_of_file(inp_path, start_string, end_strings, **kwargs)
 
     # replace occurrences of double quotes ""
@@ -146,28 +150,28 @@ def dataframe_from_inp(inp_path, section, additional_cols=None, quote_replace=' 
     # find max tokens after the header, ignoring comments
     # if zero tokens counted (i.e. empty line), fall back to headers dict
     n_tokens = 0
-    lines = re.sub(r"(\n)\1+", r"\1", s).split('\n')
+    lines = re.sub(r"(\n)\1+", r"\1", s).split("\n")
     for line in lines[1::]:
-        n_tokens = max([n_tokens, len(line.split(';')[0].split())])
-    n_tokens = len(headers[sect]['columns']) if n_tokens == 0 else n_tokens
+        n_tokens = max([n_tokens, len(line.split(";")[0].split())])
+    n_tokens = len(headers[sect]["columns"]) if n_tokens == 0 else n_tokens
 
     # and get the list of columns to use for parsing this section
     # add any additional columns needed for special cases (build instructions)
     additional_cols = [] if additional_cols is None else additional_cols
-    cols = headers[sect]['columns'][:n_tokens]
+    cols = headers[sect]["columns"][:n_tokens]
     if n_tokens > len(cols):
         cols = cols + ["col"+str(len(cols)+i) for i in range(n_tokens-len(cols))]
     cols = cols + additional_cols
     
-    if headers[sect]['columns'][0] == 'blob':
+    if headers[sect]["columns"][0] == "blob":
         # return the whole row, without specific col headers
         return pd.read_csv(StringIO(s))
     else:
         try:
-            df = pd.read_csv(StringIO(s), header=None, sep=r'\s+',
+            df = pd.read_csv(StringIO(s), header=None, sep=r"\s+",
                              skiprows=[0], index_col=0, names=cols)
-        except:
-            raise IndexError(f'failed to parse {section} with cols: {cols}. head:\n{s[:500]}')
+        except:  # noqa: E722 - preserve wrapping every parse failure as IndexError
+            raise IndexError(f"failed to parse {section} with cols: {cols}. head:\n{s[:500]}")
 
     # confirm index name is string
     df = df.rename(index=str)
@@ -182,18 +186,18 @@ def get_link_coords(row, nodexys, verticies):
     outlet_id = str(row.OutletNode)
     xys_str = nodexys.rename(index=str)
 
-    x1 = xys_str.at[inlet_id, 'X']
-    y1 = xys_str.at[inlet_id, 'Y']
-    x2 = xys_str.at[outlet_id, 'X']
-    y2 = xys_str.at[outlet_id, 'Y']
+    x1 = xys_str.at[inlet_id, "X"]
+    y1 = xys_str.at[inlet_id, "Y"]
+    x2 = xys_str.at[outlet_id, "X"]
+    y2 = xys_str.at[outlet_id, "Y"]
 
     if None in [x1, x2, y1, y2]:
-        print(row.name, 'problem, no coords')
+        print(row.name, "problem, no coords")
     # grab any extra verts, place in between up/dwn nodes
     res = [(x1, y1)]
     if row.name in verticies.index:
-        xs = verticies.loc[row.name, 'X'].tolist()
-        ys = verticies.loc[row.name, 'Y'].tolist()
+        xs = verticies.loc[row.name, "X"].tolist()
+        ys = verticies.loc[row.name, "Y"].tolist()
         if isinstance(xs, list) and isinstance(ys, list):
             # if more than one vert for this link exists, arrays are returned
             # from verticies.get_value(). it then needs to be zipped up
@@ -223,11 +227,12 @@ def get_inp_options_df(inp_path):
     FLOW_ROUTING  DYNWAVE
     """
     from io import StringIO
-    from swmmio.defs import INP_SECTION_TAGS, INP_OBJECTS
-    ops_tag = '[OPTIONS]'
-    ops_cols = INP_OBJECTS['OPTIONS']['columns']
-    ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment=';')
-    ops_df = pd.read_csv(StringIO(ops_string), header=None, sep=r'\s+', skiprows=[0],
+
+    from swmmio.defs import INP_OBJECTS, INP_SECTION_TAGS
+    ops_tag = "[OPTIONS]"
+    ops_cols = INP_OBJECTS["OPTIONS"]["columns"]
+    ops_string = extract_section_of_file(inp_path, ops_tag, INP_SECTION_TAGS, comment=";")
+    ops_df = pd.read_csv(StringIO(ops_string), header=None, sep=r"\s+", skiprows=[0],
                          index_col=0, names=ops_cols)
     return ops_df
 
